@@ -77,6 +77,11 @@ export const DashboardPage = () => {
     },
   ];
 
+  // Get user's signed contracts
+  const signedContracts = JSON.parse(localStorage.getItem('signedContracts') || '[]').filter(
+    contract => contract.userId === user.id
+  );
+
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4 max-w-6xl">
