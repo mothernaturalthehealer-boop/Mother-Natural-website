@@ -614,7 +614,7 @@ export const AdminPage = () => {
               {/* Contract Templates */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-heading text-2xl\">Contract Templates</CardTitle>
+                  <CardTitle className="font-heading text-2xl">Contract Templates</CardTitle>
                   <CardDescription>Edit your booking agreement templates</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -625,28 +625,28 @@ export const AdminPage = () => {
                     </CardHeader>
                     <CardFooter>
                       <Button
-                        variant=\"outline\"
-                        className=\"w-full\"
+                        variant="outline"
+                        className="w-full"
                         onClick={() => handleEditContract('appointment')}
                       >
-                        <Edit className=\"mr-2 h-4 w-4\" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit Template
                       </Button>
                     </CardFooter>
                   </Card>
 
-                  <Card className=\"border-secondary/20\">
+                  <Card className="border-secondary/20">
                     <CardHeader>
-                      <CardTitle className=\"text-lg\">Retreat Contract</CardTitle>
+                      <CardTitle className="text-lg">Retreat Contract</CardTitle>
                       <CardDescription>Used for all retreat bookings</CardDescription>
                     </CardHeader>
                     <CardFooter>
                       <Button
-                        variant=\"outline\"
-                        className=\"w-full\"
+                        variant="outline"
+                        className="w-full"
                         onClick={() => handleEditContract('retreat')}
                       >
-                        <Edit className=\"mr-2 h-4 w-4\" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit Template
                       </Button>
                     </CardFooter>
@@ -657,27 +657,27 @@ export const AdminPage = () => {
               {/* Signed Contracts */}
               <Card>
                 <CardHeader>
-                  <CardTitle className=\"font-heading text-2xl\">Signed Contracts</CardTitle>
+                  <CardTitle className="font-heading text-2xl">Signed Contracts</CardTitle>
                   <CardDescription>View all client agreements ({signedContracts.length} total)</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {signedContracts.length === 0 ? (
-                    <div className=\"text-center py-12 text-muted-foreground\">
+                    <div className="text-center py-12 text-muted-foreground">
                       No signed contracts yet
                     </div>
                   ) : (
-                    <div className=\"space-y-3 max-h-96 overflow-y-auto\">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
                       {signedContracts.slice().reverse().map((contract) => (
-                        <Card key={contract.id} className=\"border-border/50\">
-                          <CardHeader className=\"py-3\">
-                            <div className=\"flex justify-between items-start\">
+                        <Card key={contract.id} className="border-border/50">
+                          <CardHeader className="py-3">
+                            <div className="flex justify-between items-start">
                               <div>
-                                <CardTitle className=\"text-sm capitalize\">{contract.type} Contract</CardTitle>
-                                <CardDescription className=\"text-xs mt-1\">
+                                <CardTitle className="text-sm capitalize">{contract.type} Contract</CardTitle>
+                                <CardDescription className="text-xs mt-1">
                                   Signed: {new Date(contract.signedDate).toLocaleDateString()}
                                 </CardDescription>
                               </div>
-                              <Badge variant=\"outline\" className=\"text-xs\">
+                              <Badge variant="outline" className="text-xs">
                                 {contract.bookingDetails.service || contract.bookingDetails.retreat}
                               </Badge>
                             </div>
@@ -692,36 +692,36 @@ export const AdminPage = () => {
 
             {/* Edit Contract Dialog */}
             <Dialog open={showEditContractDialog} onOpenChange={setShowEditContractDialog}>
-              <DialogContent className=\"max-w-3xl max-h-[90vh]\">
+              <DialogContent className="max-w-3xl max-h-[90vh]">
                 <DialogHeader>
-                  <DialogTitle className=\"font-heading text-2xl\">
+                  <DialogTitle className="font-heading text-2xl">
                     Edit {editingContract?.type === 'appointment' ? 'Appointment' : 'Retreat'} Contract
                   </DialogTitle>
                   <DialogDescription>
                     This contract will be shown to clients before they complete their booking
                   </DialogDescription>
                 </DialogHeader>
-                <div className=\"py-4\">
-                  <Label htmlFor=\"contractText\" className=\"text-base font-semibold mb-2 block\">
+                <div className="py-4">
+                  <Label htmlFor="contractText" className="text-base font-semibold mb-2 block">
                     Contract Text
                   </Label>
                   <Textarea
-                    id=\"contractText\"
+                    id="contractText"
                     value={editingContract?.text || ''}
                     onChange={(e) => setEditingContract({ ...editingContract, text: e.target.value })}
                     rows={20}
-                    className=\"font-mono text-sm\"
-                    placeholder=\"Enter your contract terms...\"
+                    className="font-mono text-sm"
+                    placeholder="Enter your contract terms..."
                   />
-                  <p className=\"text-xs text-muted-foreground mt-2\">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Tip: Use clear language and include cancellation policy, payment terms, and liability information
                   </p>
                 </div>
                 <DialogFooter>
-                  <Button variant=\"outline\" onClick={() => setShowEditContractDialog(false)}>
+                  <Button variant="outline" onClick={() => setShowEditContractDialog(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleSaveContract} className=\"bg-primary hover:bg-primary-dark\">
+                  <Button onClick={handleSaveContract} className="bg-primary hover:bg-primary-dark">
                     Save Contract Template
                   </Button>
                 </DialogFooter>
@@ -730,7 +730,7 @@ export const AdminPage = () => {
           </TabsContent>
 
           {/* Users Tab */}
-          <TabsContent value=\"users\" className=\"space-y-4\">
+          <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="font-heading text-2xl">User Management</CardTitle>
