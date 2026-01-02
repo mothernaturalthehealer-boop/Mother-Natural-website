@@ -177,6 +177,32 @@ export const AdminPage = () => {
     toast.success('Fundraiser status updated');
   };
 
+  const handleEditContract = (type) => {
+    setEditingContract({
+      type: type,
+      text: contractTemplates[type] || defaultContractTemplates[type]
+    });
+    setShowEditContractDialog(true);
+  };
+
+  const handleSaveContract = () => {
+    if (!editingContract.text.trim()) {
+      toast.error('Contract cannot be empty');
+      return;
+    }
+
+    const updatedTemplates = {
+      ...contractTemplates,
+      [editingContract.type]: editingContract.text
+    };
+    setContractTemplates(updatedTemplates);
+    localStorage.setItem('contractTemplates', JSON.stringify(updatedTemplates));
+    
+    toast.success('Contract template updated successfully!');
+    setShowEditContractDialog(false);
+    setEditingContract(null);
+  };
+
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4 max-w-7xl">
