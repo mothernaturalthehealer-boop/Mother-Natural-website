@@ -24,6 +24,13 @@ export const AdminPage = () => {
     description: ''
   });
 
+  const [products, setProducts] = useState([
+    { id: 1, name: 'Lavender Calm Tea', price: 18.99, category: 'Teas', stock: 45 },
+    { id: 2, name: 'Healing Herbal Tincture', price: 24.99, category: 'Tinctures', stock: 32 },
+    { id: 3, name: 'Rose Essential Oil', price: 32.99, category: 'Oils', stock: 28 },
+    { id: 4, name: 'Healing with Herbs Book', price: 34.99, category: 'Books', stock: 15 },
+  ]);
+
   if (!user || user.role !== 'admin') {
     navigate('/');
     return null;
@@ -35,13 +42,6 @@ export const AdminPage = () => {
     { label: 'Appointments', value: '87', icon: Calendar, color: 'text-secondary' },
     { label: 'Retreats Booked', value: '23', icon: Mountain, color: 'text-natural' },
   ];
-
-  const [products, setProducts] = useState([
-    { id: 1, name: 'Lavender Calm Tea', price: 18.99, category: 'Teas', stock: 45 },
-    { id: 2, name: 'Healing Herbal Tincture', price: 24.99, category: 'Tinctures', stock: 32 },
-    { id: 3, name: 'Rose Essential Oil', price: 32.99, category: 'Oils', stock: 28 },
-    { id: 4, name: 'Healing with Herbs Book', price: 34.99, category: 'Books', stock: 15 },
-  ]);
 
   const recentOrders = [
     { id: '1001', customer: 'Sarah Johnson', total: 51.98, status: 'Shipped', date: 'June 10, 2024' },
