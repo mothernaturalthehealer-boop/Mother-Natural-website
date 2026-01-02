@@ -7,6 +7,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { ContractSigningDialog } from '@/components/ContractSigningDialog';
 import { toast } from 'sonner';
 import { Calendar as CalendarIcon, Clock, DollarSign } from 'lucide-react';
 
