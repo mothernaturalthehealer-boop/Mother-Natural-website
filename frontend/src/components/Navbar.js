@@ -25,6 +25,7 @@ export const Navbar = () => {
   const { getCartCount } = useCart();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showEmergencyDialog, setShowEmergencyDialog] = useState(false);
 
   const handleLogout = () => {
     logout();
