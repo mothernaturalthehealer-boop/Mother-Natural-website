@@ -24,6 +24,25 @@ export const AdminPage = () => {
     description: ''
   });
 
+  const [fundraisers, setFundraisers] = useState([]);
+  const [showAddFundraiserDialog, setShowAddFundraiserDialog] = useState(false);
+  const [newFundraiser, setNewFundraiser] = useState({
+    title: '',
+    beneficiary: '',
+    story: '',
+    goalAmount: '',
+    image: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
+    endDate: ''
+  });
+
+  // Load fundraisers from localStorage
+  useEffect(() => {
+    const savedFundraisers = localStorage.getItem('fundraisers');
+    if (savedFundraisers) {
+      setFundraisers(JSON.parse(savedFundraisers));
+    }
+  }, []);
+
   const [products, setProducts] = useState([
     { id: 1, name: 'Lavender Calm Tea', price: 18.99, category: 'Teas', stock: 45 },
     { id: 2, name: 'Healing Herbal Tincture', price: 24.99, category: 'Tinctures', stock: 32 },
