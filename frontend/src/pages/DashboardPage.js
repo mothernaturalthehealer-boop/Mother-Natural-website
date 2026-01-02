@@ -111,11 +111,12 @@ export const DashboardPage = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="classes">Classes</TabsTrigger>
             <TabsTrigger value="retreats">Retreats</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="contracts">Contracts</TabsTrigger>
           </TabsList>
 
           {/* Appointments Tab */}
