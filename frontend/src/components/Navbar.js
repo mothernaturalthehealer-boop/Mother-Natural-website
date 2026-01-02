@@ -175,6 +175,20 @@ export const Navbar = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px]">
                 <div className="flex flex-col space-y-4 mt-8">
+                  {/* Mobile Emergency Button */}
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setShowEmergencyDialog(true);
+                    }}
+                    className="w-full animate-pulse-soft"
+                  >
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Crisis Support
+                  </Button>
+                  
+                  <div className="border-t pt-4 space-y-4">
                   <Link to="/shop" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
                     Shop
                   </Link>
