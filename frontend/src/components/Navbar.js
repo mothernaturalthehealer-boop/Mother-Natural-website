@@ -99,6 +99,17 @@ export const Navbar = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-3">
+            {/* Emergency Crisis Button */}
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowEmergencyDialog(true)}
+              className="hidden md:flex items-center bg-destructive hover:bg-destructive/90 animate-pulse-soft"
+            >
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Crisis Support
+            </Button>
+
             {/* Cart */}
             <Button
               variant="ghost"
