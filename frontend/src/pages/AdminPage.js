@@ -401,6 +401,162 @@ export const AdminPage = () => {
             </Card>
           </TabsContent>
 
+          {/* Fundraisers Tab */}
+          <TabsContent value="fundraisers" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="font-heading text-2xl">Fundraisers</CardTitle>
+                    <CardDescription>Manage community fundraisers</CardDescription>
+                  </div>
+                  <Dialog open={showAddFundraiserDialog} onOpenChange={setShowAddFundraiserDialog}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-primary hover:bg-primary-dark">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Fundraiser
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle className="font-heading">Create New Fundraiser</DialogTitle>
+                        <DialogDescription>
+                          Set up a fundraiser to support a community member in need
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="fundraiserTitle">Fundraiser Title *</Label>
+                          <Input
+                            id="fundraiserTitle"
+                            value={newFundraiser.title}
+                            onChange={(e) => setNewFundraiser({ ...newFundraiser, title: e.target.value })}
+                            placeholder="e.g., Support Sarah's Healing Journey"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="beneficiary">Beneficiary Name *</Label>
+                          <Input
+                            id="beneficiary"
+                            value={newFundraiser.beneficiary}
+                            onChange={(e) => setNewFundraiser({ ...newFundraiser, beneficiary: e.target.value })}
+                            placeholder="e.g., Sarah Johnson"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="goalAmount">Goal Amount ($) *</Label>
+                          <Input
+                            id="goalAmount"
+                            type="number"
+                            value={newFundraiser.goalAmount}
+                            onChange={(e) => setNewFundraiser({ ...newFundraiser, goalAmount: e.target.value })}
+                            placeholder="5000"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="endDate">End Date *</Label>
+                          <Input
+                            id="endDate"
+                            type="date"
+                            value={newFundraiser.endDate}
+                            onChange={(e) => setNewFundraiser({ ...newFundraiser, endDate: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="story">Story/Description *</Label>
+                          <Textarea
+                            id="story"
+                            value={newFundraiser.story}
+                            onChange={(e) => setNewFundraiser({ ...newFundraiser, story: e.target.value })}
+                            placeholder="Share the beneficiary's story and how funds will help..."
+                            rows={4}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="imageUrl">Image URL (optional)</Label>
+                          <Input
+                            id="imageUrl"
+                            value={newFundraiser.image}
+                            onChange={(e) => setNewFundraiser({ ...newFundraiser, image: e.target.value })}
+                            placeholder="https://..."
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowAddFundraiserDialog(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleAddFundraiser} className="bg-primary hover:bg-primary-dark">
+                          Create Fundraiser
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {fundraisers.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No fundraisers created yet. Click "Create Fundraiser" to get started.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Beneficiary</TableHead>
+                        <TableHead>Goal</TableHead>
+                        <TableHead>Raised</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>End Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {fundraisers.map((fundraiser) => (
+                        <TableRow key={fundraiser.id}>
+                          <TableCell className="font-medium">{fundraiser.title}</TableCell>
+                          <TableCell>{fundraiser.beneficiary}</TableCell>
+                          <TableCell>${fundraiser.goalAmount.toLocaleString()}</TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-semibold">${fundraiser.raisedAmount.toLocaleString()}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {Math.round((fundraiser.raisedAmount / fundraiser.goalAmount) * 100)}% funded
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={fundraiser.status === 'active' ? 'default' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() => handleToggleFundraiserStatus(fundraiser.id)}
+                            >
+                              {fundraiser.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{fundraiser.endDate}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteFundraiser(fundraiser.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-4">
             <Card>
