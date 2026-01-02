@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ContractSigningDialog } from '@/components/ContractSigningDialog';
 import { toast } from 'sonner';
 import { Mountain, Calendar, Users, MapPin, DollarSign, CheckCircle2 } from 'lucide-react';
 
