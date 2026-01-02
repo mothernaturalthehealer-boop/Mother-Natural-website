@@ -214,6 +214,17 @@ export const AppointmentsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Contract Signing Dialog */}
+      {bookingData && (
+        <ContractSigningDialog
+          open={showContractDialog}
+          onOpenChange={setShowContractDialog}
+          contractType="appointment"
+          bookingDetails={bookingData}
+          onSignComplete={handleContractSigned}
+        />
+      )}
     </div>
   );
 };
