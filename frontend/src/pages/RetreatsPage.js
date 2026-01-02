@@ -130,10 +130,30 @@ export const RetreatsPage = () => {
     }
 
     const option = selectedRetreat.paymentOptions.find(o => o.id === paymentOption);
-    toast.success(`Retreat booked! Payment of $${option.amount} processed.`);
+    
+    // Prepare booking data for contract
+    const booking = {
+      userId: user.id,
+      retreat: selectedRetreat.name,
+      location: selectedRetreat.location,
+      dates: selectedRetreat.dates,
+      paymentPlan: option.label,
+      amount: `$${option.amount}`,
+      totalPrice: `$${selectedRetreat.price}`
+    };
+    
+    setBookingData(booking);
     setShowPaymentDialog(false);
+    setShowContractDialog(true);
+  };
+
+  const handleContractSigned = (signedContract) => {
+    const option = selectedRetreat.paymentOptions.find(o => o.id === paymentOption);
+    toast.success(`Retreat booked! Payment of $${option.amount} processed.`);
+    setShowContractDialog(false);
     setSelectedRetreat(null);
     setPaymentOption('');
+    setBookingData(null);
   };
 
   return (
