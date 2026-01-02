@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
+import { EmergencyCrisisDialog } from '@/components/EmergencyCrisisDialog';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -16,7 +17,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { ShoppingCart, User, Menu, LogOut, LayoutDashboard, Heart } from 'lucide-react';
+import { ShoppingCart, User, Menu, LogOut, LayoutDashboard, Heart, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export const Navbar = () => {
