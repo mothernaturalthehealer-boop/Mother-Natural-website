@@ -67,6 +67,7 @@ export const AdminPage = () => {
   const [signedContracts, setSignedContracts] = useState([]);
   const [editingContract, setEditingContract] = useState(null);
   const [showEditContractDialog, setShowEditContractDialog] = useState(false);
+  const [emergencyRequests, setEmergencyRequests] = useState([]);
 
   const defaultContractTemplates = {
     appointment: `APPOINTMENT BOOKING AGREEMENT\n\nThis agreement is between Mother Natural: The Healing Lab and the client for appointment booking services.\n\n1. CANCELLATION POLICY\n- Cancellations must be made at least 24 hours in advance\n- Cancellations made less than 24 hours before the scheduled appointment will result in a 50% charge\n- No-shows will be charged the full appointment fee\n\n2. RESCHEDULING\n- Appointments may be rescheduled up to 24 hours in advance at no charge\n- Late arrivals may result in shortened appointment time\n\n3. PAYMENT TERMS\n- Payment is due at the time of booking\n- Accepted payment methods include credit/debit cards\n\n4. HEALTH & WELLNESS\n- Client agrees to disclose any relevant health conditions\n- Services are complementary and not a substitute for medical care\n- Client releases Mother Natural from liability for any adverse reactions\n\n5. CONDUCT\n- Client agrees to maintain respectful behavior during appointments\n- Mother Natural reserves the right to refuse service\n\nBy signing below, you acknowledge that you have read, understood, and agree to these terms.`,
