@@ -18,6 +18,8 @@ export const AppointmentsPage = () => {
   const [selectedService, setSelectedService] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [notes, setNotes] = useState('');
+  const [showContractDialog, setShowContractDialog] = useState(false);
+  const [bookingData, setBookingData] = useState(null);
 
   const services = [
     {
