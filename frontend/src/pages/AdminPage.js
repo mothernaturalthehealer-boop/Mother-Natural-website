@@ -484,6 +484,131 @@ export const AdminPage = () => {
             </Card>
           </TabsContent>
 
+          {/* Emergency Tab */}
+          <TabsContent value="emergency" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="font-heading text-2xl text-destructive">Emergency Crisis Requests</CardTitle>
+                    <CardDescription>
+                      Immediate support requests - {emergencyRequests.filter(r => r.status === 'pending').length} pending
+                    </CardDescription>
+                  </div>
+                  <Badge variant="destructive" className="text-lg px-4 py-2">
+                    {emergencyRequests.filter(r => r.status === 'pending').length} Urgent
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {emergencyRequests.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No emergency requests
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {emergencyRequests.map((request) => (
+                      <Card 
+                        key={request.id} 
+                        className={`${
+                          request.priority === 'critical' 
+                            ? 'border-destructive border-2' 
+                            : 'border-warning'
+                        } ${
+                          request.status === 'resolved' 
+                            ? 'opacity-60' 
+                            : ''
+                        }`}
+                      >
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-grow">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <CardTitle className="text-xl">{request.name}</CardTitle>
+                                {request.priority === 'critical' && (
+                                  <Badge variant="destructive" className="animate-pulse">
+                                    IMMEDIATE RISK
+                                  </Badge>
+                                )}
+                                <Badge 
+                                  variant={
+                                    request.status === 'pending' ? 'destructive' :
+                                    request.status === 'contacted' ? 'default' : 
+                                    'outline'
+                                  }
+                                >
+                                  {request.status}
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <span className="text-muted-foreground">Phone:</span>
+                                  <a href={`tel:${request.phone}`} className="font-bold text-destructive ml-2 hover:underline">
+                                    {request.phone}
+                                  </a>
+                                </div>
+                                {request.email && (
+                                  <div>
+                                    <span className="text-muted-foreground">Email:</span>
+                                    <a href={`mailto:${request.email}`} className="ml-2 hover:underline">
+                                      {request.email}
+                                    </a>
+                                  </div>
+                                )}
+                                <div>
+                                  <span className="text-muted-foreground">Submitted:</span>
+                                  <span className="font-medium ml-2">
+                                    {new Date(request.timestamp).toLocaleString()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">Immediate Risk:</span>
+                                  <span className={`font-bold ml-2 ${request.immediateRisk === 'yes' ? 'text-destructive' : ''}`}>
+                                    {request.immediateRisk === 'yes' ? 'YES - CALL 911' : 'No'}
+                                  </span>
+                                </div>
+                              </div>
+                              {request.message && (
+                                <div className="mt-3 p-3 bg-muted rounded-lg">
+                                  <p className="text-sm font-semibold mb-1">Message:</p>
+                                  <p className="text-sm">{request.message}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardFooter className="flex space-x-2">
+                          {request.status === 'pending' && (
+                            <Button
+                              onClick={() => handleMarkEmergencyContacted(request.id)}
+                              className="bg-primary hover:bg-primary-dark"
+                            >
+                              Mark as Contacted
+                            </Button>
+                          )}
+                          {request.status === 'contacted' && (
+                            <Button
+                              onClick={() => handleMarkEmergencyResolved(request.id)}
+                              variant="outline"
+                            >
+                              Mark as Resolved
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            onClick={() => window.open(`tel:${request.phone}`)}
+                          >
+                            Call Now
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Fundraisers Tab */}
           <TabsContent value="fundraisers" className="space-y-4">
             <Card>
