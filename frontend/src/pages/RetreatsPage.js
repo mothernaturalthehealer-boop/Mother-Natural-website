@@ -289,6 +289,17 @@ export const RetreatsPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Contract Signing Dialog */}
+      {bookingData && (
+        <ContractSigningDialog
+          open={showContractDialog}
+          onOpenChange={setShowContractDialog}
+          contractType="retreat"
+          bookingDetails={bookingData}
+          onSignComplete={handleContractSigned}
+        />
+      )}
     </div>
   );
 };
