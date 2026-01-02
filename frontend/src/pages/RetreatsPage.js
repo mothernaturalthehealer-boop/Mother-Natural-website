@@ -17,6 +17,8 @@ export const RetreatsPage = () => {
   const [selectedRetreat, setSelectedRetreat] = useState(null);
   const [paymentOption, setPaymentOption] = useState('');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showContractDialog, setShowContractDialog] = useState(false);
+  const [bookingData, setBookingData] = useState(null);
 
   const retreats = [
     {
