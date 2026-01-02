@@ -75,13 +75,28 @@ export const AppointmentsPage = () => {
 
     const service = services.find(s => s.id.toString() === selectedService);
     
-    // Mock booking
+    // Prepare booking data for contract
+    const booking = {
+      userId: user.id,
+      service: service.name,
+      date: date.toLocaleDateString(),
+      time: selectedTime,
+      price: `$${service.price}`,
+      notes: notes || 'None'
+    };
+    
+    setBookingData(booking);
+    setShowContractDialog(true);
+  };
+
+  const handleContractSigned = (signedContract) => {
     toast.success(`Appointment booked for ${date.toLocaleDateString()} at ${selectedTime}!`);
     
     // Reset form
     setSelectedService('');
     setSelectedTime('');
     setNotes('');
+    setBookingData(null);
   };
 
   return (
