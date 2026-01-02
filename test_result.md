@@ -101,3 +101,158 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Test the Mother Natural: The Healing Lab wellness platform comprehensively. This is a holistic wellness platform with e-commerce, booking, classes, retreats, and community features."
+
+frontend:
+  - task: "Homepage Navigation and Hero Section"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/HomePage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing homepage hero section with lavender field image, navigation links, and featured sections"
+
+  - task: "Shop Page with Category Filtering"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ShopPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing shop page with category tabs, product display, and add to cart functionality"
+
+  - task: "Navigation and Cart Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/Navbar.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing navigation menu, cart icon updates, and user authentication flows"
+
+  - task: "Appointments Booking System"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AppointmentsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing appointment booking flow and login requirement"
+
+  - task: "Classes Enrollment System"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ClassesPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing classes display and enrollment functionality"
+
+  - task: "Retreats Booking and Payment"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/RetreatsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing retreat booking and payment options dialog"
+
+  - task: "Community Page and Authentication"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/CommunityPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing community posts display and authentication requirements"
+
+  - task: "Authentication System"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AuthPages.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing login and signup forms with test credentials"
+
+  - task: "Cart Management System"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/CartPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing cart functionality, quantity adjustment, and checkout flow"
+
+  - task: "User Dashboard"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/DashboardPage.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing user dashboard with appointments, classes, retreats, and orders tabs"
+
+  - task: "Admin Panel"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminPage.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing admin panel access and product management features"
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+
+test_plan:
+  current_focus:
+    - "Homepage Navigation and Hero Section"
+    - "Shop Page with Category Filtering"
+    - "Navigation and Cart Integration"
+    - "Authentication System"
+    - "Cart Management System"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: "Starting comprehensive testing of Mother Natural wellness platform. Will test all major flows including homepage, shop, appointments, classes, retreats, community, authentication, cart, dashboard, and admin panel."
