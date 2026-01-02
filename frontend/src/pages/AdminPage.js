@@ -98,6 +98,61 @@ export const AdminPage = () => {
     toast.success('Product deleted successfully');
   };
 
+  const handleAddFundraiser = () => {
+    if (!newFundraiser.title || !newFundraiser.beneficiary || !newFundraiser.goalAmount) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const fundraiser = {
+      id: Date.now(),
+      title: newFundraiser.title,
+      beneficiary: newFundraiser.beneficiary,
+      story: newFundraiser.story,
+      goalAmount: parseFloat(newFundraiser.goalAmount),
+      raisedAmount: 0,
+      image: newFundraiser.image,
+      createdDate: new Date().toISOString().split('T')[0],
+      endDate: newFundraiser.endDate,
+      status: 'active',
+      contributors: 0
+    };
+
+    const updatedFundraisers = [...fundraisers, fundraiser];
+    setFundraisers(updatedFundraisers);
+    localStorage.setItem('fundraisers', JSON.stringify(updatedFundraisers));
+    
+    toast.success('Fundraiser created successfully!');
+    setShowAddFundraiserDialog(false);
+    setNewFundraiser({
+      title: '',
+      beneficiary: '',
+      story: '',
+      goalAmount: '',
+      image: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
+      endDate: ''
+    });
+  };
+
+  const handleDeleteFundraiser = (id) => {
+    const updatedFundraisers = fundraisers.filter(f => f.id !== id);
+    setFundraisers(updatedFundraisers);
+    localStorage.setItem('fundraisers', JSON.stringify(updatedFundraisers));
+    toast.success('Fundraiser deleted successfully');
+  };
+
+  const handleToggleFundraiserStatus = (id) => {
+    const updatedFundraisers = fundraisers.map(f => {
+      if (f.id === id) {
+        return { ...f, status: f.status === 'active' ? 'closed' : 'active' };
+      }
+      return f;
+    });
+    setFundraisers(updatedFundraisers);
+    localStorage.setItem('fundraisers', JSON.stringify(updatedFundraisers));
+    toast.success('Fundraiser status updated');
+  };
+
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4 max-w-7xl">
