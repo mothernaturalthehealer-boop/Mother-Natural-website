@@ -13,6 +13,7 @@ import { AppointmentsPage } from '@/pages/AppointmentsPage';
 import { ClassesPage } from '@/pages/ClassesPage';
 import { RetreatsPage } from '@/pages/RetreatsPage';
 import { CommunityPage } from '@/pages/CommunityPage';
+import { FundraisersPage } from '@/pages/FundraisersPage';
 import { CartPage } from '@/pages/CartPage';
 import { LoginPage, SignupPage } from '@/pages/AuthPages';
 import { DashboardPage } from '@/pages/DashboardPage';
