@@ -177,6 +177,9 @@ export const Navbar = () => {
                   <Link to="/community" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
                     Community
                   </Link>
+                  <Link to="/fundraisers" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                    Fundraisers
+                  </Link>
                   {user && (
                     <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
                       Dashboard
