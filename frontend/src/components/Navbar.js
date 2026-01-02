@@ -189,29 +189,30 @@ export const Navbar = () => {
                   </Button>
                   
                   <div className="border-t pt-4 space-y-4">
-                  <Link to="/shop" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
-                    Shop
-                  </Link>
-                  <Link to="/appointments" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
-                    Appointments
-                  </Link>
-                  <Link to="/classes" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
-                    Classes
-                  </Link>
-                  <Link to="/retreats" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
-                    Retreats
-                  </Link>
-                  <Link to="/community" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
-                    Community
-                  </Link>
-                  <Link to="/fundraisers" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
-                    Fundraisers
-                  </Link>
-                  {user && (
-                    <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
-                      Dashboard
+                    <Link to="/shop" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                      Shop
                     </Link>
-                  )}
+                    <Link to="/appointments" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                      Appointments
+                    </Link>
+                    <Link to="/classes" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                      Classes
+                    </Link>
+                    <Link to="/retreats" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                      Retreats
+                    </Link>
+                    <Link to="/community" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                      Community
+                    </Link>
+                    <Link to="/fundraisers" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                      Fundraisers
+                    </Link>
+                    {user && (
+                      <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                        Dashboard
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
