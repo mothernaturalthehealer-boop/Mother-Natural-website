@@ -55,6 +55,12 @@ export const AdminPage = () => {
     if (savedSignedContracts) {
       setSignedContracts(JSON.parse(savedSignedContracts));
     }
+
+    // Load emergency requests
+    const savedEmergencyRequests = localStorage.getItem('emergencyRequests');
+    if (savedEmergencyRequests) {
+      setEmergencyRequests(JSON.parse(savedEmergencyRequests));
+    }
   }, []);
 
   const [contractTemplates, setContractTemplates] = useState({});
