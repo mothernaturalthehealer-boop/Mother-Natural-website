@@ -210,6 +210,30 @@ export const AdminPage = () => {
     setEditingContract(null);
   };
 
+  const handleMarkEmergencyContacted = (id) => {
+    const updatedRequests = emergencyRequests.map(req => {
+      if (req.id === id) {
+        return { ...req, status: 'contacted' };
+      }
+      return req;
+    });
+    setEmergencyRequests(updatedRequests);
+    localStorage.setItem('emergencyRequests', JSON.stringify(updatedRequests));
+    toast.success('Marked as contacted');
+  };
+
+  const handleMarkEmergencyResolved = (id) => {
+    const updatedRequests = emergencyRequests.map(req => {
+      if (req.id === id) {
+        return { ...req, status: 'resolved' };
+      }
+      return req;
+    });
+    setEmergencyRequests(updatedRequests);
+    localStorage.setItem('emergencyRequests', JSON.stringify(updatedRequests));
+    toast.success('Marked as resolved');
+  };
+
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4 max-w-7xl">
