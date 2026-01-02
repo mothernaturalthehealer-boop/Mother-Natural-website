@@ -256,6 +256,90 @@ export const DashboardPage = () => {
               </Card>
             ))}
           </TabsContent>
+
+          {/* Contracts Tab */}
+          <TabsContent value="contracts" className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-heading text-2xl font-semibold">Signed Contracts</h2>
+              <Badge variant="outline">{signedContracts.length} contracts</Badge>
+            </div>
+            {signedContracts.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <FileText className="h-16 w-16 mx-auto text-muted-foreground opacity-50 mb-4" />
+                  <p className="text-muted-foreground">No signed contracts yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Contracts will appear here after booking appointments or retreats
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              signedContracts.slice().reverse().map((contract) => (
+                <Card key={contract.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="font-heading text-lg capitalize">
+                          {contract.type} Booking Agreement
+                        </CardTitle>
+                        <CardDescription>
+                          Signed on {new Date(contract.signedDate).toLocaleDateString()} at{' '}
+                          {new Date(contract.signedDate).toLocaleTimeString()}
+                        </CardDescription>
+                      </div>
+                      <Badge className="bg-success text-success-foreground">Signed</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {Object.entries(contract.bookingDetails).map(([key, value]) => {
+                        if (key !== 'userId') {
+                          return (
+                            <div key={key}>
+                              <span className="text-muted-foreground capitalize">
+                                {key.replace(/([A-Z])/g, ' $1')}:
+                              </span>
+                              <div className="font-medium">{value}</div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <FileText className="mr-2 h-4 w-4" />
+                          View Contract
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl max-h-[90vh]">
+                        <DialogHeader>
+                          <DialogTitle className="font-heading text-2xl">
+                            {contract.type === 'appointment' ? 'Appointment' : 'Retreat'} Booking Agreement
+                          </DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="h-96 w-full border rounded-md p-4 bg-muted/30">
+                          <pre className="text-sm whitespace-pre-wrap font-body">{contract.contractText}</pre>
+                        </ScrollArea>
+                        <div className="border-t pt-4">
+                          <h4 className="font-semibold mb-2">Your Signature:</h4>
+                          <div className="border rounded-lg p-4 bg-white">
+                            <img src={contract.signature} alt="Signature" className="max-h-32" />
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Signed on {new Date(contract.signedDate).toLocaleString()}
+                          </p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </CardFooter>
+                </Card>
+              ))
+            )}
+          </TabsContent>
         </Tabs>
       </div>
     </div>
