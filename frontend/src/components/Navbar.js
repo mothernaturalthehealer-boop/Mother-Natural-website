@@ -218,6 +218,12 @@ export const Navbar = () => {
           </div>
         </div>
       </div>
+
+      {/* Emergency Crisis Dialog */}
+      <EmergencyCrisisDialog 
+        open={showEmergencyDialog} 
+        onOpenChange={setShowEmergencyDialog} 
+      />
     </nav>
   );
 };
