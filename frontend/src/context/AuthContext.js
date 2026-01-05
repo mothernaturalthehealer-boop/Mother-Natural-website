@@ -14,6 +14,20 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Pre-configured admin account
+  const ADMIN_CREDENTIALS = {
+    email: 'admin@mothernatural.com',
+    password: 'Aniyah13',
+    userData: {
+      id: 'admin-001',
+      name: 'Administrator',
+      email: 'admin@mothernatural.com',
+      role: 'admin',
+      membershipLevel: 'platinum',
+      joinedDate: new Date().toISOString()
+    }
+  };
+
   useEffect(() => {
     // Check localStorage for user session
     const savedUser = localStorage.getItem('user');
@@ -24,13 +38,20 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (email, password) => {
-    // Mock authentication
+    // Check if it's the admin account
+    if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      setUser(ADMIN_CREDENTIALS.userData);
+      localStorage.setItem('user', JSON.stringify(ADMIN_CREDENTIALS.userData));
+      return ADMIN_CREDENTIALS.userData;
+    }
+    
+    // Regular user login (mock)
     const mockUser = {
-      id: '1',
+      id: Date.now().toString(),
       name: 'User Name',
       email: email,
-      role: email.includes('admin') ? 'admin' : 'user',
-      membershipLevel: 'silver',
+      role: 'user',
+      membershipLevel: 'basic',
       joinedDate: new Date().toISOString()
     };
     setUser(mockUser);
