@@ -524,7 +524,15 @@ export const AdminPage = () => {
             <h1 className="font-heading text-4xl font-bold mb-2">Admin Dashboard</h1>
             <p className="text-muted-foreground">Manage your wellness platform</p>
           </div>
-          <Settings className="h-8 w-8 text-muted-foreground" />
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => setShowSettingsDialog(true)}
+            data-testid="admin-settings-btn"
+            className="hover:bg-primary/10"
+          >
+            <Settings className="h-6 w-6" />
+          </Button>
         </div>
 
         {/* Stats Grid */}
