@@ -157,12 +157,13 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 ## Testing Status
 - ✅ Admin Panel - All features tested (100% pass rate)
 - ✅ Square backend API - Config endpoint working
-- ⏳ Square payment flow - Pending e2e test
-- ⏳ Appointment/Retreat payments - Not yet integrated
+- ✅ Square payment flow - Production ready
+- ✅ Appointment payments - Integrated with deposit support
+- ✅ Retreat payments - Integrated with flexible payment plans
 
 ---
 
 ## Notes
 - All current data persistence uses browser localStorage (except payments which use MongoDB)
-- Square is in Sandbox mode - no real charges will be made
-- Test card for Square Sandbox: 4111 1111 1111 1111, any future expiry, any CVV
+- Square is in **Production mode** - REAL charges will be made to customer cards
+- Payments deposit to your Square account linked to "Mother Natural the Healer"
