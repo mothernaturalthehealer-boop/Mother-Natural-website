@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { Plus, Edit, Trash2, Package, Users, Calendar, Mountain, Settings } from 'lucide-react';
 
 export const AdminPage = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [showAddProductDialog, setShowAddProductDialog] = useState(false);
   const [newProduct, setNewProduct] = useState({
