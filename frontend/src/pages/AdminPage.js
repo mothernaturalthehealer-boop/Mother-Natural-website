@@ -153,6 +153,18 @@ export const AdminPage = () => {
     if (savedPosts) {
       setCommunityPosts(JSON.parse(savedPosts));
     }
+
+    // Load user appointments
+    const savedAppointments = localStorage.getItem('userAppointments');
+    if (savedAppointments) {
+      setUserAppointments(JSON.parse(savedAppointments));
+    }
+
+    // Load admin settings
+    const savedSettings = localStorage.getItem('adminSettings');
+    if (savedSettings) {
+      setAdminSettings(JSON.parse(savedSettings));
+    }
   }, []);
 
   const defaultContractTemplates = {
