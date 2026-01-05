@@ -535,12 +535,17 @@ export const AdminPage = () => {
           </Button>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid - Clickable Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index}>
+              <Card 
+                key={index} 
+                className="cursor-pointer hover:shadow-lg transition-all hover:border-primary/50"
+                onClick={() => setActiveTab(stat.tab)}
+                data-testid={`stat-card-${stat.tab}`}
+              >
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     {stat.label}
