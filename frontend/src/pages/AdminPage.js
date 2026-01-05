@@ -292,6 +292,82 @@ export const AdminPage = () => {
     toast.success('Marked as resolved');
   };
 
+  // Service management handlers
+  const handleAddService = () => {
+    if (!newService.name || !newService.price || !newService.duration) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const service = {
+      id: Date.now(),
+      ...newService,
+      price: parseFloat(newService.price),
+      deposit: newService.paymentType === 'deposit' ? parseFloat(newService.deposit) : 0
+    };
+
+    const updatedServices = [...services, service];
+    setServices(updatedServices);
+    localStorage.setItem('adminServices', JSON.stringify(updatedServices));
+    toast.success('Service added successfully!');
+    setShowAddServiceDialog(false);
+    setNewService({ name: '', duration: '', price: '', description: '', paymentType: 'full', deposit: '' });
+  };
+
+  const handleDeleteService = (id) => {
+    const updatedServices = services.filter(s => s.id !== id);
+    setServices(updatedServices);
+    localStorage.setItem('adminServices', JSON.stringify(updatedServices));
+    toast.success('Service deleted successfully');
+  };
+
+  // Retreat management handlers
+  const handleAddRetreat = () => {
+    if (!newRetreat.name || !newRetreat.location || !newRetreat.price || !newRetreat.dates) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const retreat = {
+      id: Date.now(),
+      ...newRetreat,
+      price: parseFloat(newRetreat.price),
+      capacity: parseInt(newRetreat.capacity) || 20,
+      spotsLeft: parseInt(newRetreat.capacity) || 20,
+      includes: ['Accommodations', 'All Meals', 'Guided Sessions', 'Activities'],
+      paymentOptions: [
+        { id: 'full', label: 'Pay in Full', amount: parseFloat(newRetreat.price), description: 'One-time payment' },
+        { id: 'deposit', label: 'Deposit', amount: parseFloat(newRetreat.price) * 0.3, description: `Pay 30% now, rest later` },
+        { id: '50-50', label: '50/50 Split', amount: parseFloat(newRetreat.price) / 2, description: 'Pay half now, half later' }
+      ]
+    };
+
+    const updatedRetreats = [...retreats, retreat];
+    setRetreats(updatedRetreats);
+    localStorage.setItem('adminRetreats', JSON.stringify(updatedRetreats));
+    toast.success('Retreat added successfully!');
+    setShowAddRetreatDialog(false);
+    setNewRetreat({
+      name: '', location: '', duration: '', dates: '', price: '', description: '', capacity: '',
+      image: 'https://images.pexels.com/photos/35439440/pexels-photo-35439440.jpeg'
+    });
+  };
+
+  const handleDeleteRetreat = (id) => {
+    const updatedRetreats = retreats.filter(r => r.id !== id);
+    setRetreats(updatedRetreats);
+    localStorage.setItem('adminRetreats', JSON.stringify(updatedRetreats));
+    toast.success('Retreat deleted successfully');
+  };
+
+  // Community post handlers
+  const handleDeletePost = (id) => {
+    const updatedPosts = communityPosts.filter(p => p.id !== id);
+    setCommunityPosts(updatedPosts);
+    localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
+    toast.success('Post deleted successfully');
+  };
+
   // Show loading while checking authentication
   if (loading) {
     return (
