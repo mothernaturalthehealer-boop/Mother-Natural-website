@@ -35,6 +35,21 @@ export const AdminPage = () => {
     endDate: ''
   });
 
+  // Check authentication and admin role
+  useEffect(() => {
+    if (!user) {
+      toast.error('Please login to access the admin panel');
+      navigate('/login');
+      return;
+    }
+    
+    if (user.role !== 'admin') {
+      toast.error('Access denied. Admin privileges required.');
+      navigate('/');
+      return;
+    }
+  }, [user, navigate]);
+
   // Load fundraisers from localStorage
   useEffect(() => {
     const savedFundraisers = localStorage.getItem('fundraisers');
