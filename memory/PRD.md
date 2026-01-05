@@ -84,9 +84,9 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 ## Prioritized Backlog
 
 ### P0 - Critical (Current)
-- [ ] Test Square payment flow end-to-end
-- [ ] Add payment integration to Appointments page
-- [ ] Add payment integration to Retreats page (with installments)
+- [x] ~~Test Square payment flow end-to-end~~
+- [x] ~~Add payment integration to Appointments page~~
+- [x] ~~Add payment integration to Retreats page (with installments)~~
 
 ### P1 - High Priority
 - [ ] Migrate frontend localStorage to backend MongoDB APIs
