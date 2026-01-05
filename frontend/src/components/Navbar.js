@@ -146,28 +146,38 @@ export const Navbar = () => {
                       <User className="h-5 w-5" />
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <div className="w-48 p-2">
-                        <div className="px-4 py-2 text-sm font-medium border-b border-border mb-2">
+                      <ul className="w-48 p-2 flex flex-col">
+                        <li className="px-4 py-2 text-sm font-medium border-b border-border mb-2">
                           {user.name}
-                        </div>
-                        <Link to="/dashboard" className="flex items-center px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
-                          <LayoutDashboard className="h-4 w-4 mr-2" />
-                          Dashboard
-                        </Link>
+                        </li>
+                        <li>
+                          <NavigationMenuLink asChild>
+                            <Link to="/dashboard" className="flex items-center px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
+                              <LayoutDashboard className="h-4 w-4 mr-2" />
+                              Dashboard
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
                         {user.role === 'admin' && (
-                          <Link to="/admin" className="flex items-center px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
-                            <LayoutDashboard className="h-4 w-4 mr-2" />
-                            Admin Panel
-                          </Link>
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <Link to="/admin" className="flex items-center px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
+                                <LayoutDashboard className="h-4 w-4 mr-2" />
+                                Admin Panel
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
                         )}
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center w-full px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors text-destructive"
-                        >
-                          <LogOut className="h-4 w-4 mr-2" />
-                          Logout
-                        </button>
-                      </div>
+                        <li>
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center w-full px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors text-destructive"
+                          >
+                            <LogOut className="h-4 w-4 mr-2" />
+                            Logout
+                          </button>
+                        </li>
+                      </ul>
                     </NavigationMenuContent>
                   </NavigationMenuItem>
                 </NavigationMenuList>
