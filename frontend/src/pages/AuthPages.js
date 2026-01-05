@@ -117,7 +117,7 @@ export const LoginPage = () => {
             </DialogTitle>
             <DialogDescription>
               {resetStep === 1 
-                ? "Enter your email address and we'll send you a link to reset your password."
+                ? "Enter your email address and we&apos;ll send you a link to reset your password."
                 : "Check your email for password reset instructions."
               }
             </DialogDescription>
