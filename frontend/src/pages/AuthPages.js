@@ -239,6 +239,57 @@ export const SignupPage = () => {
           </CardFooter>
         </form>
       </Card>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Reset Password
+            </DialogTitle>
+            <DialogDescription>
+              {resetStep === 1 
+                ? "Enter your email address and we'll send you a link to reset your password."
+                : "Check your email for password reset instructions."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          {resetStep === 1 ? (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setShowForgotPassword(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-primary hover:bg-primary-dark">
+                  Send Reset Link
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="text-center py-4">
+              <div className="mx-auto h-12 w-12 rounded-full bg-success/10 flex items-center justify-center mb-4">
+                <Mail className="h-6 w-6 text-success" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Password reset instructions have been sent to <strong>{resetEmail}</strong>
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
