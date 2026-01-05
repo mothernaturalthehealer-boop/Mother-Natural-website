@@ -1063,36 +1063,87 @@ export const AdminPage = () => {
           <TabsContent value="appointments" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="font-heading text-2xl">Upcoming Appointments</CardTitle>
-                <CardDescription>Manage client bookings</CardDescription>
+                <CardTitle className="font-heading text-2xl">Appointment Management</CardTitle>
+                <CardDescription>View and manage client bookings ({userAppointments.length} total)</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Service</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Time</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {appointments.map((apt) => (
-                      <TableRow key={apt.id}>
-                        <TableCell className="font-medium">{apt.client}</TableCell>
-                        <TableCell>{apt.service}</TableCell>
-                        <TableCell>{apt.date}</TableCell>
-                        <TableCell>{apt.time}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">
-                            View Details
-                          </Button>
-                        </TableCell>
+                {userAppointments.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No appointments booked yet. Appointments will appear here when clients book.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Service</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {userAppointments.map((apt) => (
+                        <TableRow key={apt.id}>
+                          <TableCell className="font-medium">{apt.clientName || apt.userId}</TableCell>
+                          <TableCell>{apt.service}</TableCell>
+                          <TableCell>{apt.date}</TableCell>
+                          <TableCell>{apt.time}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={
+                                apt.status === 'approved' ? 'default' : 
+                                apt.status === 'denied' ? 'destructive' : 
+                                'outline'
+                              }
+                            >
+                              {apt.status || 'pending'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-1">
+                              {apt.status !== 'approved' && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleApproveAppointment(apt.id)}
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  title="Approve"
+                                  data-testid={`approve-apt-${apt.id}`}
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {apt.status !== 'denied' && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDenyAppointment(apt.id)}
+                                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                  title="Deny"
+                                  data-testid={`deny-apt-${apt.id}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteAppointment(apt.id)}
+                                className="text-destructive hover:text-destructive"
+                                title="Delete"
+                                data-testid={`delete-apt-${apt.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
