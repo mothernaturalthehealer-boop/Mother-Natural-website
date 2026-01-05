@@ -560,6 +560,300 @@ export const AdminPage = () => {
             </Card>
           </TabsContent>
 
+          {/* Services Tab */}
+          <TabsContent value="services" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="font-heading text-2xl">Appointment Services</CardTitle>
+                    <CardDescription>Manage your service offerings</CardDescription>
+                  </div>
+                  <Dialog open={showAddServiceDialog} onOpenChange={setShowAddServiceDialog}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-primary hover:bg-primary-dark">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Service
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle className="font-heading">Add New Service</DialogTitle>
+                        <DialogDescription>Create a new appointment service</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="serviceName">Service Name *</Label>
+                          <Input
+                            id="serviceName"
+                            value={newService.name}
+                            onChange={(e) => setNewService({ ...newService, name: e.target.value })}
+                            placeholder="e.g., Energy Healing Session"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="duration">Duration *</Label>
+                            <Input
+                              id="duration"
+                              value={newService.duration}
+                              onChange={(e) => setNewService({ ...newService, duration: e.target.value })}
+                              placeholder="60 min"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="servicePrice">Price ($) *</Label>
+                            <Input
+                              id="servicePrice"
+                              type="number"
+                              value={newService.price}
+                              onChange={(e) => setNewService({ ...newService, price: e.target.value })}
+                              placeholder="85"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="serviceDesc">Description</Label>
+                          <Textarea
+                            id="serviceDesc"
+                            value={newService.description}
+                            onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+                            placeholder="Service description..."
+                            rows={3}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Payment Type</Label>
+                          <select
+                            value={newService.paymentType}
+                            onChange={(e) => setNewService({ ...newService, paymentType: e.target.value })}
+                            className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                          >
+                            <option value="full">Full Payment</option>
+                            <option value="deposit">Deposit Required</option>
+                          </select>
+                        </div>
+                        {newService.paymentType === 'deposit' && (
+                          <div className="space-y-2">
+                            <Label htmlFor="deposit">Deposit Amount ($)</Label>
+                            <Input
+                              id="deposit"
+                              type="number"
+                              value={newService.deposit}
+                              onChange={(e) => setNewService({ ...newService, deposit: e.target.value })}
+                              placeholder="50"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowAddServiceDialog(false)}>Cancel</Button>
+                        <Button onClick={handleAddService} className="bg-primary hover:bg-primary-dark">Add Service</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {services.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No services created yet. Click "Add Service" to get started.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Service Name</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Payment Type</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {services.map((service) => (
+                        <TableRow key={service.id}>
+                          <TableCell className="font-medium">{service.name}</TableCell>
+                          <TableCell>{service.duration}</TableCell>
+                          <TableCell>${service.price}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {service.paymentType === 'deposit' ? `Deposit $${service.deposit}` : 'Full'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteService(service.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Retreats Tab */}
+          <TabsContent value="retreats" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="font-heading text-2xl">Retreat Management</CardTitle>
+                    <CardDescription>Manage retreat offerings and bookings</CardDescription>
+                  </div>
+                  <Dialog open={showAddRetreatDialog} onOpenChange={setShowAddRetreatDialog}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-primary hover:bg-primary-dark">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Retreat
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="font-heading">Add New Retreat</DialogTitle>
+                        <DialogDescription>Create a new retreat offering</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="retreatName">Retreat Name *</Label>
+                          <Input
+                            id="retreatName"
+                            value={newRetreat.name}
+                            onChange={(e) => setNewRetreat({ ...newRetreat, name: e.target.value })}
+                            placeholder="e.g., Mountain Meditation Retreat"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="location">Location *</Label>
+                            <Input
+                              id="location"
+                              value={newRetreat.location}
+                              onChange={(e) => setNewRetreat({ ...newRetreat, location: e.target.value })}
+                              placeholder="Blue Ridge Mountains, NC"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="retreatDuration">Duration *</Label>
+                            <Input
+                              id="retreatDuration"
+                              value={newRetreat.duration}
+                              onChange={(e) => setNewRetreat({ ...newRetreat, duration: e.target.value })}
+                              placeholder="3 days / 2 nights"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="dates">Dates *</Label>
+                            <Input
+                              id="dates"
+                              value={newRetreat.dates}
+                              onChange={(e) => setNewRetreat({ ...newRetreat, dates: e.target.value })}
+                              placeholder="June 15-17, 2024"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="retreatPrice">Price ($) *</Label>
+                            <Input
+                              id="retreatPrice"
+                              type="number"
+                              value={newRetreat.price}
+                              onChange={(e) => setNewRetreat({ ...newRetreat, price: e.target.value })}
+                              placeholder="899"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="capacity">Capacity (max participants)</Label>
+                          <Input
+                            id="capacity"
+                            type="number"
+                            value={newRetreat.capacity}
+                            onChange={(e) => setNewRetreat({ ...newRetreat, capacity: e.target.value })}
+                            placeholder="20"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="retreatDesc">Description</Label>
+                          <Textarea
+                            id="retreatDesc"
+                            value={newRetreat.description}
+                            onChange={(e) => setNewRetreat({ ...newRetreat, description: e.target.value })}
+                            placeholder="Retreat description..."
+                            rows={4}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="imageUrl">Image URL</Label>
+                          <Input
+                            id="imageUrl"
+                            value={newRetreat.image}
+                            onChange={(e) => setNewRetreat({ ...newRetreat, image: e.target.value })}
+                            placeholder="https://..."
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowAddRetreatDialog(false)}>Cancel</Button>
+                        <Button onClick={handleAddRetreat} className="bg-primary hover:bg-primary-dark">Add Retreat</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {retreats.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No retreats created yet. Click "Add Retreat" to get started.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Retreat Name</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Dates</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Capacity</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {retreats.map((retreat) => (
+                        <TableRow key={retreat.id}>
+                          <TableCell className="font-medium">{retreat.name}</TableCell>
+                          <TableCell>{retreat.location}</TableCell>
+                          <TableCell>{retreat.dates}</TableCell>
+                          <TableCell>${retreat.price}</TableCell>
+                          <TableCell>{retreat.spotsLeft}/{retreat.capacity}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteRetreat(retreat.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-4">
             <Card>
