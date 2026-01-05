@@ -399,6 +399,105 @@ export const AdminPage = () => {
     toast.success('Post deleted successfully');
   };
 
+  // Appointment management handlers
+  const handleApproveAppointment = (id) => {
+    const updatedAppointments = userAppointments.map(apt => {
+      if (apt.id === id) {
+        return { ...apt, status: 'approved' };
+      }
+      return apt;
+    });
+    setUserAppointments(updatedAppointments);
+    localStorage.setItem('userAppointments', JSON.stringify(updatedAppointments));
+    toast.success('Appointment approved');
+  };
+
+  const handleDenyAppointment = (id) => {
+    const updatedAppointments = userAppointments.map(apt => {
+      if (apt.id === id) {
+        return { ...apt, status: 'denied' };
+      }
+      return apt;
+    });
+    setUserAppointments(updatedAppointments);
+    localStorage.setItem('userAppointments', JSON.stringify(updatedAppointments));
+    toast.success('Appointment denied');
+  };
+
+  const handleDeleteAppointment = (id) => {
+    const updatedAppointments = userAppointments.filter(apt => apt.id !== id);
+    setUserAppointments(updatedAppointments);
+    localStorage.setItem('userAppointments', JSON.stringify(updatedAppointments));
+    toast.success('Appointment deleted');
+  };
+
+  // Service editing handlers
+  const handleEditService = (service) => {
+    setEditingService({ ...service });
+    setShowEditServiceDialog(true);
+  };
+
+  const handleSaveEditedService = () => {
+    if (!editingService.name || !editingService.price || !editingService.duration) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const updatedServices = services.map(s => {
+      if (s.id === editingService.id) {
+        return {
+          ...editingService,
+          price: parseFloat(editingService.price),
+          deposit: editingService.paymentType === 'deposit' ? parseFloat(editingService.deposit) : 0
+        };
+      }
+      return s;
+    });
+
+    setServices(updatedServices);
+    localStorage.setItem('adminServices', JSON.stringify(updatedServices));
+    toast.success('Service updated successfully');
+    setShowEditServiceDialog(false);
+    setEditingService(null);
+  };
+
+  // Retreat editing handlers
+  const handleEditRetreat = (retreat) => {
+    setEditingRetreat({ ...retreat });
+    setShowEditRetreatDialog(true);
+  };
+
+  const handleSaveEditedRetreat = () => {
+    if (!editingRetreat.name || !editingRetreat.location || !editingRetreat.price || !editingRetreat.dates) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const updatedRetreats = retreats.map(r => {
+      if (r.id === editingRetreat.id) {
+        return {
+          ...editingRetreat,
+          price: parseFloat(editingRetreat.price),
+          capacity: parseInt(editingRetreat.capacity) || 20,
+        };
+      }
+      return r;
+    });
+
+    setRetreats(updatedRetreats);
+    localStorage.setItem('adminRetreats', JSON.stringify(updatedRetreats));
+    toast.success('Retreat updated successfully');
+    setShowEditRetreatDialog(false);
+    setEditingRetreat(null);
+  };
+
+  // Settings handlers
+  const handleSaveSettings = () => {
+    localStorage.setItem('adminSettings', JSON.stringify(adminSettings));
+    toast.success('Settings saved successfully');
+    setShowSettingsDialog(false);
+  };
+
   // Show loading while checking authentication
   if (loading) {
     return (
