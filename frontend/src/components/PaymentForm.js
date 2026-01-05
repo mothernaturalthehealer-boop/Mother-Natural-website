@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { PaymentForm as SquarePaymentForm, CreditCard } from 'react-square-web-payments-sdk';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, CreditCard as CreditCardIcon, CheckCircle2 } from 'lucide-react';
+import { Loader2, CreditCard as CreditCardIcon, CheckCircle2, Lock } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -20,6 +22,8 @@ export const PaymentForm = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [card, setCard] = useState(null);
+  const [payments, setPayments] = useState(null);
 
   useEffect(() => {
     fetchPaymentConfig();
@@ -36,18 +40,74 @@ export const PaymentForm = ({
       setConfig(data);
     } catch (error) {
       console.error('Error fetching payment config:', error);
-      setErrorMessage('Failed to load payment form. Please refresh the page.');
+      setErrorMessage('Failed to load payment configuration.');
       toast.error('Failed to load payment form');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePaymentSubmit = async (token, buyer) => {
-    console.log('Payment token received:', token);
+  // Initialize Square Web Payments SDK
+  const initializeSquare = useCallback(async () => {
+    if (!config || !window.Square) {
+      console.log('Square SDK or config not ready');
+      return;
+    }
+
+    try {
+      const paymentsInstance = window.Square.payments(config.applicationId, config.locationId);
+      setPayments(paymentsInstance);
+
+      const cardInstance = await paymentsInstance.card();
+      await cardInstance.attach('#card-container');
+      setCard(cardInstance);
+      console.log('Square card form attached');
+    } catch (error) {
+      console.error('Error initializing Square:', error);
+      setErrorMessage('Failed to initialize payment form. Please refresh the page.');
+    }
+  }, [config]);
+
+  // Load Square SDK script
+  useEffect(() => {
+    if (!config) return;
+
+    const existingScript = document.querySelector('script[src*="square"]');
+    if (existingScript) {
+      // Script already loaded, initialize
+      if (window.Square) {
+        initializeSquare();
+      }
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = config.environment === 'production' 
+      ? 'https://web.squarecdn.com/v1/square.js'
+      : 'https://sandbox.web.squarecdn.com/v1/square.js';
+    script.async = true;
+    script.onload = () => {
+      console.log('Square SDK loaded');
+      initializeSquare();
+    };
+    script.onerror = () => {
+      setErrorMessage('Failed to load Square payment SDK');
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup card if it exists
+      if (card) {
+        card.destroy();
+      }
+    };
+  }, [config, initializeSquare]);
+
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
     
-    if (!token?.token) {
-      toast.error('Payment token not generated. Please try again.');
+    if (!card) {
+      toast.error('Payment form not ready. Please wait...');
       return;
     }
 
@@ -55,14 +115,25 @@ export const PaymentForm = ({
     setErrorMessage(null);
 
     try {
+      // Tokenize the card
+      const tokenResult = await card.tokenize();
+      console.log('Tokenization result:', tokenResult);
+
+      if (tokenResult.status !== 'OK') {
+        const errors = tokenResult.errors || [];
+        const errorMsg = errors.map(e => e.message).join(', ') || 'Card validation failed';
+        throw new Error(errorMsg);
+      }
+
+      // Process payment with backend
       const response = await fetch(`${API_URL}/api/payments/process`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sourceId: token.token,
-          amount: Math.round(amount * 100), // Convert to cents
+          sourceId: tokenResult.token,
+          amount: Math.round(amount * 100),
           currency: 'USD',
           paymentType,
           items: items.map(item => ({
@@ -98,15 +169,6 @@ export const PaymentForm = ({
       }
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const handleTokenizeError = (errors) => {
-    console.error('Tokenization errors:', errors);
-    if (errors && errors.length > 0) {
-      const errorMsg = errors.map(e => e.message).join(', ');
-      setErrorMessage(errorMsg);
-      toast.error(errorMsg);
     }
   };
 
@@ -171,68 +233,48 @@ export const PaymentForm = ({
           </div>
         )}
 
-        <SquarePaymentForm
-          applicationId={config.applicationId}
-          locationId={config.locationId}
-          cardTokenizeResponseReceived={handlePaymentSubmit}
-          createPaymentRequest={() => ({
-            countryCode: 'US',
-            currencyCode: 'USD',
-            total: {
-              amount: amount.toFixed(2),
-              label: 'Total',
-            },
-          })}
-        >
-          <CreditCard
-            buttonProps={{
-              css: {
-                backgroundColor: '#a78bfa',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: '600',
-                padding: '12px 24px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                width: '100%',
-                marginTop: '16px',
-                '&:hover': {
-                  backgroundColor: '#8b5cf6',
-                },
-                '&:disabled': {
-                  backgroundColor: '#d1d5db',
-                  cursor: 'not-allowed',
-                },
-              },
-              isLoading: isProcessing,
-            }}
-            style={{
-              input: {
-                fontSize: '16px',
-                fontFamily: 'inherit',
-              },
-              'input::placeholder': {
-                color: '#9ca3af',
-              },
-              '.input-container': {
-                borderColor: '#e5e7eb',
-                borderRadius: '0.5rem',
-              },
-              '.input-container.is-focus': {
-                borderColor: '#a78bfa',
-              },
-              '.message-icon': {
-                color: '#ef4444',
-              },
-            }}
-          >
-            {isProcessing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
-          </CreditCard>
-        </SquarePaymentForm>
+        <form onSubmit={handlePaymentSubmit}>
+          {/* Square Card Container */}
+          <div className="mb-4">
+            <Label className="mb-2 block">Card Information</Label>
+            <div 
+              id="card-container" 
+              className="min-h-[100px] border rounded-md p-3 bg-white"
+              style={{ minHeight: '100px' }}
+            >
+              {!card && (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Loading secure card form...
+                </div>
+              )}
+            </div>
+          </div>
 
-        <p className="text-xs text-center text-muted-foreground mt-4">
-          Your payment is secured by Square
-        </p>
+          <Button 
+            type="submit" 
+            className="w-full bg-primary hover:bg-primary-dark"
+            disabled={isProcessing || !card}
+            data-testid="pay-button"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Lock className="mr-2 h-4 w-4" />
+                Pay ${amount.toFixed(2)}
+              </>
+            )}
+          </Button>
+        </form>
+
+        <div className="flex items-center justify-center mt-4 text-xs text-muted-foreground">
+          <Lock className="h-3 w-3 mr-1" />
+          Secured by Square
+        </div>
       </CardContent>
     </Card>
   );
