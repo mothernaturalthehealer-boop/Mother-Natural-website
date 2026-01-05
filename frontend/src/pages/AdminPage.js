@@ -990,14 +990,25 @@ export const AdminPage = () => {
                           <TableCell>${retreat.price}</TableCell>
                           <TableCell>{retreat.spotsLeft}/{retreat.capacity}</TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteRetreat(retreat.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex justify-end space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditRetreat(retreat)}
+                                data-testid={`edit-retreat-${retreat.id}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteRetreat(retreat.id)}
+                                className="text-destructive hover:text-destructive"
+                                data-testid={`delete-retreat-${retreat.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
