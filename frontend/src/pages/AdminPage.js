@@ -112,6 +112,24 @@ export const AdminPage = () => {
     if (savedEmergencyRequests) {
       setEmergencyRequests(JSON.parse(savedEmergencyRequests));
     }
+
+    // Load services
+    const savedServices = localStorage.getItem('adminServices');
+    if (savedServices) {
+      setServices(JSON.parse(savedServices));
+    }
+
+    // Load retreats  
+    const savedRetreats = localStorage.getItem('adminRetreats');
+    if (savedRetreats) {
+      setRetreats(JSON.parse(savedRetreats));
+    }
+
+    // Load community posts
+    const savedPosts = localStorage.getItem('communityPosts');
+    if (savedPosts) {
+      setCommunityPosts(JSON.parse(savedPosts));
+    }
   }, []);
 
   const defaultContractTemplates = {
