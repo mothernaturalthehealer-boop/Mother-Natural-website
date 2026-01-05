@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
@@ -7,12 +7,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Minus, Plus, Trash2, ShoppingBag, CreditCard } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, CreditCard, ArrowLeft } from 'lucide-react';
+import { PaymentForm } from '@/components/PaymentForm';
 
 export const CartPage = () => {
   const navigate = useNavigate();
   const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
+  const [showPayment, setShowPayment] = useState(false);
 
   const handleCheckout = () => {
     if (!user) {
@@ -26,13 +28,22 @@ export const CartPage = () => {
       return;
     }
 
-    // Mock checkout
-    toast.success('Order placed successfully! Thank you for your purchase.');
+    setShowPayment(true);
+  };
+
+  const handlePaymentSuccess = (data) => {
     clearCart();
+    toast.success('Order placed successfully! Thank you for your purchase.');
     navigate('/dashboard');
   };
 
-  if (cart.length === 0) {
+  const handlePaymentError = (error) => {
+    console.error('Payment failed:', error);
+  };
+
+  const totalWithTax = getCartTotal() * 1.08;
+
+  if (cart.length === 0 && !showPayment) {
     return (
       <div className="min-h-screen py-20">
         <div className="container mx-auto px-4 max-w-2xl text-center">
@@ -51,6 +62,41 @@ export const CartPage = () => {
             <ShoppingBag className="mr-2 h-5 w-5" />
             Start Shopping
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show payment form
+  if (showPayment) {
+    return (
+      <div className="min-h-screen py-12">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <Button
+            variant="ghost"
+            onClick={() => setShowPayment(false)}
+            className="mb-6"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Cart
+          </Button>
+
+          <h1 className="font-heading text-3xl font-bold mb-8 text-center">Complete Your Order</h1>
+
+          <PaymentForm
+            amount={totalWithTax}
+            items={cart.map(item => ({
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price
+            }))}
+            paymentType="product"
+            customerEmail={user?.email}
+            customerName={user?.name}
+            onSuccess={handlePaymentSuccess}
+            onError={handlePaymentError}
+          />
         </div>
       </div>
     );
