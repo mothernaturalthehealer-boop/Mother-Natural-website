@@ -37,6 +37,9 @@ export const AdminPage = () => {
 
   // Check authentication and admin role
   useEffect(() => {
+    // Don't run check while still loading
+    if (loading) return;
+    
     if (!user) {
       toast.error('Please login to access the admin panel');
       navigate('/login');
@@ -48,7 +51,7 @@ export const AdminPage = () => {
       navigate('/');
       return;
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   // Load fundraisers from localStorage
   useEffect(() => {
