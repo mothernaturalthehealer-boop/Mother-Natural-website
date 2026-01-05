@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,8 +19,10 @@ export const RetreatsPage = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showContractDialog, setShowContractDialog] = useState(false);
   const [bookingData, setBookingData] = useState(null);
+  const [retreats, setRetreats] = useState([]);
 
-  const retreats = [
+  // Default retreats (fallback if admin hasn't created any)
+  const defaultRetreats = [
     {
       id: 1,
       name: 'Mountain Meditation Retreat',
@@ -110,6 +112,21 @@ export const RetreatsPage = () => {
       ]
     },
   ];
+
+  // Load retreats from localStorage (admin-managed) or use defaults
+  useEffect(() => {
+    const adminRetreats = localStorage.getItem('adminRetreats');
+    if (adminRetreats) {
+      const parsed = JSON.parse(adminRetreats);
+      if (parsed.length > 0) {
+        setRetreats(parsed);
+      } else {
+        setRetreats(defaultRetreats);
+      }
+    } else {
+      setRetreats(defaultRetreats);
+    }
+  }, []);
 
   const handleBookRetreat = (retreat) => {
     if (!user) {
