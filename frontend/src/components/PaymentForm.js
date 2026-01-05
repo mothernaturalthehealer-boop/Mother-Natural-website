@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { PaymentForm as SquarePaymentForm, CreditCard } from 'react-square-web-payments-sdk';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2, CreditCard as CreditCardIcon, CheckCircle2 } from 'lucide-react';
@@ -20,6 +19,7 @@ export const PaymentForm = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     fetchPaymentConfig();
@@ -28,23 +28,31 @@ export const PaymentForm = ({
   const fetchPaymentConfig = async () => {
     try {
       const response = await fetch(`${API_URL}/api/payments/config`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch payment config');
+      }
       const data = await response.json();
+      console.log('Payment config loaded:', data);
       setConfig(data);
     } catch (error) {
       console.error('Error fetching payment config:', error);
+      setErrorMessage('Failed to load payment form. Please refresh the page.');
       toast.error('Failed to load payment form');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePaymentSubmit = async (token) => {
+  const handlePaymentSubmit = async (token, buyer) => {
+    console.log('Payment token received:', token);
+    
     if (!token?.token) {
-      toast.error('Payment token not generated');
+      toast.error('Payment token not generated. Please try again.');
       return;
     }
 
     setIsProcessing(true);
+    setErrorMessage(null);
 
     try {
       const response = await fetch(`${API_URL}/api/payments/process`, {
@@ -70,6 +78,7 @@ export const PaymentForm = ({
       });
 
       const data = await response.json();
+      console.log('Payment response:', data);
 
       if (response.ok && data.success) {
         setPaymentComplete(true);
@@ -82,12 +91,22 @@ export const PaymentForm = ({
       }
     } catch (error) {
       console.error('Payment error:', error);
+      setErrorMessage(error.message || 'Payment processing failed');
       toast.error(error.message || 'Payment processing failed');
       if (onError) {
         onError(error);
       }
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleTokenizeError = (errors) => {
+    console.error('Tokenization errors:', errors);
+    if (errors && errors.length > 0) {
+      const errorMsg = errors.map(e => e.message).join(', ');
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -102,11 +121,12 @@ export const PaymentForm = ({
     );
   }
 
-  if (!config) {
+  if (!config || !config.applicationId) {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="py-8 text-center text-muted-foreground">
-          Unable to load payment form. Please try again later.
+          <p>Unable to load payment form.</p>
+          <p className="text-sm mt-2">Please try refreshing the page.</p>
         </CardContent>
       </Card>
     );
@@ -145,13 +165,47 @@ export const PaymentForm = ({
           </div>
         </div>
 
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            {errorMessage}
+          </div>
+        )}
+
         <SquarePaymentForm
           applicationId={config.applicationId}
           locationId={config.locationId}
           cardTokenizeResponseReceived={handlePaymentSubmit}
+          createPaymentRequest={() => ({
+            countryCode: 'US',
+            currencyCode: 'USD',
+            total: {
+              amount: amount.toFixed(2),
+              label: 'Total',
+            },
+          })}
         >
           <CreditCard
-            includeInputLabels
+            buttonProps={{
+              css: {
+                backgroundColor: '#a78bfa',
+                color: '#ffffff',
+                fontSize: '16px',
+                fontWeight: '600',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                width: '100%',
+                marginTop: '16px',
+                '&:hover': {
+                  backgroundColor: '#8b5cf6',
+                },
+                '&:disabled': {
+                  backgroundColor: '#d1d5db',
+                  cursor: 'not-allowed',
+                },
+              },
+              isLoading: isProcessing,
+            }}
             style={{
               input: {
                 fontSize: '16px',
@@ -171,27 +225,13 @@ export const PaymentForm = ({
                 color: '#ef4444',
               },
             }}
-          />
-          
-          <Button 
-            type="submit" 
-            className="w-full mt-6 bg-primary hover:bg-primary-dark"
-            disabled={isProcessing}
-            data-testid="pay-button"
           >
-            {isProcessing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              `Pay $${amount.toFixed(2)}`
-            )}
-          </Button>
+            {isProcessing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
+          </CreditCard>
         </SquarePaymentForm>
 
         <p className="text-xs text-center text-muted-foreground mt-4">
-          🔒 Your payment is secured by Square
+          Your payment is secured by Square
         </p>
       </CardContent>
     </Card>
