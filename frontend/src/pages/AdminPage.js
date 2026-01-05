@@ -298,9 +298,12 @@ export const AdminPage = () => {
         <Tabs defaultValue="products" className="space-y-6">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="services">Services</TabsTrigger>
+            <TabsTrigger value="retreats">Retreats</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="emergency">Emergency</TabsTrigger>
+            <TabsTrigger value="community">Community</TabsTrigger>
             <TabsTrigger value="fundraisers">Fundraisers</TabsTrigger>
             <TabsTrigger value="contracts">Contracts</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
