@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,9 +6,11 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
+from square import Square
+from square.environment import SquareEnvironment
 
 
 ROOT_DIR = Path(__file__).parent
@@ -18,6 +20,12 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Square client initialization
+square_client = Square(
+    token=os.environ.get('SQUARE_ACCESS_TOKEN', ''),
+    environment=SquareEnvironment.SANDBOX if os.environ.get('SQUARE_ENVIRONMENT', 'sandbox') == 'sandbox' else SquareEnvironment.PRODUCTION
+)
 
 # Create the main app without a prefix
 app = FastAPI()
@@ -36,6 +44,29 @@ class StatusCheck(BaseModel):
 
 class StatusCheckCreate(BaseModel):
     client_name: str
+
+# Payment Models
+class PaymentItem(BaseModel):
+    id: str
+    name: str
+    quantity: int
+    price: int  # in cents
+    type: str  # product, appointment, retreat
+
+class PaymentRequest(BaseModel):
+    sourceId: str
+    amount: int  # in cents
+    currency: str = "USD"
+    paymentType: str  # product, appointment, retreat
+    items: List[PaymentItem]
+    customerEmail: Optional[str] = None
+    customerName: Optional[str] = None
+
+class PaymentResponse(BaseModel):
+    success: bool
+    paymentId: Optional[str] = None
+    orderId: Optional[str] = None
+    message: str
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
