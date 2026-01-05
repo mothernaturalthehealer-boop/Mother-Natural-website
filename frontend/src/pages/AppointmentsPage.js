@@ -107,6 +107,24 @@ export const AppointmentsPage = () => {
   };
 
   const handleContractSigned = (signedContract) => {
+    // Save appointment to localStorage for admin to see
+    const existingAppointments = JSON.parse(localStorage.getItem('userAppointments') || '[]');
+    const newAppointment = {
+      id: Date.now(),
+      userId: user.id,
+      clientName: user.name,
+      clientEmail: user.email,
+      service: bookingData.service,
+      date: bookingData.date,
+      time: bookingData.time,
+      price: bookingData.price,
+      notes: bookingData.notes,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem('userAppointments', JSON.stringify([...existingAppointments, newAppointment]));
+    
     toast.success(`Appointment booked for ${date.toLocaleDateString()} at ${selectedTime}!`);
     
     // Reset form
