@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,8 +20,10 @@ export const AppointmentsPage = () => {
   const [notes, setNotes] = useState('');
   const [showContractDialog, setShowContractDialog] = useState(false);
   const [bookingData, setBookingData] = useState(null);
+  const [services, setServices] = useState([]);
 
-  const services = [
+  // Default services (fallback if admin hasn't created any)
+  const defaultServices = [
     {
       id: 1,
       name: 'Energy Healing Session',
@@ -56,6 +58,21 @@ export const AppointmentsPage = () => {
       paymentType: 'full'
     },
   ];
+
+  // Load services from localStorage (admin-managed) or use defaults
+  useEffect(() => {
+    const adminServices = localStorage.getItem('adminServices');
+    if (adminServices) {
+      const parsed = JSON.parse(adminServices);
+      if (parsed.length > 0) {
+        setServices(parsed);
+      } else {
+        setServices(defaultServices);
+      }
+    } else {
+      setServices(defaultServices);
+    }
+  }, []);
 
   const timeSlots = [
     '9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
