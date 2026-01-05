@@ -62,19 +62,22 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 - ✅ Admin login flow stable (no more white screen issues)
 
 ### Phase 3: Square Payment Integration (Completed - Jan 5, 2025)
-- ✅ Square SDK installed and configured (Sandbox environment)
+- ✅ Square SDK installed and configured (**Production** environment)
 - ✅ Backend payment processing endpoint (`/api/payments/process`)
 - ✅ Payment configuration endpoint (`/api/payments/config`)
 - ✅ Order tracking in MongoDB
 - ✅ Payment history endpoint
 - ✅ Frontend PaymentForm component with Square Web Payments SDK
 - ✅ Cart checkout integrated with real payment processing
+- ✅ **Appointments page** - Payment after contract signing (supports deposits)
+- ✅ **Retreats page** - Payment with flexible options (full, deposit, installments)
 - ✅ Payment success/error handling
 
-**Square Credentials (Sandbox):**
-- Application ID: sandbox-sq0idb-ZCyWINd3_dtC3EbZrcD8xg
-- Location ID: LNMFJJXQ33WJS
-- Environment: Sandbox (test mode)
+**Square Credentials (Production - LIVE):**
+- Application ID: sq0idp-cSBrwBmUGZTIuCQE5o2NHw
+- Location ID: LBY9X82PXC15G
+- Location Name: Mother Natural the Healer
+- Environment: **Production** (real payments enabled)
 
 ---
 
