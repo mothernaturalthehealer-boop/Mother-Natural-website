@@ -1615,6 +1615,224 @@ export const AdminPage = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Settings Dialog */}
+        <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-2xl">Admin Settings</DialogTitle>
+              <DialogDescription>Configure your platform settings</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="businessName">Business Name</Label>
+                <Input
+                  id="businessName"
+                  value={adminSettings.businessName}
+                  onChange={(e) => setAdminSettings({ ...adminSettings, businessName: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail">Contact Email</Label>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  value={adminSettings.contactEmail}
+                  onChange={(e) => setAdminSettings({ ...adminSettings, contactEmail: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactPhone">Contact Phone</Label>
+                <Input
+                  id="contactPhone"
+                  type="tel"
+                  value={adminSettings.contactPhone}
+                  onChange={(e) => setAdminSettings({ ...adminSettings, contactPhone: e.target.value })}
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="notifications">Email Notifications</Label>
+                <input
+                  id="notifications"
+                  type="checkbox"
+                  checked={adminSettings.notificationsEnabled}
+                  onChange={(e) => setAdminSettings({ ...adminSettings, notificationsEnabled: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSettingsDialog(false)}>Cancel</Button>
+              <Button onClick={handleSaveSettings} className="bg-primary hover:bg-primary-dark">Save Settings</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Service Dialog */}
+        <Dialog open={showEditServiceDialog} onOpenChange={setShowEditServiceDialog}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Edit Service</DialogTitle>
+              <DialogDescription>Update service details</DialogDescription>
+            </DialogHeader>
+            {editingService && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editServiceName">Service Name *</Label>
+                  <Input
+                    id="editServiceName"
+                    value={editingService.name}
+                    onChange={(e) => setEditingService({ ...editingService, name: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editDuration">Duration *</Label>
+                    <Input
+                      id="editDuration"
+                      value={editingService.duration}
+                      onChange={(e) => setEditingService({ ...editingService, duration: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editServicePrice">Price ($) *</Label>
+                    <Input
+                      id="editServicePrice"
+                      type="number"
+                      value={editingService.price}
+                      onChange={(e) => setEditingService({ ...editingService, price: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editServiceDesc">Description</Label>
+                  <Textarea
+                    id="editServiceDesc"
+                    value={editingService.description || ''}
+                    onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Payment Type</Label>
+                  <select
+                    value={editingService.paymentType || 'full'}
+                    onChange={(e) => setEditingService({ ...editingService, paymentType: e.target.value })}
+                    className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                  >
+                    <option value="full">Full Payment</option>
+                    <option value="deposit">Deposit Required</option>
+                  </select>
+                </div>
+                {editingService.paymentType === 'deposit' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="editDeposit">Deposit Amount ($)</Label>
+                    <Input
+                      id="editDeposit"
+                      type="number"
+                      value={editingService.deposit || ''}
+                      onChange={(e) => setEditingService({ ...editingService, deposit: e.target.value })}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditServiceDialog(false)}>Cancel</Button>
+              <Button onClick={handleSaveEditedService} className="bg-primary hover:bg-primary-dark">Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Retreat Dialog */}
+        <Dialog open={showEditRetreatDialog} onOpenChange={setShowEditRetreatDialog}>
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Edit Retreat</DialogTitle>
+              <DialogDescription>Update retreat details</DialogDescription>
+            </DialogHeader>
+            {editingRetreat && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editRetreatName">Retreat Name *</Label>
+                  <Input
+                    id="editRetreatName"
+                    value={editingRetreat.name}
+                    onChange={(e) => setEditingRetreat({ ...editingRetreat, name: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editLocation">Location *</Label>
+                    <Input
+                      id="editLocation"
+                      value={editingRetreat.location}
+                      onChange={(e) => setEditingRetreat({ ...editingRetreat, location: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editRetreatDuration">Duration</Label>
+                    <Input
+                      id="editRetreatDuration"
+                      value={editingRetreat.duration || ''}
+                      onChange={(e) => setEditingRetreat({ ...editingRetreat, duration: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editDates">Dates *</Label>
+                    <Input
+                      id="editDates"
+                      value={editingRetreat.dates}
+                      onChange={(e) => setEditingRetreat({ ...editingRetreat, dates: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editRetreatPrice">Price ($) *</Label>
+                    <Input
+                      id="editRetreatPrice"
+                      type="number"
+                      value={editingRetreat.price}
+                      onChange={(e) => setEditingRetreat({ ...editingRetreat, price: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editCapacity">Capacity</Label>
+                  <Input
+                    id="editCapacity"
+                    type="number"
+                    value={editingRetreat.capacity || ''}
+                    onChange={(e) => setEditingRetreat({ ...editingRetreat, capacity: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editRetreatDesc">Description</Label>
+                  <Textarea
+                    id="editRetreatDesc"
+                    value={editingRetreat.description || ''}
+                    onChange={(e) => setEditingRetreat({ ...editingRetreat, description: e.target.value })}
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editImageUrl">Image URL</Label>
+                  <Input
+                    id="editImageUrl"
+                    value={editingRetreat.image || ''}
+                    onChange={(e) => setEditingRetreat({ ...editingRetreat, image: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditRetreatDialog(false)}>Cancel</Button>
+              <Button onClick={handleSaveEditedRetreat} className="bg-primary hover:bg-primary-dark">Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
