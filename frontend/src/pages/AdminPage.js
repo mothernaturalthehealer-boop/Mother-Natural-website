@@ -193,11 +193,6 @@ export const AdminPage = () => {
     { id: '1003', customer: 'Jennifer Lee', total: 24.99, status: 'Delivered', date: 'June 9, 2024' },
   ];
 
-  const appointments = [
-    { id: 1, client: 'Emma Williams', service: 'Energy Healing', date: 'June 15, 2024', time: '2:00 PM' },
-    { id: 2, client: 'Lisa Martinez', service: 'Health Consultation', date: 'June 16, 2024', time: '10:00 AM' },
-  ];
-
   const handleAddProduct = () => {
     if (!newProduct.name || !newProduct.price) {
       toast.error('Please fill in all required fields');
