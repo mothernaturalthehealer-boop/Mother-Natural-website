@@ -35,6 +35,12 @@ export const AdminPage = () => {
     endDate: ''
   });
 
+  const [contractTemplates, setContractTemplates] = useState({});
+  const [signedContracts, setSignedContracts] = useState([]);
+  const [editingContract, setEditingContract] = useState(null);
+  const [showEditContractDialog, setShowEditContractDialog] = useState(false);
+  const [emergencyRequests, setEmergencyRequests] = useState([]);
+
   // Check authentication and admin role
   useEffect(() => {
     // Don't run check while still loading
@@ -52,25 +58,6 @@ export const AdminPage = () => {
       return;
     }
   }, [user, loading, navigate]);
-
-  // Show loading while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show nothing if redirecting
-  if (!user || user.role !== 'admin') {
-    return null;
-  }
-
-  // Load fundraisers from localStorage
   useEffect(() => {
     const savedFundraisers = localStorage.getItem('fundraisers');
     if (savedFundraisers) {
