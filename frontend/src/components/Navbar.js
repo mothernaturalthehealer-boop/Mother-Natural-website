@@ -64,17 +64,29 @@ export const Navbar = () => {
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Services</NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <div className="w-48 p-2">
-                      <Link to="/appointments" className="block px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
-                        Book Appointment
-                      </Link>
-                      <Link to="/classes" className="block px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
-                        Classes
-                      </Link>
-                      <Link to="/retreats" className="block px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
-                        Retreats
-                      </Link>
-                    </div>
+                    <ul className="w-48 p-2 flex flex-col space-y-1">
+                      <li>
+                        <NavigationMenuLink asChild>
+                          <Link to="/appointments" className="block px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
+                            Book Appointment
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                      <li>
+                        <NavigationMenuLink asChild>
+                          <Link to="/classes" className="block px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
+                            Classes
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                      <li>
+                        <NavigationMenuLink asChild>
+                          <Link to="/retreats" className="block px-4 py-2 text-sm hover:bg-muted rounded-md transition-colors">
+                            Retreats
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                    </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
