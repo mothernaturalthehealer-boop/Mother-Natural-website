@@ -96,11 +96,6 @@ export const AdminPage = () => {
     { id: 4, name: 'Healing with Herbs Book', price: 34.99, category: 'Books', stock: 15 },
   ]);
 
-  if (!user || user.role !== 'admin') {
-    navigate('/');
-    return null;
-  }
-
   const stats = [
     { label: 'Total Products', value: '48', icon: Package, color: 'text-primary' },
     { label: 'Active Users', value: '1,234', icon: Users, color: 'text-accent' },
