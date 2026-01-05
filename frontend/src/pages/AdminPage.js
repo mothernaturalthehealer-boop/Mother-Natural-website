@@ -1057,6 +1057,56 @@ export const AdminPage = () => {
             </Card>
           </TabsContent>
 
+          {/* Community Tab */}
+          <TabsContent value="community" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-heading text-2xl">Community Posts</CardTitle>
+                <CardDescription>Moderate community content ({communityPosts.length} posts)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {communityPosts.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No community posts yet
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {communityPosts.map((post) => (
+                      <Card key={post.id} className="border-border/50">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-grow">
+                              <CardTitle className="text-base">{post.author?.name || 'Unknown User'}</CardTitle>
+                              <CardDescription className="text-sm">{post.timestamp}</CardDescription>
+                              <p className="mt-2 text-sm">{post.content}</p>
+                              {post.tags && post.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {post.tags.map((tag, idx) => (
+                                    <Badge key={idx} variant="secondary" className="text-xs">
+                                      #{tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeletePost(post.id)}
+                              className="text-destructive hover:text-destructive ml-4"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Fundraisers Tab */}
           <TabsContent value="fundraisers" className="space-y-4">
             <Card>
