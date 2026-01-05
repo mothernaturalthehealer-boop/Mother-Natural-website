@@ -561,8 +561,8 @@ export const AdminPage = () => {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="products" className="space-y-6">
-          <TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="retreats">Retreats</TabsTrigger>
