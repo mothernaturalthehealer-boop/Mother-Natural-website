@@ -179,11 +179,12 @@ export const AdminPage = () => {
     { id: 4, name: 'Healing with Herbs Book', price: 34.99, category: 'Books', stock: 15 },
   ]);
 
+  // Clickable stat cards - link to appropriate tabs
   const stats = [
-    { label: 'Total Products', value: '48', icon: Package, color: 'text-primary' },
-    { label: 'Active Users', value: '1,234', icon: Users, color: 'text-accent' },
-    { label: 'Appointments', value: '87', icon: Calendar, color: 'text-secondary' },
-    { label: 'Retreats Booked', value: '23', icon: Mountain, color: 'text-natural' },
+    { label: 'Total Products', value: products.length.toString(), icon: Package, color: 'text-primary', tab: 'products' },
+    { label: 'Active Users', value: '1,234', icon: Users, color: 'text-accent', tab: 'users' },
+    { label: 'Appointments', value: userAppointments.length.toString(), icon: Calendar, color: 'text-secondary', tab: 'appointments' },
+    { label: 'Retreats Booked', value: retreats.length.toString(), icon: Mountain, color: 'text-natural', tab: 'retreats' },
   ];
 
   const recentOrders = [
