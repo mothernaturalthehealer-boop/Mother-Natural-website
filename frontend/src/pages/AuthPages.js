@@ -5,14 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Mail } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetStep, setResetStep] = useState(1); // 1: enter email, 2: success message
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -24,6 +28,25 @@ export const LoginPage = () => {
     login(email, password);
     toast.success('Welcome back!');
     navigate('/');
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    // Mock password reset - in real app, this would send an email
+    toast.success('Password reset instructions sent to your email!');
+    setResetStep(2);
+    
+    // Reset after 3 seconds
+    setTimeout(() => {
+      setShowForgotPassword(false);
+      setResetEmail('');
+      setResetStep(1);
+    }, 3000);
   };
 
   return (
