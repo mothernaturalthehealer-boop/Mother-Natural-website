@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Package, Users, Calendar, Mountain, Settings } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Users, Calendar, Mountain, Settings, Check, X, Eye } from 'lucide-react';
 
 export const AdminPage = () => {
   const { user, loading } = useAuth();
@@ -69,6 +69,29 @@ export const AdminPage = () => {
 
   // Community posts management
   const [communityPosts, setCommunityPosts] = useState([]);
+
+  // Settings dialog
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [adminSettings, setAdminSettings] = useState({
+    businessName: 'Mother Natural: The Healing Lab',
+    contactEmail: 'admin@mothernatural.com',
+    contactPhone: '',
+    notificationsEnabled: true
+  });
+
+  // Appointments management (loaded from localStorage)
+  const [userAppointments, setUserAppointments] = useState([]);
+
+  // Service editing
+  const [editingService, setEditingService] = useState(null);
+  const [showEditServiceDialog, setShowEditServiceDialog] = useState(false);
+
+  // Retreat editing
+  const [editingRetreat, setEditingRetreat] = useState(null);
+  const [showEditRetreatDialog, setShowEditRetreatDialog] = useState(false);
+
+  // Active tab state for navigation from stat cards
+  const [activeTab, setActiveTab] = useState('products');
 
   // Check authentication and admin role
   useEffect(() => {
