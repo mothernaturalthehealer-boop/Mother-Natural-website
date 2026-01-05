@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ContractSigningDialog } from '@/components/ContractSigningDialog';
+import { PaymentForm } from '@/components/PaymentForm';
 import { toast } from 'sonner';
-import { Calendar as CalendarIcon, Clock, DollarSign } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, DollarSign, ArrowLeft } from 'lucide-react';
 
 export const AppointmentsPage = () => {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export const AppointmentsPage = () => {
   const [selectedTime, setSelectedTime] = useState('');
   const [notes, setNotes] = useState('');
   const [showContractDialog, setShowContractDialog] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [services, setServices] = useState([]);
 
@@ -98,7 +100,9 @@ export const AppointmentsPage = () => {
       service: service.name,
       date: date.toLocaleDateString(),
       time: selectedTime,
-      price: `$${service.price}`,
+      price: service.price,
+      paymentType: service.paymentType,
+      deposit: service.deposit || 0,
       notes: notes || 'None'
     };
     
@@ -107,6 +111,17 @@ export const AppointmentsPage = () => {
   };
 
   const handleContractSigned = (signedContract) => {
+    // After contract is signed, show payment form
+    setShowContractDialog(false);
+    setShowPaymentForm(true);
+  };
+
+  const getPaymentAmount = () => {
+    if (!bookingData) return 0;
+    return bookingData.paymentType === 'deposit' ? bookingData.deposit : bookingData.price;
+  };
+
+  const handlePaymentSuccess = (data) => {
     // Save appointment to localStorage for admin to see
     const existingAppointments = JSON.parse(localStorage.getItem('userAppointments') || '[]');
     const newAppointment = {
@@ -118,21 +133,96 @@ export const AppointmentsPage = () => {
       date: bookingData.date,
       time: bookingData.time,
       price: bookingData.price,
+      paidAmount: getPaymentAmount(),
+      paymentType: bookingData.paymentType,
       notes: bookingData.notes,
       status: 'pending',
+      paymentId: data.paymentId,
+      orderId: data.orderId,
       createdAt: new Date().toISOString()
     };
     
     localStorage.setItem('userAppointments', JSON.stringify([...existingAppointments, newAppointment]));
     
-    toast.success(`Appointment booked for ${date.toLocaleDateString()} at ${selectedTime}!`);
+    toast.success(`Appointment booked for ${bookingData.date} at ${bookingData.time}!`);
     
     // Reset form
     setSelectedService('');
     setSelectedTime('');
     setNotes('');
     setBookingData(null);
+    setShowPaymentForm(false);
   };
+
+  const handlePaymentError = (error) => {
+    console.error('Payment failed:', error);
+  };
+
+  // Show payment form after contract signing
+  if (showPaymentForm && bookingData) {
+    return (
+      <div className="min-h-screen py-12">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <Button
+            variant="ghost"
+            onClick={() => setShowPaymentForm(false)}
+            className="mb-6"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+
+          <h1 className="font-heading text-3xl font-bold mb-4 text-center">Complete Your Booking</h1>
+          
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Service:</span>
+                  <span className="font-medium">{bookingData.service}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Date:</span>
+                  <span className="font-medium">{bookingData.date}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Time:</span>
+                  <span className="font-medium">{bookingData.time}</span>
+                </div>
+                {bookingData.paymentType === 'deposit' && (
+                  <>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Full Price:</span>
+                      <span>${bookingData.price}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-primary">
+                      <span>Deposit Due Now:</span>
+                      <span>${bookingData.deposit}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <PaymentForm
+            amount={getPaymentAmount()}
+            items={[{
+              id: `apt-${Date.now()}`,
+              name: bookingData.service,
+              quantity: 1,
+              price: getPaymentAmount()
+            }]}
+            paymentType="appointment"
+            customerEmail={user?.email}
+            customerName={user?.name}
+            onSuccess={handlePaymentSuccess}
+            onError={handlePaymentError}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-12">
@@ -159,6 +249,7 @@ export const AppointmentsPage = () => {
                       : 'hover:shadow-md'
                   }`}
                   onClick={() => setSelectedService(service.id.toString())}
+                  data-testid={`service-card-${service.id}`}
                 >
                   <CardHeader>
                     <CardTitle className="font-heading text-lg">{service.name}</CardTitle>
@@ -210,7 +301,7 @@ export const AppointmentsPage = () => {
                 <div>
                   <Label className="mb-2 block">Select Time</Label>
                   <Select value={selectedTime} onValueChange={setSelectedTime}>
-                    <SelectTrigger>
+                    <SelectTrigger data-testid="time-select">
                       <SelectValue placeholder="Choose a time" />
                     </SelectTrigger>
                     <SelectContent>
@@ -240,6 +331,7 @@ export const AppointmentsPage = () => {
                   className="w-full bg-primary hover:bg-primary-dark"
                   onClick={handleBooking}
                   disabled={!selectedService || !selectedTime}
+                  data-testid="book-appointment-btn"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   Book Appointment
@@ -256,7 +348,10 @@ export const AppointmentsPage = () => {
           open={showContractDialog}
           onOpenChange={setShowContractDialog}
           contractType="appointment"
-          bookingDetails={bookingData}
+          bookingDetails={{
+            ...bookingData,
+            price: `$${bookingData.price}`
+          }}
           onSignComplete={handleContractSigned}
         />
       )}
