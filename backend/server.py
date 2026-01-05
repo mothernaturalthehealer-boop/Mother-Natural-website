@@ -97,6 +97,123 @@ async def get_status_checks():
     
     return status_checks
 
+
+# Square Payment Endpoints
+@api_router.get("/payments/config")
+async def get_payment_config():
+    """Return Square configuration for frontend (public keys only)"""
+    return {
+        "applicationId": os.environ.get('SQUARE_APPLICATION_ID', ''),
+        "locationId": os.environ.get('SQUARE_LOCATION_ID', ''),
+        "environment": os.environ.get('SQUARE_ENVIRONMENT', 'sandbox')
+    }
+
+
+@api_router.post("/payments/process", response_model=PaymentResponse)
+async def process_payment(payment_request: PaymentRequest):
+    """Process a payment using Square Payments API"""
+    try:
+        # Generate idempotency key
+        idempotency_key = str(uuid.uuid4())
+        
+        # Create order in database first
+        order_id = str(uuid.uuid4())
+        order_doc = {
+            "id": order_id,
+            "items": [item.model_dump() for item in payment_request.items],
+            "total_amount": payment_request.amount,
+            "currency": payment_request.currency,
+            "payment_type": payment_request.paymentType,
+            "customer_email": payment_request.customerEmail,
+            "customer_name": payment_request.customerName,
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.orders.insert_one(order_doc)
+        
+        # Process payment with Square
+        result = square_client.payments.create(
+            source_id=payment_request.sourceId,
+            idempotency_key=idempotency_key,
+            amount_money={
+                "amount": payment_request.amount,
+                "currency": payment_request.currency
+            },
+            location_id=os.environ.get('SQUARE_LOCATION_ID', ''),
+            reference_id=order_id,
+            note=f"Payment for {payment_request.paymentType}"
+        )
+        
+        if result.payment:
+            # Update order with payment info
+            await db.orders.update_one(
+                {"id": order_id},
+                {
+                    "$set": {
+                        "square_payment_id": result.payment.id,
+                        "status": result.payment.status.lower() if result.payment.status else "completed",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                }
+            )
+            
+            # Store payment record
+            payment_doc = {
+                "id": str(uuid.uuid4()),
+                "order_id": order_id,
+                "square_payment_id": result.payment.id,
+                "amount": payment_request.amount,
+                "currency": payment_request.currency,
+                "status": result.payment.status if result.payment.status else "COMPLETED",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.payments.insert_one(payment_doc)
+            
+            return PaymentResponse(
+                success=True,
+                paymentId=result.payment.id,
+                orderId=order_id,
+                message="Payment processed successfully"
+            )
+        
+        elif result.errors:
+            # Update order status to failed
+            await db.orders.update_one(
+                {"id": order_id},
+                {"$set": {"status": "failed"}}
+            )
+            error_detail = result.errors[0].detail if result.errors else "Payment processing failed"
+            raise HTTPException(status_code=400, detail=error_detail)
+        
+        else:
+            raise HTTPException(status_code=500, detail="Unexpected response from payment processor")
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Payment processing error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Payment processing error: {str(e)}")
+
+
+@api_router.get("/payments/order/{order_id}")
+async def get_order(order_id: str):
+    """Get order details by ID"""
+    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order
+
+
+@api_router.get("/payments/history")
+async def get_payment_history(customer_email: Optional[str] = None):
+    """Get payment history, optionally filtered by customer email"""
+    query = {}
+    if customer_email:
+        query["customer_email"] = customer_email
+    
+    orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return orders
+
 # Include the router in the main app
 app.include_router(api_router)
 
