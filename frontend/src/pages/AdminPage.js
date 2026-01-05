@@ -40,6 +40,35 @@ export const AdminPage = () => {
   const [editingContract, setEditingContract] = useState(null);
   const [showEditContractDialog, setShowEditContractDialog] = useState(false);
   const [emergencyRequests, setEmergencyRequests] = useState([]);
+  
+  // Services management
+  const [services, setServices] = useState([]);
+  const [showAddServiceDialog, setShowAddServiceDialog] = useState(false);
+  const [newService, setNewService] = useState({
+    name: '',
+    duration: '',
+    price: '',
+    description: '',
+    paymentType: 'full',
+    deposit: ''
+  });
+
+  // Retreats management
+  const [retreats, setRetreats] = useState([]);
+  const [showAddRetreatDialog, setShowAddRetreatDialog] = useState(false);
+  const [newRetreat, setNewRetreat] = useState({
+    name: '',
+    location: '',
+    duration: '',
+    dates: '',
+    price: '',
+    description: '',
+    capacity: '',
+    image: 'https://images.pexels.com/photos/35439440/pexels-photo-35439440.jpeg'
+  });
+
+  // Community posts management
+  const [communityPosts, setCommunityPosts] = useState([]);
 
   // Check authentication and admin role
   useEffect(() => {
