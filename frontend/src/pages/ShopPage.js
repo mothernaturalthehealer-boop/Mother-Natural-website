@@ -13,24 +13,27 @@ export const ShopPage = () => {
   const { addToCart } = useCart();
   const [activeCategory, setActiveCategory] = useState('all');
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(['Teas', 'Tinctures', 'Oils', 'Books']);
 
-  // Load products from localStorage (admin-managed)
+  // Load products and categories from localStorage (admin-managed)
   useEffect(() => {
     const adminProducts = localStorage.getItem('adminProducts');
     if (adminProducts) {
       const parsed = JSON.parse(adminProducts);
       if (parsed.length > 0) {
         setProducts(parsed);
-        return;
       }
     }
-    // No products configured by admin - show empty state
-    setProducts([]);
+    
+    const adminCategories = localStorage.getItem('adminCategories');
+    if (adminCategories) {
+      setCategories(JSON.parse(adminCategories));
+    }
   }, []);
 
   const filteredProducts = activeCategory === 'all'
     ? products
-    : products.filter(p => p.category === activeCategory);
+    : products.filter(p => p.category?.toLowerCase() === activeCategory.toLowerCase());
 
   const handleAddToCart = (product) => {
     addToCart({
@@ -56,12 +59,13 @@ export const ShopPage = () => {
 
         {/* Category Tabs */}
         <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-12">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-5 h-auto">
-            <TabsTrigger value="all" className="py-3">All Products</TabsTrigger>
-            <TabsTrigger value="teas" className="py-3">Teas</TabsTrigger>
-            <TabsTrigger value="tinctures" className="py-3">Tinctures</TabsTrigger>
-            <TabsTrigger value="oils" className="py-3">Oils</TabsTrigger>
-            <TabsTrigger value="books" className="py-3">Books</TabsTrigger>
+          <TabsList className="flex flex-wrap justify-center h-auto gap-2">
+            <TabsTrigger value="all" className="py-2 px-4">All Products</TabsTrigger>
+            {categories.map((cat) => (
+              <TabsTrigger key={cat} value={cat.toLowerCase()} className="py-2 px-4">
+                {cat}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
 
