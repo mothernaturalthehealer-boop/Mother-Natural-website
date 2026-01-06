@@ -61,19 +61,18 @@ export const AppointmentsPage = () => {
     },
   ];
 
-  // Load services from localStorage (admin-managed) or use defaults
+  // Load services from localStorage (admin-managed)
   useEffect(() => {
     const adminServices = localStorage.getItem('adminServices');
     if (adminServices) {
       const parsed = JSON.parse(adminServices);
       if (parsed.length > 0) {
         setServices(parsed);
-      } else {
-        setServices(defaultServices);
+        return;
       }
-    } else {
-      setServices(defaultServices);
     }
+    // No services configured by admin - show empty state
+    setServices([]);
   }, []);
 
   const timeSlots = [
