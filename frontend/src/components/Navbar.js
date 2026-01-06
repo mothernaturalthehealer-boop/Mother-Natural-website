@@ -210,28 +210,65 @@ export const Navbar = () => {
                     Crisis Support
                   </Button>
                   
-                  <div className="border-t pt-4 space-y-4">
-                    <Link to="/shop" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                  <div className="border-t pt-4 flex flex-col space-y-4">
+                    <Link 
+                      to="/shop" 
+                      onClick={() => setMobileMenuOpen(false)} 
+                      className="block text-lg font-medium hover:text-primary transition-colors py-2"
+                    >
                       Shop
                     </Link>
-                    <Link to="/appointments" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                    <Link 
+                      to="/appointments" 
+                      onClick={() => setMobileMenuOpen(false)} 
+                      className="block text-lg font-medium hover:text-primary transition-colors py-2"
+                    >
                       Appointments
                     </Link>
-                    <Link to="/classes" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                    <Link 
+                      to="/classes" 
+                      onClick={() => setMobileMenuOpen(false)} 
+                      className="block text-lg font-medium hover:text-primary transition-colors py-2"
+                    >
                       Classes
                     </Link>
-                    <Link to="/retreats" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                    <Link 
+                      to="/retreats" 
+                      onClick={() => setMobileMenuOpen(false)} 
+                      className="block text-lg font-medium hover:text-primary transition-colors py-2"
+                    >
                       Retreats
                     </Link>
-                    <Link to="/community" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                    <Link 
+                      to="/community" 
+                      onClick={() => setMobileMenuOpen(false)} 
+                      className="block text-lg font-medium hover:text-primary transition-colors py-2"
+                    >
                       Community
                     </Link>
-                    <Link to="/fundraisers" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                    <Link 
+                      to="/fundraisers" 
+                      onClick={() => setMobileMenuOpen(false)} 
+                      className="block text-lg font-medium hover:text-primary transition-colors py-2"
+                    >
                       Fundraisers
                     </Link>
                     {user && (
-                      <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                      <Link 
+                        to="/dashboard" 
+                        onClick={() => setMobileMenuOpen(false)} 
+                        className="block text-lg font-medium hover:text-primary transition-colors py-2"
+                      >
                         Dashboard
+                      </Link>
+                    )}
+                    {user?.role === 'admin' && (
+                      <Link 
+                        to="/admin" 
+                        onClick={() => setMobileMenuOpen(false)} 
+                        className="block text-lg font-medium hover:text-primary transition-colors py-2"
+                      >
+                        Admin Panel
                       </Link>
                     )}
                   </div>
