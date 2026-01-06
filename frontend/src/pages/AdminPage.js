@@ -231,6 +231,18 @@ export const AdminPage = () => {
       setClasses(JSON.parse(savedClasses));
     }
 
+    // Load custom categories
+    const savedCategories = localStorage.getItem('adminCategories');
+    if (savedCategories) {
+      setCategories(JSON.parse(savedCategories));
+    }
+
+    // Load orders from localStorage
+    const savedOrders = localStorage.getItem('adminOrders');
+    if (savedOrders) {
+      setOrders(JSON.parse(savedOrders));
+    }
+
     // Load registered users from localStorage
     const users = localStorage.getItem('registeredUsers');
     if (users) {
