@@ -976,10 +976,9 @@ export const AdminPage = () => {
                             onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
                             className="w-full px-3 py-2 border border-input rounded-md bg-background"
                           >
-                            <option value="teas">Teas</option>
-                            <option value="tinctures">Tinctures</option>
-                            <option value="oils">Oils</option>
-                            <option value="books">Books</option>
+                            {categories.map((cat) => (
+                              <option key={cat} value={cat.toLowerCase()}>{cat}</option>
+                            ))}
                           </select>
                         </div>
                         <div className="space-y-2">
