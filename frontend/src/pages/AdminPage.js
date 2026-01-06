@@ -401,11 +401,32 @@ export const AdminPage = () => {
     { label: 'Retreats Booked', value: retreats.length.toString(), icon: Mountain, color: 'text-natural', tab: 'retreats' },
   ];
 
-  const recentOrders = [
-    { id: '1001', customer: 'Sarah Johnson', total: 51.98, status: 'Shipped', date: 'June 10, 2024' },
-    { id: '1002', customer: 'Michael Chen', total: 189.00, status: 'Processing', date: 'June 11, 2024' },
-    { id: '1003', customer: 'Jennifer Lee', total: 24.99, status: 'Delivered', date: 'June 9, 2024' },
-  ];
+  // Category management functions
+  const handleAddCategory = () => {
+    if (!newCategory.trim()) {
+      toast.error('Please enter a category name');
+      return;
+    }
+    
+    if (categories.some(c => c.toLowerCase() === newCategory.toLowerCase())) {
+      toast.error('Category already exists');
+      return;
+    }
+    
+    const updatedCategories = [...categories, newCategory.trim()];
+    setCategories(updatedCategories);
+    localStorage.setItem('adminCategories', JSON.stringify(updatedCategories));
+    toast.success('Category added successfully');
+    setNewCategory('');
+    setShowAddCategoryDialog(false);
+  };
+
+  const handleDeleteCategory = (categoryToDelete) => {
+    const updatedCategories = categories.filter(c => c !== categoryToDelete);
+    setCategories(updatedCategories);
+    localStorage.setItem('adminCategories', JSON.stringify(updatedCategories));
+    toast.success('Category deleted');
+  };
 
   const handleAddProduct = () => {
     if (!newProduct.name || !newProduct.price) {
