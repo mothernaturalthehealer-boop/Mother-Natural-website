@@ -60,8 +60,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = (name, email, password) => {
-    // Mock signup
-    const mockUser = {
+    // Create new user
+    const newUser = {
       id: Date.now().toString(),
       name: name,
       email: email,
@@ -69,9 +69,24 @@ export const AuthProvider = ({ children }) => {
       membershipLevel: 'basic',
       joinedDate: new Date().toISOString()
     };
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    return mockUser;
+    
+    // Save to registered users list
+    const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    // Check if email already exists
+    const emailExists = existingUsers.some(u => u.email === email);
+    if (!emailExists) {
+      existingUsers.push({
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        joinedDate: newUser.joinedDate
+      });
+      localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
+    }
+    
+    setUser(newUser);
+    localStorage.setItem('user', JSON.stringify(newUser));
+    return newUser;
   };
 
   const logout = () => {
