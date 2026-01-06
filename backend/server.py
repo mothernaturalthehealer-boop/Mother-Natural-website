@@ -4,17 +4,22 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import asyncio
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 from square import Square
 from square.environment import SquareEnvironment
+import resend
 
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -26,6 +31,11 @@ square_client = Square(
     token=os.environ.get('SQUARE_ACCESS_TOKEN', ''),
     environment=SquareEnvironment.SANDBOX if os.environ.get('SQUARE_ENVIRONMENT', 'sandbox') == 'sandbox' else SquareEnvironment.PRODUCTION
 )
+
+# Resend configuration
+resend.api_key = os.environ.get('RESEND_API_KEY', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+BUSINESS_NAME = os.environ.get('BUSINESS_NAME', 'Mother Natural: The Healing Lab')
 
 # Create the main app without a prefix
 app = FastAPI()
@@ -67,6 +77,23 @@ class PaymentResponse(BaseModel):
     paymentId: Optional[str] = None
     orderId: Optional[str] = None
     message: str
+
+# Email Models
+class EmailRequest(BaseModel):
+    recipient_email: str
+    subject: str
+    html_content: str
+
+class BulkEmailRequest(BaseModel):
+    recipient_emails: List[str]
+    subject: str
+    html_content: str
+
+class UserModel(BaseModel):
+    id: str
+    name: str
+    email: str
+    joinedDate: Optional[str] = None
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
