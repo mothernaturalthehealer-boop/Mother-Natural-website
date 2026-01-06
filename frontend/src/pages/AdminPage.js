@@ -11,7 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Package, Users, Calendar, Mountain, Settings, Check, X, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Users, Calendar, Mountain, Settings, Check, X, Eye, Mail, Send, RefreshCw } from 'lucide-react';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const AdminPage = () => {
   const { user, loading } = useAuth();
