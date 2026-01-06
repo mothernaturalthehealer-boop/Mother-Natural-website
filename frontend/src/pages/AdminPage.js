@@ -1006,6 +1006,186 @@ export const AdminPage = () => {
             </Card>
           </TabsContent>
 
+          {/* Classes Tab */}
+          <TabsContent value="classes" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="font-heading text-2xl">Wellness Classes</CardTitle>
+                    <CardDescription>Manage your class offerings</CardDescription>
+                  </div>
+                  <Dialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-primary hover:bg-primary-dark">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Class
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="font-heading">Add New Class</DialogTitle>
+                        <DialogDescription>Create a new wellness class</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="className">Class Name *</Label>
+                          <Input
+                            id="className"
+                            value={newClass.name}
+                            onChange={(e) => setNewClass({ ...newClass, name: e.target.value })}
+                            placeholder="e.g., Herbal Medicine Basics"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="instructor">Instructor</Label>
+                          <Input
+                            id="instructor"
+                            value={newClass.instructor}
+                            onChange={(e) => setNewClass({ ...newClass, instructor: e.target.value })}
+                            placeholder="Instructor name"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="classDuration">Duration</Label>
+                            <Input
+                              id="classDuration"
+                              value={newClass.duration}
+                              onChange={(e) => setNewClass({ ...newClass, duration: e.target.value })}
+                              placeholder="2 hours"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="sessions">Sessions</Label>
+                            <Input
+                              id="sessions"
+                              type="number"
+                              value={newClass.sessions}
+                              onChange={(e) => setNewClass({ ...newClass, sessions: e.target.value })}
+                              placeholder="6"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="classPrice">Price ($) *</Label>
+                            <Input
+                              id="classPrice"
+                              type="number"
+                              value={newClass.price}
+                              onChange={(e) => setNewClass({ ...newClass, price: e.target.value })}
+                              placeholder="199"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="spots">Available Spots</Label>
+                            <Input
+                              id="spots"
+                              type="number"
+                              value={newClass.spots}
+                              onChange={(e) => setNewClass({ ...newClass, spots: e.target.value })}
+                              placeholder="15"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="schedule">Schedule</Label>
+                          <Input
+                            id="schedule"
+                            value={newClass.schedule}
+                            onChange={(e) => setNewClass({ ...newClass, schedule: e.target.value })}
+                            placeholder="Saturdays, 10 AM - 12 PM"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="level">Level</Label>
+                          <select
+                            id="level"
+                            value={newClass.level}
+                            onChange={(e) => setNewClass({ ...newClass, level: e.target.value })}
+                            className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                          >
+                            <option value="All Levels">All Levels</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="classDesc">Description</Label>
+                          <Textarea
+                            id="classDesc"
+                            value={newClass.description}
+                            onChange={(e) => setNewClass({ ...newClass, description: e.target.value })}
+                            placeholder="Class description..."
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowAddClassDialog(false)}>Cancel</Button>
+                        <Button onClick={handleAddClass} className="bg-primary hover:bg-primary-dark">Add Class</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {classes.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No classes created yet. Click "Add Class" to get started.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Class Name</TableHead>
+                        <TableHead>Instructor</TableHead>
+                        <TableHead>Schedule</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Spots</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {classes.map((classItem) => (
+                        <TableRow key={classItem.id}>
+                          <TableCell className="font-medium">{classItem.name}</TableCell>
+                          <TableCell>{classItem.instructor || '-'}</TableCell>
+                          <TableCell>{classItem.schedule || '-'}</TableCell>
+                          <TableCell>${classItem.price}</TableCell>
+                          <TableCell>{classItem.spots || '-'}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditClass(classItem)}
+                                data-testid={`edit-class-${classItem.id}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteClass(classItem.id)}
+                                className="text-destructive hover:text-destructive"
+                                data-testid={`delete-class-${classItem.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Retreats Tab */}
           <TabsContent value="retreats" className="space-y-4">
             <Card>
