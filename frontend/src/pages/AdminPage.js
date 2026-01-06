@@ -172,12 +172,42 @@ export const AdminPage = () => {
     retreat: `RETREAT BOOKING AGREEMENT\n\nThis agreement is between Mother Natural: The Healing Lab and the client for retreat booking services.\n\n1. CANCELLATION & REFUND POLICY\n- Cancellations more than 60 days before retreat: Full refund minus $100 processing fee\n- Cancellations 30-60 days before retreat: 50% refund\n- Cancellations less than 30 days before retreat: No refund\n- Deposits are non-refundable\n\n2. PAYMENT TERMS\n- Payment plans available as specified during booking\n- Final payment must be received 30 days before retreat start date\n- Failure to complete payment may result in forfeiture of booking\n\n3. PARTICIPANT RESPONSIBILITIES\n- Participants must be in reasonable health to participate\n- Special dietary requirements must be communicated at least 14 days in advance\n- Participants are responsible for their own travel arrangements and insurance\n\n4. RETREAT POLICIES\n- Participants agree to follow retreat schedule and guidelines\n- Use of alcohol or illegal substances is prohibited\n- Disruptive behavior may result in removal without refund\n\n5. LIABILITY WAIVER\n- Client acknowledges physical activities and releases Mother Natural from liability\n- Client is responsible for their own health insurance\n- Mother Natural is not liable for lost or stolen personal items\n\n6. CHANGES TO RETREAT\n- Mother Natural reserves the right to modify retreat schedule due to weather or circumstances\n- In case of retreat cancellation by Mother Natural, full refund will be provided\n\nBy signing below, you acknowledge that you have read, understood, and agree to these terms.`
   };
 
-  const [products, setProducts] = useState([
-    { id: 1, name: 'Lavender Calm Tea', price: 18.99, category: 'Teas', stock: 45 },
-    { id: 2, name: 'Healing Herbal Tincture', price: 24.99, category: 'Tinctures', stock: 32 },
-    { id: 3, name: 'Rose Essential Oil', price: 32.99, category: 'Oils', stock: 28 },
-    { id: 4, name: 'Healing with Herbs Book', price: 34.99, category: 'Books', stock: 15 },
-  ]);
+  const [products, setProducts] = useState([]);
+
+  // Classes management
+  const [classes, setClasses] = useState([]);
+  const [showAddClassDialog, setShowAddClassDialog] = useState(false);
+  const [newClass, setNewClass] = useState({
+    name: '',
+    instructor: '',
+    description: '',
+    duration: '',
+    sessions: '',
+    price: '',
+    schedule: '',
+    spots: '',
+    level: 'All Levels',
+    image: 'https://images.pexels.com/photos/7879933/pexels-photo-7879933.jpeg'
+  });
+  const [editingClass, setEditingClass] = useState(null);
+  const [showEditClassDialog, setShowEditClassDialog] = useState(false);
+
+  // Product editing
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showEditProductDialog, setShowEditProductDialog] = useState(false);
+
+  // Load products and classes from localStorage
+  useEffect(() => {
+    const savedProducts = localStorage.getItem('adminProducts');
+    if (savedProducts) {
+      setProducts(JSON.parse(savedProducts));
+    }
+
+    const savedClasses = localStorage.getItem('adminClasses');
+    if (savedClasses) {
+      setClasses(JSON.parse(savedClasses));
+    }
+  }, []);
 
   // Clickable stat cards - link to appropriate tabs
   const stats = [
