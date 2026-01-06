@@ -176,6 +176,14 @@ export const AdminPage = () => {
 
   const [products, setProducts] = useState([]);
 
+  // Product categories (customizable)
+  const [categories, setCategories] = useState(['Teas', 'Tinctures', 'Oils', 'Books']);
+  const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+
+  // Orders (loaded from localStorage/backend)
+  const [orders, setOrders] = useState([]);
+
   // Classes management
   const [classes, setClasses] = useState([]);
   const [showAddClassDialog, setShowAddClassDialog] = useState(false);
