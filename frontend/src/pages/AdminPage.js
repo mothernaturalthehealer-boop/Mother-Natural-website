@@ -989,68 +989,69 @@ export const AdminPage = () => {
                           Add Product
                         </Button>
                       </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle className="font-heading">Add New Product</DialogTitle>
-                        <DialogDescription>
-                          Create a new product in your catalog
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="productName">Product Name</Label>
-                          <Input
-                            id="productName"
-                            value={newProduct.name}
-                            onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                            placeholder="e.g., Lavender Calm Tea"
-                          />
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle className="font-heading">Add New Product</DialogTitle>
+                          <DialogDescription>
+                            Create a new product in your catalog
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="productName">Product Name</Label>
+                            <Input
+                              id="productName"
+                              value={newProduct.name}
+                              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                              placeholder="e.g., Lavender Calm Tea"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="price">Price</Label>
+                            <Input
+                              id="price"
+                              type="number"
+                              step="0.01"
+                              value={newProduct.price}
+                              onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                              placeholder="19.99"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="category">Category</Label>
+                            <select
+                              id="category"
+                              value={newProduct.category}
+                              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                              className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                            >
+                              {categories.map((cat) => (
+                                <option key={cat} value={cat.toLowerCase()}>{cat}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                              id="description"
+                              value={newProduct.description}
+                              onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                              placeholder="Product description..."
+                              rows={3}
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="price">Price</Label>
-                          <Input
-                            id="price"
-                            type="number"
-                            step="0.01"
-                            value={newProduct.price}
-                            onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                            placeholder="19.99"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="category">Category</Label>
-                          <select
-                            id="category"
-                            value={newProduct.category}
-                            onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                            className="w-full px-3 py-2 border border-input rounded-md bg-background"
-                          >
-                            {categories.map((cat) => (
-                              <option key={cat} value={cat.toLowerCase()}>{cat}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            id="description"
-                            value={newProduct.description}
-                            onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                            placeholder="Product description..."
-                            rows={3}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowAddProductDialog(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleAddProduct} className="bg-primary hover:bg-primary-dark">
-                          Add Product
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setShowAddProductDialog(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleAddProduct} className="bg-primary hover:bg-primary-dark">
+                            Add Product
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
