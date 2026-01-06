@@ -2165,6 +2165,169 @@ export const AdminPage = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Product Dialog */}
+        <Dialog open={showEditProductDialog} onOpenChange={setShowEditProductDialog}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Edit Product</DialogTitle>
+              <DialogDescription>Update product details</DialogDescription>
+            </DialogHeader>
+            {editingProduct && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editProductName">Product Name *</Label>
+                  <Input
+                    id="editProductName"
+                    value={editingProduct.name}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editProductPrice">Price ($) *</Label>
+                  <Input
+                    id="editProductPrice"
+                    type="number"
+                    step="0.01"
+                    value={editingProduct.price}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editProductCategory">Category</Label>
+                  <select
+                    id="editProductCategory"
+                    value={editingProduct.category}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                  >
+                    <option value="teas">Teas</option>
+                    <option value="tinctures">Tinctures</option>
+                    <option value="oils">Oils</option>
+                    <option value="books">Books</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editProductDesc">Description</Label>
+                  <Textarea
+                    id="editProductDesc"
+                    value={editingProduct.description || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditProductDialog(false)}>Cancel</Button>
+              <Button onClick={handleSaveEditedProduct} className="bg-primary hover:bg-primary-dark">Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Class Dialog */}
+        <Dialog open={showEditClassDialog} onOpenChange={setShowEditClassDialog}>
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Edit Class</DialogTitle>
+              <DialogDescription>Update class details</DialogDescription>
+            </DialogHeader>
+            {editingClass && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editClassName">Class Name *</Label>
+                  <Input
+                    id="editClassName"
+                    value={editingClass.name}
+                    onChange={(e) => setEditingClass({ ...editingClass, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editClassInstructor">Instructor</Label>
+                  <Input
+                    id="editClassInstructor"
+                    value={editingClass.instructor || ''}
+                    onChange={(e) => setEditingClass({ ...editingClass, instructor: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editClassDuration">Duration</Label>
+                    <Input
+                      id="editClassDuration"
+                      value={editingClass.duration || ''}
+                      onChange={(e) => setEditingClass({ ...editingClass, duration: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editClassSessions">Sessions</Label>
+                    <Input
+                      id="editClassSessions"
+                      type="number"
+                      value={editingClass.sessions || ''}
+                      onChange={(e) => setEditingClass({ ...editingClass, sessions: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editClassPrice">Price ($) *</Label>
+                    <Input
+                      id="editClassPrice"
+                      type="number"
+                      value={editingClass.price}
+                      onChange={(e) => setEditingClass({ ...editingClass, price: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editClassSpots">Available Spots</Label>
+                    <Input
+                      id="editClassSpots"
+                      type="number"
+                      value={editingClass.spots || ''}
+                      onChange={(e) => setEditingClass({ ...editingClass, spots: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editClassSchedule">Schedule</Label>
+                  <Input
+                    id="editClassSchedule"
+                    value={editingClass.schedule || ''}
+                    onChange={(e) => setEditingClass({ ...editingClass, schedule: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editClassLevel">Level</Label>
+                  <select
+                    id="editClassLevel"
+                    value={editingClass.level || 'All Levels'}
+                    onChange={(e) => setEditingClass({ ...editingClass, level: e.target.value })}
+                    className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                  >
+                    <option value="All Levels">All Levels</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editClassDesc">Description</Label>
+                  <Textarea
+                    id="editClassDesc"
+                    value={editingClass.description || ''}
+                    onChange={(e) => setEditingClass({ ...editingClass, description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditClassDialog(false)}>Cancel</Button>
+              <Button onClick={handleSaveEditedClass} className="bg-primary hover:bg-primary-dark">Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
