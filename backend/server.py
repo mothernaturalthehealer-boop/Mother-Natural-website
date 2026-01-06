@@ -196,6 +196,21 @@ async def process_payment(payment_request: PaymentRequest):
             }
             await db.payments.insert_one(payment_doc)
             
+            # Send payment receipt email
+            if payment_request.customerEmail:
+                try:
+                    await send_payment_receipt(
+                        customer_email=payment_request.customerEmail,
+                        customer_name=payment_request.customerName or "Valued Customer",
+                        order_id=order_id,
+                        amount=payment_request.amount / 100,  # Convert cents to dollars
+                        items=payment_request.items,
+                        payment_type=payment_request.paymentType
+                    )
+                except Exception as email_error:
+                    logger.error(f"Failed to send receipt email: {str(email_error)}")
+                    # Don't fail the payment if email fails
+            
             return PaymentResponse(
                 success=True,
                 paymentId=result.payment.id,
