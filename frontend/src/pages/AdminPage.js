@@ -1560,38 +1560,49 @@ export const AdminPage = () => {
           <TabsContent value="orders" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="font-heading text-2xl">Recent Orders</CardTitle>
-                <CardDescription>Manage customer orders</CardDescription>
+                <CardTitle className="font-heading text-2xl">Orders</CardTitle>
+                <CardDescription>Manage customer orders ({orders.length} total)</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">#{order.id}</TableCell>
-                        <TableCell>{order.customer}</TableCell>
-                        <TableCell>{order.date}</TableCell>
-                        <TableCell>${order.total}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={order.status === 'Delivered' ? 'default' : 'outline'}
-                          >
-                            {order.status}
-                          </Badge>
-                        </TableCell>
+                {orders.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No orders yet. Orders will appear here when customers make purchases.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">#{order.id?.slice(-8) || order.id}</TableCell>
+                          <TableCell>{order.customer_name || order.customerName || 'Guest'}</TableCell>
+                          <TableCell>
+                            {order.created_at 
+                              ? new Date(order.created_at).toLocaleDateString() 
+                              : order.date || '-'}
+                          </TableCell>
+                          <TableCell>${((order.total_amount || order.total || 0) / 100).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={order.status === 'completed' ? 'default' : 'outline'}
+                              className={order.status === 'completed' ? 'bg-green-500' : ''}
+                            >
+                              {order.status || 'pending'}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
