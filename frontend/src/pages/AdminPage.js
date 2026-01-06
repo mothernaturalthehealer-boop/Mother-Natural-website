@@ -933,13 +933,62 @@ export const AdminPage = () => {
                     <CardTitle className="font-heading text-2xl">Products</CardTitle>
                     <CardDescription>Manage your product catalog</CardDescription>
                   </div>
-                  <Dialog open={showAddProductDialog} onOpenChange={setShowAddProductDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-primary hover:bg-primary-dark">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Product
-                      </Button>
-                    </DialogTrigger>
+                  <div className="flex space-x-2">
+                    {/* Category Management */}
+                    <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Category
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="font-heading">Manage Categories</DialogTitle>
+                          <DialogDescription>Add or remove product categories</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="flex space-x-2">
+                            <Input
+                              value={newCategory}
+                              onChange={(e) => setNewCategory(e.target.value)}
+                              placeholder="New category name..."
+                            />
+                            <Button onClick={handleAddCategory} className="bg-primary hover:bg-primary-dark">
+                              Add
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Current Categories:</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {categories.map((cat) => (
+                                <Badge key={cat} variant="secondary" className="flex items-center gap-1 py-1 px-2">
+                                  {cat}
+                                  <button
+                                    onClick={() => handleDeleteCategory(cat)}
+                                    className="ml-1 hover:text-destructive"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Done</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* Add Product */}
+                    <Dialog open={showAddProductDialog} onOpenChange={setShowAddProductDialog}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-primary hover:bg-primary-dark">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Product
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle className="font-heading">Add New Product</DialogTitle>
