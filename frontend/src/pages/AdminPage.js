@@ -230,22 +230,135 @@ export const AdminPage = () => {
     }
 
     const product = {
-      id: products.length + 1,
+      id: Date.now(),
       name: newProduct.name,
       price: parseFloat(newProduct.price),
       category: newProduct.category,
-      stock: 0
+      description: newProduct.description || '',
+      stock: 0,
+      inStock: true,
+      image: 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg',
+      rating: 4.5
     };
 
-    setProducts([...products, product]);
+    const updatedProducts = [...products, product];
+    setProducts(updatedProducts);
+    localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
     toast.success('Product added successfully!');
     setShowAddProductDialog(false);
     setNewProduct({ name: '', price: '', category: 'teas', description: '' });
   };
 
   const handleDeleteProduct = (id) => {
-    setProducts(products.filter(p => p.id !== id));
+    const updatedProducts = products.filter(p => p.id !== id);
+    setProducts(updatedProducts);
+    localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
     toast.success('Product deleted successfully');
+  };
+
+  const handleEditProduct = (product) => {
+    setEditingProduct({ ...product });
+    setShowEditProductDialog(true);
+  };
+
+  const handleSaveEditedProduct = () => {
+    if (!editingProduct.name || !editingProduct.price) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const updatedProducts = products.map(p => {
+      if (p.id === editingProduct.id) {
+        return {
+          ...editingProduct,
+          price: parseFloat(editingProduct.price)
+        };
+      }
+      return p;
+    });
+
+    setProducts(updatedProducts);
+    localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
+    toast.success('Product updated successfully');
+    setShowEditProductDialog(false);
+    setEditingProduct(null);
+  };
+
+  // Class handlers
+  const handleAddClass = () => {
+    if (!newClass.name || !newClass.price) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const classItem = {
+      id: Date.now(),
+      name: newClass.name,
+      instructor: newClass.instructor || '',
+      description: newClass.description || '',
+      duration: newClass.duration || '',
+      sessions: parseInt(newClass.sessions) || 0,
+      price: parseFloat(newClass.price),
+      schedule: newClass.schedule || '',
+      spots: parseInt(newClass.spots) || 10,
+      level: newClass.level,
+      image: newClass.image
+    };
+
+    const updatedClasses = [...classes, classItem];
+    setClasses(updatedClasses);
+    localStorage.setItem('adminClasses', JSON.stringify(updatedClasses));
+    toast.success('Class added successfully!');
+    setShowAddClassDialog(false);
+    setNewClass({
+      name: '',
+      instructor: '',
+      description: '',
+      duration: '',
+      sessions: '',
+      price: '',
+      schedule: '',
+      spots: '',
+      level: 'All Levels',
+      image: 'https://images.pexels.com/photos/7879933/pexels-photo-7879933.jpeg'
+    });
+  };
+
+  const handleDeleteClass = (id) => {
+    const updatedClasses = classes.filter(c => c.id !== id);
+    setClasses(updatedClasses);
+    localStorage.setItem('adminClasses', JSON.stringify(updatedClasses));
+    toast.success('Class deleted successfully');
+  };
+
+  const handleEditClass = (classItem) => {
+    setEditingClass({ ...classItem });
+    setShowEditClassDialog(true);
+  };
+
+  const handleSaveEditedClass = () => {
+    if (!editingClass.name || !editingClass.price) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const updatedClasses = classes.map(c => {
+      if (c.id === editingClass.id) {
+        return {
+          ...editingClass,
+          price: parseFloat(editingClass.price),
+          sessions: parseInt(editingClass.sessions) || 0,
+          spots: parseInt(editingClass.spots) || 10
+        };
+      }
+      return c;
+    });
+
+    setClasses(updatedClasses);
+    localStorage.setItem('adminClasses', JSON.stringify(updatedClasses));
+    toast.success('Class updated successfully');
+    setShowEditClassDialog(false);
+    setEditingClass(null);
   };
 
   const handleAddFundraiser = () => {
