@@ -200,6 +200,16 @@ export const AdminPage = () => {
 
   // Registered users count
   const [registeredUsers, setRegisteredUsers] = useState(0);
+  const [usersList, setUsersList] = useState([]);
+
+  // Email management
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [showBulkEmailDialog, setShowBulkEmailDialog] = useState(false);
+  const [selectedUserForEmail, setSelectedUserForEmail] = useState(null);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailContent, setEmailContent] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailLogs, setEmailLogs] = useState([]);
 
   // Load products and classes from localStorage
   useEffect(() => {
@@ -213,13 +223,155 @@ export const AdminPage = () => {
       setClasses(JSON.parse(savedClasses));
     }
 
-    // Count registered users from localStorage
+    // Load registered users from localStorage
     const users = localStorage.getItem('registeredUsers');
     if (users) {
       const parsedUsers = JSON.parse(users);
+      setUsersList(Array.isArray(parsedUsers) ? parsedUsers : []);
       setRegisteredUsers(Array.isArray(parsedUsers) ? parsedUsers.length : 0);
+      
+      // Sync users to backend
+      syncUsersToBackend(parsedUsers);
     }
+
+    // Load email logs
+    fetchEmailLogs();
   }, []);
+
+  // Sync users to backend for email functionality
+  const syncUsersToBackend = async (users) => {
+    try {
+      await fetch(`${API_URL}/api/users/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(users)
+      });
+    } catch (error) {
+      console.error('Failed to sync users:', error);
+    }
+  };
+
+  // Fetch email logs from backend
+  const fetchEmailLogs = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/email/logs`);
+      if (response.ok) {
+        const logs = await response.json();
+        setEmailLogs(logs);
+      }
+    } catch (error) {
+      console.error('Failed to fetch email logs:', error);
+    }
+  };
+
+  // Send personal email
+  const handleSendPersonalEmail = async () => {
+    if (!selectedUserForEmail || !emailSubject || !emailContent) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const response = await fetch(`${API_URL}/api/email/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_email: selectedUserForEmail.email,
+          subject: emailSubject,
+          html_content: generateEmailHTML(emailContent)
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(`Email sent to ${selectedUserForEmail.name}`);
+        setShowEmailDialog(false);
+        setSelectedUserForEmail(null);
+        setEmailSubject('');
+        setEmailContent('');
+        fetchEmailLogs();
+      } else {
+        throw new Error(data.detail || 'Failed to send email');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  // Send bulk email
+  const handleSendBulkEmail = async () => {
+    if (!emailSubject || !emailContent) {
+      toast.error('Please fill in subject and content');
+      return;
+    }
+
+    if (usersList.length === 0) {
+      toast.error('No users to send email to');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const response = await fetch(`${API_URL}/api/email/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_emails: usersList.map(u => u.email),
+          subject: emailSubject,
+          html_content: generateEmailHTML(emailContent)
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(`Bulk email sent: ${data.sent_count} delivered, ${data.failed_count} failed`);
+        setShowBulkEmailDialog(false);
+        setEmailSubject('');
+        setEmailContent('');
+        fetchEmailLogs();
+      } else {
+        throw new Error(data.detail || 'Failed to send bulk email');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  // Generate HTML email template
+  const generateEmailHTML = (content) => {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f5ff;">
+      <div style="background: linear-gradient(135deg, #a78bfa 0%, #f0abfc 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Mother Natural: The Healing Lab</h1>
+      </div>
+      <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="color: #333; line-height: 1.6; white-space: pre-wrap;">${content}</div>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center;">
+          Suffolk County, New York<br>
+          Mothernaturalcontact@gmail.com
+        </p>
+      </div>
+    </body>
+    </html>
+    `;
+  };
+
+  // Open email dialog for specific user
+  const openEmailDialogForUser = (userItem) => {
+    setSelectedUserForEmail(userItem);
+    setEmailSubject('');
+    setEmailContent('');
+    setShowEmailDialog(true);
+  };
 
   // Clickable stat cards - link to appropriate tabs
   const stats = [
