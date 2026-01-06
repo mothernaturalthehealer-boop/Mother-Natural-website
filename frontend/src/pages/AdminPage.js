@@ -196,6 +196,9 @@ export const AdminPage = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [showEditProductDialog, setShowEditProductDialog] = useState(false);
 
+  // Registered users count
+  const [registeredUsers, setRegisteredUsers] = useState(0);
+
   // Load products and classes from localStorage
   useEffect(() => {
     const savedProducts = localStorage.getItem('adminProducts');
@@ -207,12 +210,19 @@ export const AdminPage = () => {
     if (savedClasses) {
       setClasses(JSON.parse(savedClasses));
     }
+
+    // Count registered users from localStorage
+    const users = localStorage.getItem('registeredUsers');
+    if (users) {
+      const parsedUsers = JSON.parse(users);
+      setRegisteredUsers(Array.isArray(parsedUsers) ? parsedUsers.length : 0);
+    }
   }, []);
 
   // Clickable stat cards - link to appropriate tabs
   const stats = [
     { label: 'Total Products', value: products.length.toString(), icon: Package, color: 'text-primary', tab: 'products' },
-    { label: 'Active Users', value: '1,234', icon: Users, color: 'text-accent', tab: 'users' },
+    { label: 'Registered Users', value: registeredUsers.toString(), icon: Users, color: 'text-accent', tab: 'users' },
     { label: 'Appointments', value: userAppointments.length.toString(), icon: Calendar, color: 'text-secondary', tab: 'appointments' },
     { label: 'Retreats Booked', value: retreats.length.toString(), icon: Mountain, color: 'text-natural', tab: 'retreats' },
   ];
