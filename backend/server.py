@@ -256,6 +256,208 @@ async def get_payment_history(customer_email: Optional[str] = None):
     orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     return orders
 
+
+# Email Helper Functions
+async def send_payment_receipt(customer_email: str, customer_name: str, order_id: str, amount: float, items: List[PaymentItem], payment_type: str):
+    """Send a payment receipt email to the customer"""
+    
+    # Build items HTML
+    items_html = ""
+    for item in items:
+        items_html += f"""
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.name}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item.quantity}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.price / 100:.2f}</td>
+        </tr>
+        """
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f5ff;">
+        <div style="background: linear-gradient(135deg, #a78bfa 0%, #f0abfc 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">{BUSINESS_NAME}</h1>
+            <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">Payment Receipt</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <p style="color: #333; font-size: 16px;">Dear {customer_name},</p>
+            
+            <p style="color: #666;">Thank you for your {payment_type} payment. Here are your receipt details:</p>
+            
+            <div style="background: #f9f5ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0; color: #666;"><strong>Order ID:</strong> {order_id}</p>
+                <p style="margin: 5px 0; color: #666;"><strong>Date:</strong> {datetime.now().strftime('%B %d, %Y')}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <thead>
+                    <tr style="background: #a78bfa; color: white;">
+                        <th style="padding: 12px; text-align: left;">Item</th>
+                        <th style="padding: 12px; text-align: center;">Qty</th>
+                        <th style="padding: 12px; text-align: right;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {items_html}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f0abfc;">
+                        <td colspan="2" style="padding: 12px; font-weight: bold;">Total Paid</td>
+                        <td style="padding: 12px; text-align: right; font-weight: bold; font-size: 18px;">${amount:.2f}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <p style="color: #666; margin-top: 30px;">If you have any questions about your purchase, please don't hesitate to contact us.</p>
+            
+            <p style="color: #666;">With gratitude,<br><strong>{BUSINESS_NAME}</strong></p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+                Suffolk County, New York<br>
+                Mothernaturalcontact@gmail.com
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    params = {
+        "from": SENDER_EMAIL,
+        "to": [customer_email],
+        "subject": f"Payment Receipt - {BUSINESS_NAME}",
+        "html": html_content
+    }
+    
+    await asyncio.to_thread(resend.Emails.send, params)
+
+
+# Email API Endpoints
+@api_router.post("/email/send")
+async def send_single_email(request: EmailRequest):
+    """Send a single email to a recipient"""
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [request.recipient_email],
+            "subject": request.subject,
+            "html": request.html_content
+        }
+        
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        
+        # Log email to database
+        email_log = {
+            "id": str(uuid.uuid4()),
+            "recipient": request.recipient_email,
+            "subject": request.subject,
+            "type": "personal",
+            "status": "sent",
+            "sent_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.email_logs.insert_one(email_log)
+        
+        return {
+            "success": True,
+            "message": f"Email sent to {request.recipient_email}",
+            "email_id": result.get("id") if isinstance(result, dict) else str(result)
+        }
+    except Exception as e:
+        logger.error(f"Failed to send email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
+
+@api_router.post("/email/bulk")
+async def send_bulk_email(request: BulkEmailRequest):
+    """Send bulk emails to multiple recipients"""
+    try:
+        sent_count = 0
+        failed_count = 0
+        
+        for email in request.recipient_emails:
+            try:
+                params = {
+                    "from": SENDER_EMAIL,
+                    "to": [email],
+                    "subject": request.subject,
+                    "html": request.html_content
+                }
+                
+                await asyncio.to_thread(resend.Emails.send, params)
+                sent_count += 1
+                
+            except Exception as e:
+                logger.error(f"Failed to send to {email}: {str(e)}")
+                failed_count += 1
+        
+        # Log bulk email
+        email_log = {
+            "id": str(uuid.uuid4()),
+            "recipient_count": len(request.recipient_emails),
+            "sent_count": sent_count,
+            "failed_count": failed_count,
+            "subject": request.subject,
+            "type": "bulk",
+            "status": "completed",
+            "sent_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.email_logs.insert_one(email_log)
+        
+        return {
+            "success": True,
+            "message": f"Bulk email completed: {sent_count} sent, {failed_count} failed",
+            "sent_count": sent_count,
+            "failed_count": failed_count
+        }
+    except Exception as e:
+        logger.error(f"Bulk email failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Bulk email failed: {str(e)}")
+
+
+@api_router.get("/email/logs")
+async def get_email_logs():
+    """Get email sending history"""
+    logs = await db.email_logs.find({}, {"_id": 0}).sort("sent_at", -1).to_list(100)
+    return logs
+
+
+@api_router.post("/users/sync")
+async def sync_users(users: List[UserModel]):
+    """Sync users from frontend localStorage to backend"""
+    try:
+        for user in users:
+            # Upsert user
+            await db.users.update_one(
+                {"email": user.email},
+                {"$set": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "joinedDate": user.joinedDate,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }},
+                upsert=True
+            )
+        
+        return {"success": True, "message": f"Synced {len(users)} users"}
+    except Exception as e:
+        logger.error(f"User sync failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"User sync failed: {str(e)}")
+
+
+@api_router.get("/users")
+async def get_all_users():
+    """Get all registered users"""
+    users = await db.users.find({}, {"_id": 0}).to_list(1000)
+    return users
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
