@@ -115,19 +115,18 @@ export const RetreatsPage = () => {
     },
   ];
 
-  // Load retreats from localStorage (admin-managed) or use defaults
+  // Load retreats from localStorage (admin-managed)
   useEffect(() => {
     const adminRetreats = localStorage.getItem('adminRetreats');
     if (adminRetreats) {
       const parsed = JSON.parse(adminRetreats);
       if (parsed.length > 0) {
         setRetreats(parsed);
-      } else {
-        setRetreats(defaultRetreats);
+        return;
       }
-    } else {
-      setRetreats(defaultRetreats);
     }
+    // No retreats configured by admin - show empty state
+    setRetreats([]);
   }, []);
 
   const handleBookRetreat = (retreat) => {
