@@ -2100,17 +2100,245 @@ export const AdminPage = () => {
           <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="font-heading text-2xl">User Management</CardTitle>
-                <CardDescription>Manage community members</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="font-heading text-2xl">User Management</CardTitle>
+                    <CardDescription>Manage community members and send emails ({usersList.length} users)</CardDescription>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        const users = localStorage.getItem('registeredUsers');
+                        if (users) {
+                          const parsedUsers = JSON.parse(users);
+                          setUsersList(parsedUsers);
+                          setRegisteredUsers(parsedUsers.length);
+                          syncUsersToBackend(parsedUsers);
+                          toast.success('User list refreshed');
+                        }
+                      }}
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Refresh
+                    </Button>
+                    <Dialog open={showBulkEmailDialog} onOpenChange={setShowBulkEmailDialog}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-primary hover:bg-primary-dark" disabled={usersList.length === 0}>
+                          <Send className="mr-2 h-4 w-4" />
+                          Send Bulk Email
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="font-heading">Send Bulk Email</DialogTitle>
+                          <DialogDescription>
+                            Send an email to all {usersList.length} registered users
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="bulkSubject">Subject *</Label>
+                            <Input
+                              id="bulkSubject"
+                              value={emailSubject}
+                              onChange={(e) => setEmailSubject(e.target.value)}
+                              placeholder="e.g., Exciting News from Mother Natural!"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="bulkContent">Message *</Label>
+                            <Textarea
+                              id="bulkContent"
+                              value={emailContent}
+                              onChange={(e) => setEmailContent(e.target.value)}
+                              placeholder="Write your message here..."
+                              rows={10}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setShowBulkEmailDialog(false)}>Cancel</Button>
+                          <Button 
+                            onClick={handleSendBulkEmail} 
+                            className="bg-primary hover:bg-primary-dark"
+                            disabled={isSendingEmail}
+                          >
+                            {isSendingEmail ? (
+                              <>
+                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="mr-2 h-4 w-4" />
+                                Send to {usersList.length} Users
+                              </>
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-center py-12">
-                  User management features coming soon...
-                </p>
+                {usersList.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No registered users yet.</p>
+                    <p className="text-sm">Users will appear here when they sign up.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Joined</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {usersList.map((userItem) => (
+                        <TableRow key={userItem.id}>
+                          <TableCell className="font-medium">{userItem.name}</TableCell>
+                          <TableCell>{userItem.email}</TableCell>
+                          <TableCell>
+                            {userItem.joinedDate 
+                              ? new Date(userItem.joinedDate).toLocaleDateString() 
+                              : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEmailDialogForUser(userItem)}
+                              data-testid={`email-user-${userItem.id}`}
+                            >
+                              <Mail className="h-4 w-4 mr-1" />
+                              Email
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Email History */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="font-heading text-xl">Email History</CardTitle>
+                    <CardDescription>Recent emails sent from admin panel</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={fetchEmailLogs}>
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {emailLogs.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No emails sent yet.</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Recipients</TableHead>
+                        <TableHead>Sent</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {emailLogs.slice(0, 10).map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell>
+                            <Badge variant={log.type === 'bulk' ? 'default' : 'outline'}>
+                              {log.type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate">{log.subject}</TableCell>
+                          <TableCell>
+                            {log.type === 'bulk' 
+                              ? `${log.sent_count}/${log.recipient_count}` 
+                              : log.recipient}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {new Date(log.sent_at).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-green-600">
+                              {log.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Personal Email Dialog */}
+        <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Send Email to {selectedUserForEmail?.name}</DialogTitle>
+              <DialogDescription>
+                Sending to: {selectedUserForEmail?.email}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="personalSubject">Subject *</Label>
+                <Input
+                  id="personalSubject"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="e.g., Your Appointment Confirmation"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="personalContent">Message *</Label>
+                <Textarea
+                  id="personalContent"
+                  value={emailContent}
+                  onChange={(e) => setEmailContent(e.target.value)}
+                  placeholder="Write your personal message here..."
+                  rows={10}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEmailDialog(false)}>Cancel</Button>
+              <Button 
+                onClick={handleSendPersonalEmail} 
+                className="bg-primary hover:bg-primary-dark"
+                disabled={isSendingEmail}
+              >
+                {isSendingEmail ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Send Email
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Settings Dialog */}
         <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
