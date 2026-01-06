@@ -708,6 +708,7 @@ export const AdminPage = () => {
           <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
+            <TabsTrigger value="classes">Classes</TabsTrigger>
             <TabsTrigger value="retreats">Retreats</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
