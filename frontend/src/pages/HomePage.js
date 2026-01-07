@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +7,32 @@ import { Sparkles, Heart, Users, Calendar, ShoppingBag, BookOpen, Mountain, Star
 
 export const HomePage = () => {
   const navigate = useNavigate();
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
 
-  const featuredProducts = [
-    { id: 1, name: 'Lavender Calm Tea', price: 18.99, category: 'Teas', image: 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg' },
-    { id: 2, name: 'Healing Herbal Tincture', price: 24.99, category: 'Tinctures', image: 'https://images.pexels.com/photos/672051/pexels-photo-672051.jpeg' },
-    { id: 3, name: 'Rose Essential Oil', price: 32.99, category: 'Oils', image: 'https://images.pexels.com/photos/932577/pexels-photo-932577.jpeg' },
-  ];
+  // Load featured products and testimonials from localStorage
+  useEffect(() => {
+    // Load products (show first 3 as featured)
+    const savedProducts = localStorage.getItem('adminProducts');
+    if (savedProducts) {
+      const products = JSON.parse(savedProducts);
+      setFeaturedProducts(products.slice(0, 3));
+    }
+
+    // Load testimonials from community posts (show first 3 with good content)
+    const savedPosts = localStorage.getItem('communityPosts');
+    if (savedPosts) {
+      const posts = JSON.parse(savedPosts);
+      // Convert community posts to testimonial format
+      const testimonialPosts = posts.slice(0, 3).map(post => ({
+        name: post.author?.name || 'Community Member',
+        text: post.content,
+        rating: 5,
+        image: post.author?.avatar || ''
+      }));
+      setTestimonials(testimonialPosts);
+    }
+  }, []);
 
   const services = [
     {
@@ -35,27 +55,6 @@ export const HomePage = () => {
       description: 'Immersive experiences in nature for deep transformation',
       link: '/retreats',
       color: 'text-secondary'
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: 'Sarah M.',
-      text: 'Mother Natural transformed my wellness journey. The teas and tinctures are incredibly healing.',
-      rating: 5,
-      image: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg'
-    },
-    {
-      name: 'Jennifer L.',
-      text: 'The retreat was life-changing. I found peace and clarity I had been searching for.',
-      rating: 5,
-      image: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg'
-    },
-    {
-      name: 'Michelle K.',
-      text: 'The community here is so supportive. I finally found my tribe of like-minded wellness seekers.',
-      rating: 5,
-      image: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg'
     },
   ];
 
@@ -162,47 +161,63 @@ export const HomePage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredProducts.map((product) => (
-              <Card key={product.id} className="group hover:shadow-elegant transition-all duration-300 overflow-hidden">
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <Badge className="absolute top-4 right-4 bg-secondary text-secondary-foreground">
-                    {product.category}
-                  </Badge>
-                </div>
-                <CardHeader>
-                  <CardTitle className="font-heading text-xl">{product.name}</CardTitle>
-                  <CardDescription className="text-2xl font-bold text-primary">
-                    ${product.price}
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Button
-                    className="w-full bg-primary hover:bg-primary-dark"
-                    onClick={() => navigate('/shop')}
-                  >
-                    View Details
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {featuredProducts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {featuredProducts.map((product) => (
+                  <Card key={product.id} className="group hover:shadow-elegant transition-all duration-300 overflow-hidden">
+                    <div className="relative h-64 overflow-hidden">
+                      <img
+                        src={product.image || 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg'}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <Badge className="absolute top-4 right-4 bg-secondary text-secondary-foreground capitalize">
+                        {product.category}
+                      </Badge>
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="font-heading text-xl">{product.name}</CardTitle>
+                      <CardDescription className="text-2xl font-bold text-primary">
+                        ${product.price}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                      <Button
+                        className="w-full bg-primary hover:bg-primary-dark"
+                        onClick={() => navigate('/shop')}
+                      >
+                        View Details
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
 
-          <div className="text-center mt-12">
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate('/shop')}
-              className="border-primary/30"
-            >
-              Browse All Products
-            </Button>
-          </div>
+              <div className="text-center mt-12">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => navigate('/shop')}
+                  className="border-primary/30"
+                >
+                  Browse All Products
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+              <p className="text-muted-foreground mb-4">Products coming soon!</p>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/shop')}
+                className="border-primary/30"
+              >
+                Visit Shop
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -263,32 +278,56 @@ export const HomePage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-card/80 backdrop-blur border-border/50">
-                <CardHeader>
-                  <div className="flex items-center space-x-4 mb-4">
-                    <img
-                      src={testimonial.image}
-                      alt={testimonial.name}
-                      className="h-12 w-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <CardTitle className="text-base">{testimonial.name}</CardTitle>
-                      <div className="flex space-x-1">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                        ))}
+          {testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {testimonials.map((testimonial, index) => (
+                <Card key={index} className="bg-card/80 backdrop-blur border-border/50">
+                  <CardHeader>
+                    <div className="flex items-center space-x-4 mb-4">
+                      {testimonial.image ? (
+                        <img
+                          src={testimonial.image}
+                          alt={testimonial.name}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 rounded-full bg-primary-light flex items-center justify-center">
+                          <span className="text-primary font-semibold">
+                            {testimonial.name?.charAt(0) || 'M'}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <CardTitle className="text-base">{testimonial.name}</CardTitle>
+                        <div className="flex space-x-1">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="h-4 w-4 fill-accent text-accent" />
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <CardDescription className="text-base italic">
-                    "{testimonial.text}"
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
+                    <CardDescription className="text-base italic">
+                      "{testimonial.text?.length > 150 ? testimonial.text.slice(0, 150) + '...' : testimonial.text}"
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+              <p className="text-muted-foreground mb-4">
+                Join our community and share your wellness journey!
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/community')}
+                className="border-primary/30"
+              >
+                Visit Community
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
