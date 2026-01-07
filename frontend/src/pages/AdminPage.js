@@ -176,8 +176,8 @@ export const AdminPage = () => {
 
   const [products, setProducts] = useState([]);
 
-  // Product categories (customizable)
-  const [categories, setCategories] = useState(['Teas', 'Tinctures', 'Oils', 'Books']);
+  // Product categories (customizable - start empty)
+  const [categories, setCategories] = useState([]);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [newCategory, setNewCategory] = useState('');
 
