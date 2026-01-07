@@ -1019,16 +1019,22 @@ export const AdminPage = () => {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="category">Category</Label>
-                            <select
-                              id="category"
-                              value={newProduct.category}
-                              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                              className="w-full px-3 py-2 border border-input rounded-md bg-background"
-                            >
-                              {categories.map((cat) => (
-                                <option key={cat} value={cat.toLowerCase()}>{cat}</option>
-                              ))}
-                            </select>
+                            {categories.length === 0 ? (
+                              <p className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">
+                                No categories yet. Please add categories first using the "Add Category" button.
+                              </p>
+                            ) : (
+                              <select
+                                id="category"
+                                value={newProduct.category}
+                                onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                              >
+                                {categories.map((cat) => (
+                                  <option key={cat} value={cat.toLowerCase()}>{cat}</option>
+                                ))}
+                              </select>
+                            )}
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>
