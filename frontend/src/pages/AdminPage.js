@@ -434,11 +434,16 @@ export const AdminPage = () => {
       return;
     }
 
+    if (categories.length === 0) {
+      toast.error('Please add at least one category first');
+      return;
+    }
+
     const product = {
       id: Date.now(),
       name: newProduct.name,
       price: parseFloat(newProduct.price),
-      category: newProduct.category,
+      category: newProduct.category || categories[0]?.toLowerCase(),
       description: newProduct.description || '',
       stock: 0,
       inStock: true,
@@ -451,7 +456,7 @@ export const AdminPage = () => {
     localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
     toast.success('Product added successfully!');
     setShowAddProductDialog(false);
-    setNewProduct({ name: '', price: '', category: 'teas', description: '' });
+    setNewProduct({ name: '', price: '', category: categories[0]?.toLowerCase() || '', description: '' });
   };
 
   const handleDeleteProduct = (id) => {
