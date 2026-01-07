@@ -22,7 +22,7 @@ export const AdminPage = () => {
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
-    category: 'teas',
+    category: '',
     description: ''
   });
 
