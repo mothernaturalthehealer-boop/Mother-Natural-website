@@ -13,7 +13,7 @@ export const ShopPage = () => {
   const { addToCart } = useCart();
   const [activeCategory, setActiveCategory] = useState('all');
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState(['Teas', 'Tinctures', 'Oils', 'Books']);
+  const [categories, setCategories] = useState([]);
 
   // Load products and categories from localStorage (admin-managed)
   useEffect(() => {
