@@ -248,7 +248,7 @@ By signing below, you acknowledge that you have read, understood, and agree to t
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -256,6 +256,7 @@ By signing below, you acknowledge that you have read, understood, and agree to t
             onClick={handleSign}
             disabled={!agreed || !signature}
             className="bg-primary hover:bg-primary-dark"
+            data-testid="sign-contract-btn"
           >
             <FileText className="mr-2 h-4 w-4" />
             Sign & Complete Booking
