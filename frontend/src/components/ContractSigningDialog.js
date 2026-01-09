@@ -163,7 +163,7 @@ By signing below, you acknowledge that you have read, understood, and agree to t
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl flex items-center">
             <FileText className="h-6 w-6 mr-2 text-primary" />
@@ -174,7 +174,7 @@ By signing below, you acknowledge that you have read, understood, and agree to t
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 flex-1 overflow-y-auto">
           {/* Contract Text */}
           <div>
             <Label className="text-base font-semibold mb-2 block">Agreement Terms</Label>
