@@ -1218,6 +1218,8 @@ async def create_fundraiser(fundraiser: FundraiserModel):
 async def update_fundraiser(fundraiser_id: str, fundraiser: FundraiserModel):
     """Update a fundraiser"""
     fundraiser_dict = fundraiser.model_dump()
+    # Remove id field to prevent overwriting
+    fundraiser_dict.pop("id", None)
     fundraiser_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.fundraisers.update_one({"id": fundraiser_id}, {"$set": fundraiser_dict})
     if result.modified_count == 0:
