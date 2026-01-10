@@ -1071,6 +1071,106 @@ export const AdminPage = () => {
                               rows={3}
                             />
                           </div>
+                          
+                          {/* Sizes Section */}
+                          <div className="space-y-2">
+                            <Label>Sizes (Optional)</Label>
+                            <p className="text-xs text-muted-foreground">Add multiple sizes if this product comes in different sizes. Leave empty for single-size products.</p>
+                            <div className="flex gap-2">
+                              <Input
+                                value={newSizeInput}
+                                onChange={(e) => setNewSizeInput(e.target.value)}
+                                placeholder="e.g., Small, 4oz, 16oz"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    if (newSizeInput.trim() && !newProduct.sizes.includes(newSizeInput.trim())) {
+                                      setNewProduct({ ...newProduct, sizes: [...newProduct.sizes, newSizeInput.trim()] });
+                                      setNewSizeInput('');
+                                    }
+                                  }
+                                }}
+                              />
+                              <Button 
+                                type="button"
+                                variant="outline" 
+                                onClick={() => {
+                                  if (newSizeInput.trim() && !newProduct.sizes.includes(newSizeInput.trim())) {
+                                    setNewProduct({ ...newProduct, sizes: [...newProduct.sizes, newSizeInput.trim()] });
+                                    setNewSizeInput('');
+                                  }
+                                }}
+                              >
+                                Add
+                              </Button>
+                            </div>
+                            {newProduct.sizes.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {newProduct.sizes.map((size, idx) => (
+                                  <Badge key={idx} variant="secondary" className="px-3 py-1">
+                                    {size}
+                                    <button
+                                      type="button"
+                                      className="ml-2 text-muted-foreground hover:text-destructive"
+                                      onClick={() => setNewProduct({ ...newProduct, sizes: newProduct.sizes.filter((_, i) => i !== idx) })}
+                                    >
+                                      ×
+                                    </button>
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Flavors Section */}
+                          <div className="space-y-2">
+                            <Label>Flavors (Optional)</Label>
+                            <p className="text-xs text-muted-foreground">Add multiple flavors if this product comes in different flavors. Leave empty for single-flavor products.</p>
+                            <div className="flex gap-2">
+                              <Input
+                                value={newFlavorInput}
+                                onChange={(e) => setNewFlavorInput(e.target.value)}
+                                placeholder="e.g., Vanilla, Lavender, Mint"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    if (newFlavorInput.trim() && !newProduct.flavors.includes(newFlavorInput.trim())) {
+                                      setNewProduct({ ...newProduct, flavors: [...newProduct.flavors, newFlavorInput.trim()] });
+                                      setNewFlavorInput('');
+                                    }
+                                  }
+                                }}
+                              />
+                              <Button 
+                                type="button"
+                                variant="outline" 
+                                onClick={() => {
+                                  if (newFlavorInput.trim() && !newProduct.flavors.includes(newFlavorInput.trim())) {
+                                    setNewProduct({ ...newProduct, flavors: [...newProduct.flavors, newFlavorInput.trim()] });
+                                    setNewFlavorInput('');
+                                  }
+                                }}
+                              >
+                                Add
+                              </Button>
+                            </div>
+                            {newProduct.flavors.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {newProduct.flavors.map((flavor, idx) => (
+                                  <Badge key={idx} variant="secondary" className="px-3 py-1">
+                                    {flavor}
+                                    <button
+                                      type="button"
+                                      className="ml-2 text-muted-foreground hover:text-destructive"
+                                      onClick={() => setNewProduct({ ...newProduct, flavors: newProduct.flavors.filter((_, i) => i !== idx) })}
+                                    >
+                                      ×
+                                    </button>
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <DialogFooter>
                           <Button variant="outline" onClick={() => setShowAddProductDialog(false)}>
