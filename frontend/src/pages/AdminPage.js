@@ -457,7 +457,7 @@ export const AdminPage = () => {
       flavors: newProduct.flavors || [],
       stock: 0,
       inStock: true,
-      image: 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg',
+      image: newProduct.image || 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg',
       rating: 4.5
     };
 
@@ -466,7 +466,7 @@ export const AdminPage = () => {
     localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
     toast.success('Product added successfully!');
     setShowAddProductDialog(false);
-    setNewProduct({ name: '', price: '', category: categories[0]?.toLowerCase() || '', description: '', sizes: [], flavors: [] });
+    setNewProduct({ name: '', price: '', category: categories[0]?.toLowerCase() || '', description: '', sizes: [], flavors: [], image: '' });
     setNewSizeInput('');
     setNewFlavorInput('');
   };
