@@ -1312,6 +1312,659 @@ async def delete_category(name: str):
     return {"success": True, "message": f"Category '{name}' deleted"}
 
 
+# ============= IMAGE UPLOAD API (GridFS) =============
+
+@api_router.post("/upload/image")
+async def upload_image(file: UploadFile = File(...)):
+    """Upload an image file and return its URL"""
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, GIF, WEBP")
+    
+    # Validate file size (max 5MB)
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Max size: 5MB")
+    
+    # Generate unique filename
+    file_ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+    file_id = str(uuid.uuid4())
+    filename = f"{file_id}.{file_ext}"
+    
+    # Store in GridFS
+    await fs_bucket.upload_from_stream(
+        filename,
+        io.BytesIO(contents),
+        metadata={
+            "content_type": file.content_type,
+            "original_filename": file.filename,
+            "uploaded_at": datetime.now(timezone.utc).isoformat()
+        }
+    )
+    
+    # Return the URL to access the image
+    image_url = f"/api/images/{filename}"
+    
+    return {
+        "success": True,
+        "filename": filename,
+        "url": image_url,
+        "size": len(contents),
+        "content_type": file.content_type
+    }
+
+
+@api_router.get("/images/{filename}")
+async def get_image(filename: str):
+    """Retrieve an uploaded image"""
+    try:
+        grid_out = await fs_bucket.open_download_stream_by_name(filename)
+        contents = await grid_out.read()
+        content_type = grid_out.metadata.get("content_type", "image/jpeg") if grid_out.metadata else "image/jpeg"
+        
+        return StreamingResponse(
+            io.BytesIO(contents),
+            media_type=content_type,
+            headers={"Cache-Control": "public, max-age=31536000"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+
+@api_router.delete("/images/{filename}")
+async def delete_image(filename: str):
+    """Delete an uploaded image"""
+    try:
+        cursor = fs_bucket.find({"filename": filename})
+        async for grid_out in cursor:
+            await fs_bucket.delete(grid_out._id)
+            return {"success": True, "message": "Image deleted"}
+        raise HTTPException(status_code=404, detail="Image not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= EMERGENCY REQUESTS API =============
+
+class EmergencyRequestModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    name: str
+    phone: str = ""
+    email: str = ""
+    crisisType: str
+    urgency: str = "medium"
+    description: str
+    status: str = "pending"
+    submittedAt: Optional[str] = None
+    resolvedAt: Optional[str] = None
+
+
+@api_router.get("/emergency-requests")
+async def get_emergency_requests():
+    """Get all emergency requests"""
+    requests = await db.emergency_requests.find({}, {"_id": 0}).to_list(1000)
+    return requests
+
+
+@api_router.post("/emergency-requests")
+async def create_emergency_request(request: EmergencyRequestModel):
+    """Create a new emergency request"""
+    request_dict = request.model_dump()
+    request_dict["id"] = str(uuid.uuid4()) if not request_dict.get("id") else request_dict["id"]
+    request_dict["submittedAt"] = datetime.now(timezone.utc).isoformat()
+    request_dict["status"] = "pending"
+    await db.emergency_requests.insert_one(request_dict)
+    return {"success": True, "id": request_dict["id"], "request": {k: v for k, v in request_dict.items() if k != "_id"}}
+
+
+@api_router.patch("/emergency-requests/{request_id}/resolve")
+async def resolve_emergency_request(request_id: str):
+    """Mark an emergency request as resolved"""
+    result = await db.emergency_requests.update_one(
+        {"id": request_id},
+        {"$set": {
+            "status": "resolved",
+            "resolvedAt": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Request not found")
+    return {"success": True, "message": "Request marked as resolved"}
+
+
+@api_router.delete("/emergency-requests/{request_id}")
+async def delete_emergency_request(request_id: str):
+    """Delete an emergency request"""
+    result = await db.emergency_requests.delete_one({"id": request_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Request not found")
+    return {"success": True, "message": "Request deleted"}
+
+
+# ============= COMMUNITY POSTS API =============
+
+class CommunityPostModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    authorId: str = ""
+    authorName: str
+    content: str
+    image: str = ""
+    likes: int = 0
+    comments: List[dict] = []
+    date: Optional[str] = None
+
+
+@api_router.get("/community-posts")
+async def get_community_posts():
+    """Get all community posts"""
+    posts = await db.community_posts.find({}, {"_id": 0}).sort("date", -1).to_list(1000)
+    return posts
+
+
+@api_router.post("/community-posts")
+async def create_community_post(post: CommunityPostModel):
+    """Create a new community post"""
+    post_dict = post.model_dump()
+    post_dict["id"] = str(uuid.uuid4()) if not post_dict.get("id") else post_dict["id"]
+    post_dict["date"] = datetime.now(timezone.utc).isoformat()
+    post_dict["likes"] = 0
+    post_dict["comments"] = []
+    await db.community_posts.insert_one(post_dict)
+    return {"success": True, "id": post_dict["id"], "post": {k: v for k, v in post_dict.items() if k != "_id"}}
+
+
+@api_router.post("/community-posts/{post_id}/like")
+async def like_community_post(post_id: str):
+    """Like a community post"""
+    result = await db.community_posts.update_one(
+        {"id": post_id},
+        {"$inc": {"likes": 1}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return {"success": True, "message": "Post liked"}
+
+
+@api_router.post("/community-posts/{post_id}/comment")
+async def add_comment_to_post(post_id: str, author: str = Body(...), content: str = Body(...)):
+    """Add a comment to a community post"""
+    comment = {
+        "id": str(uuid.uuid4()),
+        "author": author,
+        "content": content,
+        "date": datetime.now(timezone.utc).isoformat()
+    }
+    result = await db.community_posts.update_one(
+        {"id": post_id},
+        {"$push": {"comments": comment}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return {"success": True, "comment": comment}
+
+
+@api_router.delete("/community-posts/{post_id}")
+async def delete_community_post(post_id: str):
+    """Delete a community post"""
+    result = await db.community_posts.delete_one({"id": post_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return {"success": True, "message": "Post deleted"}
+
+
+# ============= CONTRACT TEMPLATES API =============
+
+class ContractTemplateModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    type: str  # "appointment" or "retreat"
+    content: str
+
+
+@api_router.get("/contracts/templates")
+async def get_contract_templates():
+    """Get all contract templates"""
+    templates = await db.contract_templates.find({}, {"_id": 0}).to_list(10)
+    if not templates:
+        # Return defaults if none exist
+        return {
+            "appointment": get_default_appointment_contract(),
+            "retreat": get_default_retreat_contract()
+        }
+    return {t["type"]: t["content"] for t in templates}
+
+
+@api_router.put("/contracts/templates/{template_type}")
+async def update_contract_template(template_type: str, content: str = Body(..., embed=True)):
+    """Update a contract template"""
+    if template_type not in ["appointment", "retreat"]:
+        raise HTTPException(status_code=400, detail="Invalid template type")
+    
+    await db.contract_templates.update_one(
+        {"type": template_type},
+        {"$set": {
+            "type": template_type,
+            "content": content,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    return {"success": True, "message": f"{template_type} template updated"}
+
+
+def get_default_appointment_contract():
+    return """APPOINTMENT BOOKING AGREEMENT
+
+This agreement is between Mother Natural: The Healing Lab and the client for appointment booking services.
+
+1. CANCELLATION POLICY
+- Cancellations must be made at least 24 hours in advance
+- Cancellations made less than 24 hours before the scheduled appointment will result in a 50% charge
+- No-shows will be charged the full appointment fee
+
+2. RESCHEDULING
+- Appointments may be rescheduled up to 24 hours in advance at no charge
+- Late arrivals may result in shortened appointment time
+
+3. PAYMENT TERMS
+- Payment is due at the time of booking
+- Accepted payment methods include credit/debit cards
+
+4. HEALTH & WELLNESS
+- Client agrees to disclose any relevant health conditions
+- Services are complementary and not a substitute for medical care
+- Client releases Mother Natural from liability for any adverse reactions
+
+5. CONDUCT
+- Client agrees to maintain respectful behavior during appointments
+- Mother Natural reserves the right to refuse service
+
+By signing below, you acknowledge that you have read, understood, and agree to these terms."""
+
+
+def get_default_retreat_contract():
+    return """RETREAT BOOKING AGREEMENT
+
+This agreement is between Mother Natural: The Healing Lab and the client for retreat booking services.
+
+1. CANCELLATION & REFUND POLICY
+- Cancellations more than 60 days before retreat: Full refund minus $100 processing fee
+- Cancellations 30-60 days before retreat: 50% refund
+- Cancellations less than 30 days before retreat: No refund
+- Deposits are non-refundable
+
+2. PAYMENT TERMS
+- Payment plans available as specified during booking
+- Final payment must be received 30 days before retreat start date
+- Failure to complete payment may result in forfeiture of booking
+
+3. PARTICIPANT RESPONSIBILITIES
+- Participants must be in reasonable health to participate
+- Special dietary requirements must be communicated at least 14 days in advance
+- Participants are responsible for their own travel arrangements and insurance
+
+4. RETREAT POLICIES
+- Participants agree to follow retreat schedule and guidelines
+- Use of alcohol or illegal substances is prohibited
+- Disruptive behavior may result in removal without refund
+
+5. LIABILITY WAIVER
+- Client acknowledges physical activities and releases Mother Natural from liability
+- Client is responsible for their own health insurance
+- Mother Natural is not liable for lost or stolen personal items
+
+6. CHANGES TO RETREAT
+- Mother Natural reserves the right to modify retreat schedule due to weather or circumstances
+- In case of retreat cancellation by Mother Natural, full refund will be provided
+
+By signing below, you acknowledge that you have read, understood, and agree to these terms."""
+
+
+# ============= SIGNED CONTRACTS API =============
+
+class SignedContractModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    contractType: str
+    customerName: str
+    customerEmail: str
+    signatureData: str  # Base64 signature image
+    bookingId: str = ""
+    signedAt: Optional[str] = None
+
+
+@api_router.get("/contracts/signed")
+async def get_signed_contracts():
+    """Get all signed contracts"""
+    contracts = await db.signed_contracts.find({}, {"_id": 0}).sort("signedAt", -1).to_list(1000)
+    return contracts
+
+
+@api_router.post("/contracts/signed")
+async def create_signed_contract(contract: SignedContractModel):
+    """Store a signed contract"""
+    contract_dict = contract.model_dump()
+    contract_dict["id"] = str(uuid.uuid4()) if not contract_dict.get("id") else contract_dict["id"]
+    contract_dict["signedAt"] = datetime.now(timezone.utc).isoformat()
+    await db.signed_contracts.insert_one(contract_dict)
+    return {"success": True, "id": contract_dict["id"]}
+
+
+# ============= ANALYTICS API =============
+
+@api_router.get("/analytics/dashboard")
+async def get_dashboard_analytics():
+    """Get comprehensive dashboard analytics"""
+    now = datetime.now(timezone.utc)
+    thirty_days_ago = (now - timedelta(days=30)).isoformat()
+    seven_days_ago = (now - timedelta(days=7)).isoformat()
+    
+    # Get counts
+    products_count = await db.products.count_documents({})
+    services_count = await db.services.count_documents({})
+    classes_count = await db.classes.count_documents({})
+    retreats_count = await db.retreats.count_documents({})
+    users_count = await db.auth_users.count_documents({})
+    orders_count = await db.orders.count_documents({})
+    appointments_count = await db.appointments.count_documents({})
+    fundraisers_count = await db.fundraisers.count_documents({})
+    emergency_count = await db.emergency_requests.count_documents({"status": "pending"})
+    
+    # Get orders for revenue calculation
+    orders = await db.orders.find({"status": {"$in": ["completed", "pending"]}}, {"_id": 0}).to_list(10000)
+    
+    total_revenue = sum(o.get("total_amount", 0) for o in orders) / 100  # Convert cents to dollars
+    
+    # Recent orders (last 30 days)
+    recent_orders = [o for o in orders if o.get("created_at", "") >= thirty_days_ago]
+    monthly_revenue = sum(o.get("total_amount", 0) for o in recent_orders) / 100
+    
+    # Get new users in last 30 days
+    new_users = await db.auth_users.count_documents({"created_at": {"$gte": thirty_days_ago}})
+    
+    # Get appointments by status
+    pending_appointments = await db.appointments.count_documents({"status": "pending"})
+    confirmed_appointments = await db.appointments.count_documents({"status": "confirmed"})
+    
+    # Get fundraiser stats
+    active_fundraisers = await db.fundraisers.count_documents({"status": "active"})
+    fundraisers = await db.fundraisers.find({"status": "active"}, {"_id": 0}).to_list(100)
+    total_raised = sum(f.get("raisedAmount", 0) for f in fundraisers)
+    total_goal = sum(f.get("goalAmount", 0) for f in fundraisers)
+    
+    return {
+        "overview": {
+            "totalRevenue": total_revenue,
+            "monthlyRevenue": monthly_revenue,
+            "totalOrders": orders_count,
+            "totalUsers": users_count,
+            "newUsersThisMonth": new_users
+        },
+        "inventory": {
+            "products": products_count,
+            "services": services_count,
+            "classes": classes_count,
+            "retreats": retreats_count
+        },
+        "appointments": {
+            "total": appointments_count,
+            "pending": pending_appointments,
+            "confirmed": confirmed_appointments
+        },
+        "fundraisers": {
+            "total": fundraisers_count,
+            "active": active_fundraisers,
+            "totalRaised": total_raised,
+            "totalGoal": total_goal,
+            "percentageRaised": round((total_raised / total_goal * 100) if total_goal > 0 else 0, 1)
+        },
+        "alerts": {
+            "pendingEmergencies": emergency_count,
+            "pendingAppointments": pending_appointments
+        }
+    }
+
+
+@api_router.get("/analytics/revenue")
+async def get_revenue_analytics():
+    """Get detailed revenue analytics"""
+    orders = await db.orders.find({"status": {"$in": ["completed", "pending"]}}, {"_id": 0}).to_list(10000)
+    
+    # Group by date
+    daily_revenue = {}
+    monthly_revenue = {}
+    by_type = {"product": 0, "appointment": 0, "retreat": 0, "class": 0, "other": 0}
+    
+    for order in orders:
+        amount = order.get("total_amount", 0) / 100
+        created_at = order.get("created_at", "")
+        payment_type = order.get("payment_type", "other")
+        
+        if created_at:
+            date_str = created_at[:10]  # YYYY-MM-DD
+            month_str = created_at[:7]  # YYYY-MM
+            
+            daily_revenue[date_str] = daily_revenue.get(date_str, 0) + amount
+            monthly_revenue[month_str] = monthly_revenue.get(month_str, 0) + amount
+        
+        if payment_type in by_type:
+            by_type[payment_type] += amount
+        else:
+            by_type["other"] += amount
+    
+    # Sort and format
+    daily_data = [{"date": k, "revenue": v} for k, v in sorted(daily_revenue.items())[-30:]]
+    monthly_data = [{"month": k, "revenue": v} for k, v in sorted(monthly_revenue.items())[-12:]]
+    
+    return {
+        "daily": daily_data,
+        "monthly": monthly_data,
+        "byType": by_type,
+        "totalRevenue": sum(by_type.values())
+    }
+
+
+@api_router.get("/analytics/products")
+async def get_product_analytics():
+    """Get product performance analytics"""
+    products = await db.products.find({}, {"_id": 0}).to_list(1000)
+    orders = await db.orders.find({}, {"_id": 0}).to_list(10000)
+    
+    # Count product sales
+    product_sales = {}
+    for order in orders:
+        for item in order.get("items", []):
+            product_id = item.get("id", "")
+            product_name = item.get("name", "Unknown")
+            quantity = item.get("quantity", 1)
+            price = item.get("price", 0) / 100
+            
+            if product_id not in product_sales:
+                product_sales[product_id] = {"name": product_name, "quantity": 0, "revenue": 0}
+            product_sales[product_id]["quantity"] += quantity
+            product_sales[product_id]["revenue"] += price * quantity
+    
+    # Sort by revenue
+    top_products = sorted(product_sales.values(), key=lambda x: x["revenue"], reverse=True)[:10]
+    
+    # Category breakdown
+    category_stats = {}
+    for product in products:
+        category = product.get("category", "uncategorized")
+        if category not in category_stats:
+            category_stats[category] = {"count": 0, "totalValue": 0}
+        category_stats[category]["count"] += 1
+        category_stats[category]["totalValue"] += product.get("price", 0)
+    
+    return {
+        "totalProducts": len(products),
+        "topSellingProducts": top_products,
+        "categoryBreakdown": [{"category": k, **v} for k, v in category_stats.items()]
+    }
+
+
+@api_router.get("/analytics/users")
+async def get_user_analytics():
+    """Get user growth analytics"""
+    users = await db.auth_users.find({}, {"_id": 0, "hashed_password": 0}).to_list(10000)
+    
+    # Group by registration date
+    daily_signups = {}
+    monthly_signups = {}
+    role_breakdown = {"admin": 0, "user": 0}
+    membership_breakdown = {}
+    
+    for user in users:
+        created_at = user.get("created_at", user.get("joinedDate", ""))
+        role = user.get("role", "user")
+        membership = user.get("membershipLevel", "basic")
+        
+        if created_at:
+            date_str = created_at[:10]
+            month_str = created_at[:7]
+            daily_signups[date_str] = daily_signups.get(date_str, 0) + 1
+            monthly_signups[month_str] = monthly_signups.get(month_str, 0) + 1
+        
+        role_breakdown[role] = role_breakdown.get(role, 0) + 1
+        membership_breakdown[membership] = membership_breakdown.get(membership, 0) + 1
+    
+    # Format data
+    daily_data = [{"date": k, "signups": v} for k, v in sorted(daily_signups.items())[-30:]]
+    monthly_data = [{"month": k, "signups": v} for k, v in sorted(monthly_signups.items())[-12:]]
+    
+    return {
+        "totalUsers": len(users),
+        "dailySignups": daily_data,
+        "monthlySignups": monthly_data,
+        "roleBreakdown": role_breakdown,
+        "membershipBreakdown": membership_breakdown
+    }
+
+
+@api_router.get("/analytics/appointments")
+async def get_appointment_analytics():
+    """Get appointment analytics"""
+    appointments = await db.appointments.find({}, {"_id": 0}).to_list(10000)
+    services = await db.services.find({}, {"_id": 0}).to_list(100)
+    
+    # Status breakdown
+    status_breakdown = {"pending": 0, "confirmed": 0, "denied": 0, "completed": 0}
+    service_popularity = {}
+    daily_appointments = {}
+    
+    for apt in appointments:
+        status = apt.get("status", "pending")
+        service_name = apt.get("serviceName", "Unknown")
+        date = apt.get("date", "")
+        
+        status_breakdown[status] = status_breakdown.get(status, 0) + 1
+        service_popularity[service_name] = service_popularity.get(service_name, 0) + 1
+        
+        if date:
+            daily_appointments[date] = daily_appointments.get(date, 0) + 1
+    
+    # Sort by popularity
+    popular_services = sorted(service_popularity.items(), key=lambda x: x[1], reverse=True)[:5]
+    daily_data = [{"date": k, "count": v} for k, v in sorted(daily_appointments.items())[-30:]]
+    
+    return {
+        "totalAppointments": len(appointments),
+        "statusBreakdown": status_breakdown,
+        "popularServices": [{"name": k, "count": v} for k, v in popular_services],
+        "dailyAppointments": daily_data,
+        "totalServices": len(services)
+    }
+
+
+@api_router.get("/analytics/classes")
+async def get_class_analytics():
+    """Get class enrollment analytics"""
+    classes = await db.classes.find({}, {"_id": 0}).to_list(100)
+    
+    # Calculate enrollment stats
+    total_spots = sum(c.get("spots", 0) for c in classes)
+    level_breakdown = {}
+    
+    for cls in classes:
+        level = cls.get("level", "All Levels")
+        level_breakdown[level] = level_breakdown.get(level, 0) + 1
+    
+    return {
+        "totalClasses": len(classes),
+        "totalSpots": total_spots,
+        "levelBreakdown": level_breakdown,
+        "classes": [{
+            "name": c.get("name"),
+            "instructor": c.get("instructor"),
+            "spots": c.get("spots", 0),
+            "price": c.get("price", 0)
+        } for c in classes]
+    }
+
+
+@api_router.get("/analytics/retreats")
+async def get_retreat_analytics():
+    """Get retreat booking analytics"""
+    retreats = await db.retreats.find({}, {"_id": 0}).to_list(100)
+    
+    total_capacity = sum(r.get("capacity", 0) for r in retreats)
+    total_spots_left = sum(r.get("spotsLeft", r.get("capacity", 0)) for r in retreats)
+    total_booked = total_capacity - total_spots_left
+    
+    return {
+        "totalRetreats": len(retreats),
+        "totalCapacity": total_capacity,
+        "totalBooked": total_booked,
+        "spotsRemaining": total_spots_left,
+        "occupancyRate": round((total_booked / total_capacity * 100) if total_capacity > 0 else 0, 1),
+        "retreats": [{
+            "name": r.get("name"),
+            "location": r.get("location"),
+            "dates": r.get("dates"),
+            "capacity": r.get("capacity", 0),
+            "spotsLeft": r.get("spotsLeft", r.get("capacity", 0)),
+            "price": r.get("price", 0)
+        } for r in retreats]
+    }
+
+
+@api_router.get("/analytics/fundraisers")
+async def get_fundraiser_analytics():
+    """Get fundraiser analytics"""
+    fundraisers = await db.fundraisers.find({}, {"_id": 0}).to_list(100)
+    
+    status_breakdown = {"active": 0, "pending": 0, "closed": 0, "rejected": 0}
+    total_raised = 0
+    total_goal = 0
+    total_contributors = 0
+    
+    for f in fundraisers:
+        status = f.get("status", "pending")
+        status_breakdown[status] = status_breakdown.get(status, 0) + 1
+        total_raised += f.get("raisedAmount", 0)
+        total_goal += f.get("goalAmount", 0)
+        total_contributors += f.get("contributors", 0)
+    
+    return {
+        "totalFundraisers": len(fundraisers),
+        "statusBreakdown": status_breakdown,
+        "totalRaised": total_raised,
+        "totalGoal": total_goal,
+        "percentageRaised": round((total_raised / total_goal * 100) if total_goal > 0 else 0, 1),
+        "totalContributors": total_contributors,
+        "fundraisers": [{
+            "title": f.get("title"),
+            "beneficiary": f.get("beneficiary"),
+            "goalAmount": f.get("goalAmount", 0),
+            "raisedAmount": f.get("raisedAmount", 0),
+            "status": f.get("status"),
+            "contributors": f.get("contributors", 0)
+        } for f in fundraisers]
+    }
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
