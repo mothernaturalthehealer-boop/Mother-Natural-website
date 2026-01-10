@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
 // Product card with variant selection
 const ProductCard = ({ product, onAddToCart }) => {
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
