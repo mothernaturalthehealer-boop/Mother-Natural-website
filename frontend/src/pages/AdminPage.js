@@ -536,7 +536,7 @@ export const AdminPage = () => {
       schedule: newClass.schedule || '',
       spots: parseInt(newClass.spots) || 10,
       level: newClass.level,
-      image: newClass.image
+      image: newClass.image || 'https://images.pexels.com/photos/7879933/pexels-photo-7879933.jpeg'
     };
 
     const updatedClasses = [...classes, classItem];
@@ -554,7 +554,7 @@ export const AdminPage = () => {
       schedule: '',
       spots: '',
       level: 'All Levels',
-      image: 'https://images.pexels.com/photos/7879933/pexels-photo-7879933.jpeg'
+      image: ''
     });
   };
 
