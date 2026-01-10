@@ -74,7 +74,7 @@ export const AdminPage = () => {
     price: '',
     description: '',
     capacity: '',
-    image: 'https://images.pexels.com/photos/35439440/pexels-photo-35439440.jpeg'
+    image: ''
   });
 
   // Community posts management
