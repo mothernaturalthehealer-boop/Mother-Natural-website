@@ -7,27 +7,35 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Sparkles, Mail } from 'lucide-react';
+import { Sparkles, Mail, Loader2 } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const [resetStep, setResetStep] = useState(1); // 1: enter email, 2: success message
+  const [resetStep, setResetStep] = useState(1);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    login(email, password);
-    toast.success('Welcome back!');
-    navigate('/');
+    setIsLoading(true);
+    try {
+      await login(email, password);
+      toast.success('Welcome back!');
+      navigate('/');
+    } catch (error) {
+      toast.error(error.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleForgotPassword = (e) => {
@@ -41,7 +49,6 @@ export const LoginPage = () => {
     toast.success('Password reset instructions sent to your email!');
     setResetStep(2);
     
-    // Reset after 3 seconds
     setTimeout(() => {
       setShowForgotPassword(false);
       setResetEmail('');
@@ -70,6 +77,7 @@ export const LoginPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                data-testid="login-email-input"
               />
             </div>
             <div className="space-y-2">
@@ -90,12 +98,26 @@ export const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                data-testid="login-password-input"
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full bg-primary hover:bg-primary-dark" size="lg">
-              Login
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary-dark" 
+              size="lg"
+              disabled={isLoading}
+              data-testid="login-submit-button"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                'Login'
+              )}
             </Button>
             <div className="text-center text-sm">
               <span className="text-muted-foreground">Don&apos;t have an account? </span>
@@ -117,7 +139,7 @@ export const LoginPage = () => {
             </DialogTitle>
             <DialogDescription>
               {resetStep === 1 
-                ? "Enter your email address and we&apos;ll send you a link to reset your password."
+                ? "Enter your email address and we'll send you a link to reset your password."
                 : "Check your email for password reset instructions."
               }
             </DialogDescription>
@@ -167,17 +189,30 @@ export const SignupPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (!name || !email || !password) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    signup(name, email, password);
-    toast.success('Welcome to Mother Natural!');
-    navigate('/');
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await signup(name, email, password);
+      toast.success('Welcome to Mother Natural!');
+      navigate('/');
+    } catch (error) {
+      toast.error(error.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -201,6 +236,7 @@ export const SignupPage = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                data-testid="signup-name-input"
               />
             </div>
             <div className="space-y-2">
@@ -212,6 +248,7 @@ export const SignupPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                data-testid="signup-email-input"
               />
             </div>
             <div className="space-y-2">
@@ -223,12 +260,27 @@ export const SignupPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                data-testid="signup-password-input"
               />
+              <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full bg-primary hover:bg-primary-dark" size="lg">
-              Create Account
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary-dark" 
+              size="lg"
+              disabled={isLoading}
+              data-testid="signup-submit-button"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </Button>
             <div className="text-center text-sm">
               <span className="text-muted-foreground">Already have an account? </span>
@@ -239,57 +291,6 @@ export const SignupPage = () => {
           </CardFooter>
         </form>
       </Card>
-
-      {/* Forgot Password Dialog */}
-      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Reset Password
-            </DialogTitle>
-            <DialogDescription>
-              {resetStep === 1 
-                ? "Enter your email address and we'll send you a link to reset your password."
-                : "Check your email for password reset instructions."
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          {resetStep === 1 ? (
-            <form onSubmit={handleForgotPassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="reset-email">Email</Label>
-                <Input
-                  id="reset-email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowForgotPassword(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-primary hover:bg-primary-dark">
-                  Send Reset Link
-                </Button>
-              </DialogFooter>
-            </form>
-          ) : (
-            <div className="text-center py-4">
-              <div className="mx-auto h-12 w-12 rounded-full bg-success/10 flex items-center justify-center mb-4">
-                <Mail className="h-6 w-6 text-success" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Password reset instructions have been sent to <strong>{resetEmail}</strong>
-              </p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
