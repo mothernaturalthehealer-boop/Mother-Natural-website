@@ -59,7 +59,8 @@ export const AdminPage = () => {
     price: '',
     description: '',
     paymentType: 'full',
-    deposit: ''
+    deposit: '',
+    image: ''
   });
 
   // Retreats management
