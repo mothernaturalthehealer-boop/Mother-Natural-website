@@ -1197,6 +1197,7 @@ export const AdminPage = () => {
                         <TableHead>Product</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Price</TableHead>
+                        <TableHead>Variants</TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -1209,6 +1210,23 @@ export const AdminPage = () => {
                             <Badge variant="outline" className="capitalize">{product.category}</Badge>
                           </TableCell>
                           <TableCell>${product.price}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1 text-xs">
+                              {product.sizes?.length > 0 && (
+                                <span className="text-muted-foreground">
+                                  Sizes: {product.sizes.join(', ')}
+                                </span>
+                              )}
+                              {product.flavors?.length > 0 && (
+                                <span className="text-muted-foreground">
+                                  Flavors: {product.flavors.join(', ')}
+                                </span>
+                              )}
+                              {(!product.sizes || product.sizes.length === 0) && (!product.flavors || product.flavors.length === 0) && (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="max-w-[200px] truncate">{product.description || '-'}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end space-x-2">
