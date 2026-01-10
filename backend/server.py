@@ -1048,6 +1048,8 @@ async def create_product(product: ProductModel):
 async def update_product(product_id: str, product: ProductModel):
     """Update a product"""
     product_dict = product.model_dump()
+    # Remove id field to prevent overwriting
+    product_dict.pop("id", None)
     product_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.products.update_one({"id": product_id}, {"$set": product_dict})
     if result.modified_count == 0:
@@ -1083,6 +1085,8 @@ async def create_service(service: ServiceModel):
 async def update_service(service_id: str, service: ServiceModel):
     """Update a service"""
     service_dict = service.model_dump()
+    # Remove id field to prevent overwriting
+    service_dict.pop("id", None)
     service_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.services.update_one({"id": service_id}, {"$set": service_dict})
     if result.modified_count == 0:
