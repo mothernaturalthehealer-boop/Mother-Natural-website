@@ -451,6 +451,8 @@ export const AdminPage = () => {
       price: parseFloat(newProduct.price),
       category: newProduct.category || categories[0]?.toLowerCase(),
       description: newProduct.description || '',
+      sizes: newProduct.sizes || [],
+      flavors: newProduct.flavors || [],
       stock: 0,
       inStock: true,
       image: 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg',
@@ -462,7 +464,9 @@ export const AdminPage = () => {
     localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
     toast.success('Product added successfully!');
     setShowAddProductDialog(false);
-    setNewProduct({ name: '', price: '', category: categories[0]?.toLowerCase() || '', description: '' });
+    setNewProduct({ name: '', price: '', category: categories[0]?.toLowerCase() || '', description: '', sizes: [], flavors: [] });
+    setNewSizeInput('');
+    setNewFlavorInput('');
   };
 
   const handleDeleteProduct = (id) => {
