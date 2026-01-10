@@ -477,7 +477,13 @@ export const AdminPage = () => {
   };
 
   const handleEditProduct = (product) => {
-    setEditingProduct({ ...product });
+    setEditingProduct({ 
+      ...product,
+      sizes: product.sizes || [],
+      flavors: product.flavors || []
+    });
+    setEditSizeInput('');
+    setEditFlavorInput('');
     setShowEditProductDialog(true);
   };
 
@@ -491,7 +497,9 @@ export const AdminPage = () => {
       if (p.id === editingProduct.id) {
         return {
           ...editingProduct,
-          price: parseFloat(editingProduct.price)
+          price: parseFloat(editingProduct.price),
+          sizes: editingProduct.sizes || [],
+          flavors: editingProduct.flavors || []
         };
       }
       return p;
@@ -502,6 +510,8 @@ export const AdminPage = () => {
     toast.success('Product updated successfully');
     setShowEditProductDialog(false);
     setEditingProduct(null);
+    setEditSizeInput('');
+    setEditFlavorInput('');
   };
 
   // Class handlers
