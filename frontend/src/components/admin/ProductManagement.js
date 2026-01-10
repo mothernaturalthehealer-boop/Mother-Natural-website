@@ -138,7 +138,7 @@ export const ProductManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/products/${editingProduct.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ ...editingProduct, price: parseFloat(editingProduct.price) })
       });
       if (response.ok) {
@@ -156,7 +156,10 @@ export const ProductManagement = () => {
 
   const handleDeleteProduct = async (id) => {
     try {
-      await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/products/${id}`, { 
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
       toast.success('Product deleted successfully');
       loadData();
     } catch (error) {
