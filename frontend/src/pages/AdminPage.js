@@ -1385,6 +1385,16 @@ export const AdminPage = () => {
                             />
                           </div>
                         )}
+                        <div className="space-y-2">
+                          <Label htmlFor="serviceImage">Image URL (Optional)</Label>
+                          <Input
+                            id="serviceImage"
+                            value={newService.image}
+                            onChange={(e) => setNewService({ ...newService, image: e.target.value })}
+                            placeholder="https://example.com/image.jpg"
+                          />
+                          <p className="text-xs text-muted-foreground">Paste a URL to an image for this service.</p>
+                        </div>
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setShowAddServiceDialog(false)}>Cancel</Button>
