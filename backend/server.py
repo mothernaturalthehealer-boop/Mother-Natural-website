@@ -1122,6 +1122,8 @@ async def create_class(class_item: ClassModel):
 async def update_class(class_id: str, class_item: ClassModel):
     """Update a class"""
     class_dict = class_item.model_dump()
+    # Remove id field to prevent overwriting
+    class_dict.pop("id", None)
     class_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.classes.update_one({"id": class_id}, {"$set": class_dict})
     if result.modified_count == 0:
