@@ -2250,17 +2250,19 @@ export const AdminPage = () => {
                           <TableCell>${fundraiser.goalAmount.toLocaleString()}</TableCell>
                           <TableCell>
                             <div>
-                              <div className="font-semibold">${fundraiser.raisedAmount.toLocaleString()}</div>
+                              <div className="font-semibold">${fundraiser.raisedAmount?.toLocaleString() || 0}</div>
                               <div className="text-xs text-muted-foreground">
-                                {Math.round((fundraiser.raisedAmount / fundraiser.goalAmount) * 100)}% funded
+                                {Math.round(((fundraiser.raisedAmount || 0) / fundraiser.goalAmount) * 100)}% funded
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
                             <Badge
-                              variant={fundraiser.status === 'active' ? 'default' : 'outline'}
-                              className="cursor-pointer"
-                              onClick={() => handleToggleFundraiserStatus(fundraiser.id)}
+                              variant={
+                                fundraiser.status === 'active' ? 'default' : 
+                                fundraiser.status === 'pending' ? 'secondary' :
+                                fundraiser.status === 'rejected' ? 'destructive' : 'outline'
+                              }
                             >
                               {fundraiser.status}
                             </Badge>
@@ -2268,6 +2270,37 @@ export const AdminPage = () => {
                           <TableCell>{fundraiser.endDate}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end space-x-2">
+                              {fundraiser.status === 'pending' && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleApproveFundraiser(fundraiser.id)}
+                                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  >
+                                    <Check className="h-4 w-4 mr-1" />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRejectFundraiser(fundraiser.id)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              {fundraiser.status !== 'pending' && (
+                                <Badge
+                                  variant="outline"
+                                  className="cursor-pointer"
+                                  onClick={() => handleToggleFundraiserStatus(fundraiser.id)}
+                                >
+                                  {fundraiser.status === 'active' ? 'Close' : 'Reactivate'}
+                                </Badge>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="icon"
