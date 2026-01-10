@@ -25,7 +25,8 @@ export const AdminPage = () => {
     category: '',
     description: '',
     sizes: [],
-    flavors: []
+    flavors: [],
+    image: ''
   });
   const [newSizeInput, setNewSizeInput] = useState('');
   const [newFlavorInput, setNewFlavorInput] = useState('');
