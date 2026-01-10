@@ -175,28 +175,29 @@ export const ProductManagement = () => {
               <Button onClick={() => setShowAddCategoryDialog(true)} size="sm">
                 <Plus className="h-4 w-4 mr-2" />Add Category
               </Button>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add New Category</DialogTitle>
-                <DialogDescription>Create a new product category</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="categoryName">Category Name</Label>
-                  <Input
-                    id="categoryName"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    placeholder="e.g., Teas, Oils, Tinctures"
-                  />
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add New Category</DialogTitle>
+                  <DialogDescription>Create a new product category</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="categoryName">Category Name</Label>
+                    <Input
+                      id="categoryName"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      placeholder="e.g., Teas, Oils, Tinctures"
+                    />
+                  </div>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Cancel</Button>
-                <Button onClick={handleAddCategory} className="bg-primary hover:bg-primary-dark">Add Category</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Cancel</Button>
+                  <Button onClick={handleAddCategory} className="bg-primary hover:bg-primary-dark">Add Category</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           {categories.length === 0 ? (
