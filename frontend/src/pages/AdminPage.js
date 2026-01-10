@@ -205,7 +205,7 @@ export const AdminPage = () => {
     schedule: '',
     spots: '',
     level: 'All Levels',
-    image: 'https://images.pexels.com/photos/7879933/pexels-photo-7879933.jpeg'
+    image: ''
   });
   const [editingClass, setEditingClass] = useState(null);
   const [showEditClassDialog, setShowEditClassDialog] = useState(false);
