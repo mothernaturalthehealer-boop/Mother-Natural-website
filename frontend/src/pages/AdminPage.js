@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Package, Users, Calendar, Mountain, Settings, Check } from 'lucide-react';
+import { Package, Users, Calendar, Mountain, Settings, Check, BarChart3 } from 'lucide-react';
 
 // Import admin management components
 import {
@@ -22,7 +22,8 @@ import {
   OrderManagement,
   EmergencyManagement,
   CommunityManagement,
-  ContractManagement
+  ContractManagement,
+  AnalyticsDashboard
 } from '@/components/admin';
 
 export const AdminPage = () => {
