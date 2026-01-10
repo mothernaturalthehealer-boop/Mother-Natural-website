@@ -482,7 +482,8 @@ export const AdminPage = () => {
     setEditingProduct({ 
       ...product,
       sizes: product.sizes || [],
-      flavors: product.flavors || []
+      flavors: product.flavors || [],
+      image: product.image || ''
     });
     setEditSizeInput('');
     setEditFlavorInput('');
@@ -501,7 +502,8 @@ export const AdminPage = () => {
           ...editingProduct,
           price: parseFloat(editingProduct.price),
           sizes: editingProduct.sizes || [],
-          flavors: editingProduct.flavors || []
+          flavors: editingProduct.flavors || [],
+          image: editingProduct.image || p.image
         };
       }
       return p;
