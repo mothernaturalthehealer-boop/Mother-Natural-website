@@ -1577,6 +1577,16 @@ export const AdminPage = () => {
                             rows={3}
                           />
                         </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="classImage">Image URL (Optional)</Label>
+                          <Input
+                            id="classImage"
+                            value={newClass.image}
+                            onChange={(e) => setNewClass({ ...newClass, image: e.target.value })}
+                            placeholder="https://example.com/image.jpg"
+                          />
+                          <p className="text-xs text-muted-foreground">Paste a URL to an image for this class.</p>
+                        </div>
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setShowAddClassDialog(false)}>Cancel</Button>
