@@ -167,10 +167,14 @@ export const ProductManagement = () => {
             <CardTitle className="font-heading text-xl">Product Categories</CardTitle>
             <CardDescription>Manage your product categories</CardDescription>
           </div>
-          <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
-            <Button onClick={() => setShowAddCategoryDialog(true)} size="sm">
-              <Plus className="h-4 w-4 mr-2" />Add Category
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
             </Button>
+            <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
+              <Button onClick={() => setShowAddCategoryDialog(true)} size="sm">
+                <Plus className="h-4 w-4 mr-2" />Add Category
+              </Button>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Add New Category</DialogTitle>
