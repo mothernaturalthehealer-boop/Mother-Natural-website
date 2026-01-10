@@ -9,3 +9,4 @@ export { OrderManagement } from './OrderManagement';
 export { EmergencyManagement } from './EmergencyManagement';
 export { CommunityManagement } from './CommunityManagement';
 export { ContractManagement } from './ContractManagement';
+export { AnalyticsDashboard } from './AnalyticsDashboard';
