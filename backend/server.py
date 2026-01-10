@@ -566,7 +566,9 @@ async def create_product(product: ProductModel):
     product_dict["id"] = str(uuid.uuid4()) if not product_dict.get("id") else product_dict["id"]
     product_dict["created_at"] = datetime.now(timezone.utc).isoformat()
     await db.products.insert_one(product_dict)
-    return {"success": True, "id": product_dict["id"], "product": product_dict}
+    # Return without _id
+    del product_dict["_id"] if "_id" in product_dict else None
+    return {"success": True, "id": product_dict["id"], "product": {k: v for k, v in product_dict.items() if k != "_id"}}
 
 @api_router.put("/products/{product_id}")
 async def update_product(product_id: str, product: ProductModel):
