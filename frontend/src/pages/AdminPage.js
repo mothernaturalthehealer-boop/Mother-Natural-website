@@ -711,7 +711,8 @@ export const AdminPage = () => {
       id: Date.now(),
       ...newService,
       price: parseFloat(newService.price),
-      deposit: newService.paymentType === 'deposit' ? parseFloat(newService.deposit) : 0
+      deposit: newService.paymentType === 'deposit' ? parseFloat(newService.deposit) : 0,
+      image: newService.image || 'https://images.pexels.com/photos/3822864/pexels-photo-3822864.jpeg'
     };
 
     const updatedServices = [...services, service];
@@ -719,7 +720,7 @@ export const AdminPage = () => {
     localStorage.setItem('adminServices', JSON.stringify(updatedServices));
     toast.success('Service added successfully!');
     setShowAddServiceDialog(false);
-    setNewService({ name: '', duration: '', price: '', description: '', paymentType: 'full', deposit: '' });
+    setNewService({ name: '', duration: '', price: '', description: '', paymentType: 'full', deposit: '', image: '' });
   };
 
   const handleDeleteService = (id) => {
@@ -742,6 +743,7 @@ export const AdminPage = () => {
       price: parseFloat(newRetreat.price),
       capacity: parseInt(newRetreat.capacity) || 20,
       spotsLeft: parseInt(newRetreat.capacity) || 20,
+      image: newRetreat.image || 'https://images.pexels.com/photos/3822864/pexels-photo-3822864.jpeg',
       includes: ['Accommodations', 'All Meals', 'Guided Sessions', 'Activities'],
       paymentOptions: [
         { id: 'full', label: 'Pay in Full', amount: parseFloat(newRetreat.price), description: 'One-time payment' },
@@ -756,8 +758,7 @@ export const AdminPage = () => {
     toast.success('Retreat added successfully!');
     setShowAddRetreatDialog(false);
     setNewRetreat({
-      name: '', location: '', duration: '', dates: '', price: '', description: '', capacity: '',
-      image: 'https://images.pexels.com/photos/35439440/pexels-photo-35439440.jpeg'
+      name: '', location: '', duration: '', dates: '', price: '', description: '', capacity: '', image: ''
     });
   };
 
