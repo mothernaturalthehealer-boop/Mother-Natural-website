@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,10 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const ServiceManagement = () => {
   const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showAddServiceDialog, setShowAddServiceDialog] = useState(false);
   const [showEditServiceDialog, setShowEditServiceDialog] = useState(false);
   const [editingService, setEditingService] = useState(null);
@@ -19,29 +22,45 @@ export const ServiceManagement = () => {
     name: '', duration: '', price: '', description: '', paymentType: 'full', deposit: '', image: ''
   });
 
-  useEffect(() => {
-    const savedServices = localStorage.getItem('adminServices');
-    if (savedServices) setServices(JSON.parse(savedServices));
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/services`);
+      if (response.ok) setServices(await response.json());
+    } catch (error) {
+      const saved = localStorage.getItem('adminServices');
+      if (saved) setServices(JSON.parse(saved));
+    }
+    setLoading(false);
   }, []);
 
-  const handleAddService = () => {
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const handleAddService = async () => {
     if (!newService.name || !newService.price || !newService.duration) {
       toast.error('Please fill in all required fields');
       return;
     }
-    const service = {
-      id: Date.now(),
-      ...newService,
-      price: parseFloat(newService.price),
-      deposit: newService.paymentType === 'deposit' ? parseFloat(newService.deposit) : 0,
-      image: newService.image || 'https://images.pexels.com/photos/3822864/pexels-photo-3822864.jpeg'
-    };
-    const updatedServices = [...services, service];
-    setServices(updatedServices);
-    localStorage.setItem('adminServices', JSON.stringify(updatedServices));
-    toast.success('Service added successfully!');
-    setShowAddServiceDialog(false);
-    setNewService({ name: '', duration: '', price: '', description: '', paymentType: 'full', deposit: '', image: '' });
+    try {
+      const response = await fetch(`${API_URL}/api/services`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newService,
+          price: parseFloat(newService.price),
+          deposit: newService.paymentType === 'deposit' ? parseFloat(newService.deposit) : 0,
+          image: newService.image || 'https://images.pexels.com/photos/3822864/pexels-photo-3822864.jpeg'
+        })
+      });
+      if (response.ok) {
+        toast.success('Service added successfully!');
+        setShowAddServiceDialog(false);
+        setNewService({ name: '', duration: '', price: '', description: '', paymentType: 'full', deposit: '', image: '' });
+        loadData();
+      }
+    } catch (error) {
+      toast.error('Failed to add service');
+    }
   };
 
   const handleEditService = (service) => {
@@ -49,33 +68,40 @@ export const ServiceManagement = () => {
     setShowEditServiceDialog(true);
   };
 
-  const handleSaveEditedService = () => {
+  const handleSaveEditedService = async () => {
     if (!editingService.name || !editingService.price || !editingService.duration) {
       toast.error('Please fill in all required fields');
       return;
     }
-    const updatedServices = services.map(s => {
-      if (s.id === editingService.id) {
-        return {
+    try {
+      const response = await fetch(`${API_URL}/api/services/${editingService.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           ...editingService,
           price: parseFloat(editingService.price),
           deposit: editingService.paymentType === 'deposit' ? parseFloat(editingService.deposit) : 0
-        };
+        })
+      });
+      if (response.ok) {
+        toast.success('Service updated successfully');
+        setShowEditServiceDialog(false);
+        setEditingService(null);
+        loadData();
       }
-      return s;
-    });
-    setServices(updatedServices);
-    localStorage.setItem('adminServices', JSON.stringify(updatedServices));
-    toast.success('Service updated successfully');
-    setShowEditServiceDialog(false);
-    setEditingService(null);
+    } catch (error) {
+      toast.error('Failed to update service');
+    }
   };
 
-  const handleDeleteService = (id) => {
-    const updatedServices = services.filter(s => s.id !== id);
-    setServices(updatedServices);
-    localStorage.setItem('adminServices', JSON.stringify(updatedServices));
-    toast.success('Service deleted successfully');
+  const handleDeleteService = async (id) => {
+    try {
+      await fetch(`${API_URL}/api/services/${id}`, { method: 'DELETE' });
+      toast.success('Service deleted successfully');
+      loadData();
+    } catch (error) {
+      toast.error('Failed to delete service');
+    }
   };
 
   return (
@@ -85,59 +111,14 @@ export const ServiceManagement = () => {
           <CardTitle className="font-heading text-2xl">Services</CardTitle>
           <CardDescription>Manage appointment services</CardDescription>
         </div>
-        <Dialog open={showAddServiceDialog} onOpenChange={setShowAddServiceDialog}>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
+          </Button>
           <Button onClick={() => setShowAddServiceDialog(true)} className="bg-primary hover:bg-primary-dark">
             <Plus className="h-4 w-4 mr-2" />Add Service
           </Button>
-          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="font-heading">Add New Service</DialogTitle>
-              <DialogDescription>Create a new appointment service</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="serviceName">Service Name *</Label>
-                <Input id="serviceName" value={newService.name} onChange={(e) => setNewService({ ...newService, name: e.target.value })} placeholder="e.g., Energy Healing Session" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duration *</Label>
-                  <Input id="duration" value={newService.duration} onChange={(e) => setNewService({ ...newService, duration: e.target.value })} placeholder="e.g., 60 min" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="servicePrice">Price ($) *</Label>
-                  <Input id="servicePrice" type="number" value={newService.price} onChange={(e) => setNewService({ ...newService, price: e.target.value })} placeholder="85" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="serviceDesc">Description</Label>
-                <Textarea id="serviceDesc" value={newService.description} onChange={(e) => setNewService({ ...newService, description: e.target.value })} placeholder="Service description..." rows={3} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="paymentType">Payment Type</Label>
-                <select id="paymentType" value={newService.paymentType} onChange={(e) => setNewService({ ...newService, paymentType: e.target.value })} className="w-full px-3 py-2 border border-input rounded-md bg-background">
-                  <option value="full">Full Payment</option>
-                  <option value="deposit">Deposit Required</option>
-                </select>
-              </div>
-              {newService.paymentType === 'deposit' && (
-                <div className="space-y-2">
-                  <Label htmlFor="deposit">Deposit Amount ($)</Label>
-                  <Input id="deposit" type="number" value={newService.deposit} onChange={(e) => setNewService({ ...newService, deposit: e.target.value })} placeholder="50" />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="serviceImage">Image URL (Optional)</Label>
-                <Input id="serviceImage" value={newService.image} onChange={(e) => setNewService({ ...newService, image: e.target.value })} placeholder="https://example.com/image.jpg" />
-                <p className="text-xs text-muted-foreground">Paste a URL to an image for this service.</p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowAddServiceDialog(false)}>Cancel</Button>
-              <Button onClick={handleAddService} className="bg-primary hover:bg-primary-dark">Add Service</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        </div>
       </CardHeader>
       <CardContent>
         {services.length === 0 ? (
@@ -176,6 +157,57 @@ export const ServiceManagement = () => {
           </Table>
         )}
       </CardContent>
+
+      {/* Add Service Dialog */}
+      <Dialog open={showAddServiceDialog} onOpenChange={setShowAddServiceDialog}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Add New Service</DialogTitle>
+            <DialogDescription>Create a new appointment service</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="serviceName">Service Name *</Label>
+              <Input id="serviceName" value={newService.name} onChange={(e) => setNewService({ ...newService, name: e.target.value })} placeholder="e.g., Energy Healing Session" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="duration">Duration *</Label>
+                <Input id="duration" value={newService.duration} onChange={(e) => setNewService({ ...newService, duration: e.target.value })} placeholder="e.g., 60 min" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="servicePrice">Price ($) *</Label>
+                <Input id="servicePrice" type="number" value={newService.price} onChange={(e) => setNewService({ ...newService, price: e.target.value })} placeholder="85" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="serviceDesc">Description</Label>
+              <Textarea id="serviceDesc" value={newService.description} onChange={(e) => setNewService({ ...newService, description: e.target.value })} placeholder="Service description..." rows={3} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="paymentType">Payment Type</Label>
+              <select id="paymentType" value={newService.paymentType} onChange={(e) => setNewService({ ...newService, paymentType: e.target.value })} className="w-full px-3 py-2 border border-input rounded-md bg-background">
+                <option value="full">Full Payment</option>
+                <option value="deposit">Deposit Required</option>
+              </select>
+            </div>
+            {newService.paymentType === 'deposit' && (
+              <div className="space-y-2">
+                <Label htmlFor="deposit">Deposit Amount ($)</Label>
+                <Input id="deposit" type="number" value={newService.deposit} onChange={(e) => setNewService({ ...newService, deposit: e.target.value })} placeholder="50" />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="serviceImage">Image URL (Optional)</Label>
+              <Input id="serviceImage" value={newService.image} onChange={(e) => setNewService({ ...newService, image: e.target.value })} placeholder="https://example.com/image.jpg" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddServiceDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddService} className="bg-primary hover:bg-primary-dark">Add Service</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Service Dialog */}
       <Dialog open={showEditServiceDialog} onOpenChange={setShowEditServiceDialog}>
@@ -219,7 +251,7 @@ export const ServiceManagement = () => {
               )}
               <div className="space-y-2">
                 <Label htmlFor="editServiceImage">Image URL</Label>
-                <Input id="editServiceImage" value={editingService.image || ''} onChange={(e) => setEditingService({ ...editingService, image: e.target.value })} placeholder="https://example.com/image.jpg" />
+                <Input id="editServiceImage" value={editingService.image || ''} onChange={(e) => setEditingService({ ...editingService, image: e.target.value })} />
               </div>
             </div>
           )}
