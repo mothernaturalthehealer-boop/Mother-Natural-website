@@ -1368,7 +1368,7 @@ async def get_image(filename: str):
             media_type=content_type,
             headers={"Cache-Control": "public, max-age=31536000"}
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=404, detail="Image not found")
 
 
@@ -1381,6 +1381,8 @@ async def delete_image(filename: str):
             await fs_bucket.delete(grid_out._id)
             return {"success": True, "message": "Image deleted"}
         raise HTTPException(status_code=404, detail="Image not found")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
