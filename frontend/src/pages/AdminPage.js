@@ -23,8 +23,14 @@ export const AdminPage = () => {
     name: '',
     price: '',
     category: '',
-    description: ''
+    description: '',
+    sizes: [],
+    flavors: []
   });
+  const [newSizeInput, setNewSizeInput] = useState('');
+  const [newFlavorInput, setNewFlavorInput] = useState('');
+  const [editSizeInput, setEditSizeInput] = useState('');
+  const [editFlavorInput, setEditFlavorInput] = useState('');
 
   const [fundraisers, setFundraisers] = useState([]);
   const [showAddFundraiserDialog, setShowAddFundraiserDialog] = useState(false);
