@@ -17,6 +17,7 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 - **Database**: MongoDB
 - **Payments**: Square Payment Gateway (Production)
 - **Email**: Resend API
+- **Authentication**: JWT (python-jose, passlib)
 
 ## Admin Credentials
 - **Email**: admin@mothernatural.com
@@ -33,7 +34,6 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 - ✅ Square payment integration (Production)
 - ✅ Contract signing system
 - ✅ Crisis support feature
-- ✅ User authentication
 - ✅ Shopping cart with variant support
 
 ### Phase 5: Admin Panel Refactoring (Completed - Jan 10, 2025)
@@ -65,14 +65,36 @@ API Endpoints created:
 - `GET/POST/PATCH/DELETE /api/appointments` - Appointment management
 - `GET/POST/DELETE /api/categories` - Category management
 
-**Frontend updated:**
-- ProductManagement now uses database API
-- ShopPage now loads from database (with localStorage fallback)
+### Phase 7: JWT Authentication (Completed - Jan 11, 2025)
+**Secure authentication system implemented**
 
-### Phase 7: Email Testing (Completed - Jan 10, 2025)
-- ✅ Verified Resend API integration
-- ✅ Test email sent successfully to mothernaturalcontact@gmail.com
-- ✅ Email ID: 0b75deff-63cd-44d2-aa23-801718a5d4a2
+New Auth Endpoints:
+- `POST /api/auth/register` - Public user registration
+- `POST /api/auth/login` - User login (returns JWT)
+- `POST /api/auth/token` - OAuth2 token endpoint
+- `GET /api/auth/me` - Get current user (requires auth)
+- `PUT /api/auth/profile` - Update profile (requires auth)
+- `PUT /api/auth/change-password` - Change password (requires auth)
+
+Admin User Management:
+- `POST /api/admin/users` - Admin creates users (admin only)
+- `GET /api/admin/users` - List all users (admin only)
+- `PUT /api/admin/users/{id}` - Update user (admin only)
+- `DELETE /api/admin/users/{id}` - Delete user (admin only)
+- `POST /api/admin/users/{id}/reset-password` - Reset password (admin only)
+
+Features:
+- JWT tokens with 24-hour expiration
+- bcrypt password hashing
+- Role-based access control (user/admin)
+- Default admin user created on startup
+- Frontend AuthContext with token storage
+- Protected API endpoints
+
+### Phase 8: Email Configuration (Completed - Jan 11, 2025)
+- ✅ Sender email updated to contact@mothernaturalhealinglab.com
+- ✅ Payment receipt emails sent automatically after successful payments
+- ✅ Email templates with Mother Natural branding
 
 ---
 
@@ -81,53 +103,87 @@ API Endpoints created:
 ### P0 - Critical (All Completed ✅)
 - [x] Refactor AdminPage.js (technical debt)
 - [x] Database migration (MongoDB API)
+- [x] JWT Authentication
 - [x] Test email functionality
 
-### P1 - High Priority
-- [ ] Update remaining admin components to use database API
-- [ ] Add JWT authentication
-- [ ] Payment receipt emails on successful purchases
+### P1 - High Priority (All Completed ✅)
+- [x] Update admin components to use auth headers
+- [x] Payment receipt emails on successful purchases
+- [x] Fix CRUD update bug (id overwrite issue)
 
 ### P2 - Medium Priority
-- [ ] Verify custom domain on Resend
-- [ ] Add image upload functionality (file-based instead of URL)
+- [ ] Verify custom domain on Resend (see DNS instructions below)
+- [ ] Migrate remaining localStorage components to database API:
+  - [ ] UserManagement
+  - [ ] AppointmentManagement  
+  - [ ] OrderManagement
+  - [ ] EmergencyManagement
+  - [ ] CommunityManagement
+  - [ ] ContractManagement
 
 ### P3 - Future/Backlog
 - [ ] Native mobile app
 - [ ] Advanced analytics dashboard
+- [ ] Image upload (file-based instead of URL)
+
+---
+
+## Resend Domain Verification Guide
+
+To send emails from `contact@mothernaturalhealinglab.com`, you need to verify your domain with Resend.
+
+### Steps:
+1. **Log in to Resend Dashboard** at https://resend.com/domains
+2. **Add Domain**: Click "Add Domain" and enter `mothernaturalhealinglab.com`
+3. **Add DNS Records**: Resend will provide DNS records to add:
+   - **MX Record** (for receiving)
+   - **TXT Record** (SPF for sending authorization)
+   - **CNAME Records** (DKIM for email signing)
+4. **Add Records to DNS Provider**: Log in to your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.) and add these DNS records
+5. **Verify**: Return to Resend and click "Verify DNS Configuration"
+6. **Wait**: DNS propagation can take 24-48 hours
+
+Once verified, emails will be sent from `contact@mothernaturalhealinglab.com` instead of `onboarding@resend.dev`.
 
 ---
 
 ## API Endpoints Summary
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET/POST | /api/products | Product listing and creation |
-| PUT/DELETE | /api/products/{id} | Product update and deletion |
-| GET/POST | /api/services | Service management |
-| GET/POST | /api/classes | Class management |
-| GET/POST | /api/retreats | Retreat management |
-| GET/POST | /api/fundraisers | Fundraiser management |
-| PATCH | /api/fundraisers/{id}/status | Approve/reject fundraisers |
-| GET/POST | /api/appointments | Appointment management |
-| GET/POST/DELETE | /api/categories | Category management |
-| POST | /api/email/send | Send single email |
-| POST | /api/email/bulk | Send bulk email |
-| GET/POST | /api/payments/process | Square payment processing |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | /api/auth/register | User registration | Public |
+| POST | /api/auth/login | User login | Public |
+| GET | /api/auth/me | Get current user | Required |
+| GET/POST | /api/products | Product listing/creation | GET:Public, POST:Recommended |
+| PUT/DELETE | /api/products/{id} | Product update/deletion | Recommended |
+| GET/POST | /api/services | Service management | GET:Public, POST:Recommended |
+| GET/POST | /api/classes | Class management | GET:Public, POST:Recommended |
+| GET/POST | /api/retreats | Retreat management | GET:Public, POST:Recommended |
+| GET/POST | /api/fundraisers | Fundraiser management | GET:Public, POST:Recommended |
+| PATCH | /api/fundraisers/{id}/status | Approve/reject fundraisers | Recommended |
+| GET/POST | /api/appointments | Appointment management | GET:Public, POST:Recommended |
+| POST | /api/email/send | Send single email | Recommended |
+| POST | /api/email/bulk | Send bulk email | Recommended |
+| GET/POST | /api/payments/process | Square payment processing | Public |
+| GET | /api/admin/users | List all users | Admin Only |
+| POST | /api/admin/users | Create user | Admin Only |
 
 ---
 
-## File Structure (After Refactoring)
+## File Structure
+
 ```
 /app
 ├── backend/
-│   ├── server.py          # FastAPI with all API endpoints (~900 lines)
+│   ├── server.py          # FastAPI with all API endpoints (~1300 lines)
 │   ├── requirements.txt
-│   └── .env
+│   ├── .env
+│   └── tests/
+│       └── test_auth_api.py
 └── frontend/
     ├── src/
     │   ├── components/
-    │   │   ├── admin/            # NEW: Modular admin components
+    │   │   ├── admin/            # Modular admin components
     │   │   │   ├── ProductManagement.js
     │   │   │   ├── ServiceManagement.js
     │   │   │   ├── ClassManagement.js
@@ -143,8 +199,13 @@ API Endpoints created:
     │   │   ├── ui/               # shadcn components
     │   │   ├── PaymentForm.js
     │   │   └── ContractSigningDialog.js
+    │   ├── context/
+    │   │   └── AuthContext.js    # JWT auth state management
+    │   ├── hooks/
+    │   │   └── useApi.js         # Authenticated API helper
     │   ├── pages/
-    │   │   ├── AdminPage.js      # Refactored to 300 lines!
+    │   │   ├── AdminPage.js      # Lean orchestrator (~300 lines)
+    │   │   ├── AuthPages.js      # Login & Signup pages
     │   │   └── ...
     │   └── App.js
     └── .env
@@ -153,16 +214,19 @@ API Endpoints created:
 ---
 
 ## Testing Status
+- ✅ JWT Authentication - 24/24 tests passed
 - ✅ Admin Panel - All features tested
 - ✅ Database API - All endpoints working
 - ✅ Email sending - Verified with real email
 - ✅ Shop page - Loading from database
 - ✅ Payment flow - Verified working
+- ✅ CRUD Operations - Create, Update, Delete all working
 
 ---
 
 ## Notes
 - Square is in **Production mode** - REAL charges
-- Resend emails sent from onboarding@resend.dev (custom domain pending)
-- Database is now persistent via MongoDB
+- Resend emails sent from contact@mothernaturalhealinglab.com (requires domain verification)
+- Database is persistent via MongoDB
 - Frontend has fallback to localStorage if API fails
+- Default admin user created automatically on server startup
