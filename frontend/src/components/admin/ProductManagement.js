@@ -62,7 +62,8 @@ export const ProductManagement = () => {
     }
     try {
       const response = await fetch(`${API_URL}/api/categories?name=${encodeURIComponent(newCategory.trim())}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getAuthHeaders()
       });
       if (response.ok) {
         toast.success('Category added successfully!');
@@ -80,7 +81,10 @@ export const ProductManagement = () => {
 
   const handleDeleteCategory = async (cat) => {
     try {
-      await fetch(`${API_URL}/api/categories/${encodeURIComponent(cat)}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/categories/${encodeURIComponent(cat)}`, { 
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
       toast.success('Category deleted');
       loadData();
     } catch (error) {
@@ -96,7 +100,7 @@ export const ProductManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/products`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...newProduct,
           price: parseFloat(newProduct.price),
