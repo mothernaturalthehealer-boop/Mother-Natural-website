@@ -568,7 +568,7 @@ async def create_product(product: ProductModel):
     await db.products.insert_one(product_dict)
     # Return without _id
     del product_dict["_id"] if "_id" in product_dict else None
-    return {"success": True, "id": product_dict["id"], "product": {k: v for k, v in product_dict.items() if k != "_id"}}
+    return {"success": True, "id": product_dict["id"], "product": {k: v for k, v in {k: v for k, v in product_dict.items() if k != "_id".items() if k != "_id"}}}
 
 @api_router.put("/products/{product_id}")
 async def update_product(product_id: str, product: ProductModel):
@@ -603,7 +603,7 @@ async def create_service(service: ServiceModel):
     service_dict["id"] = str(uuid.uuid4()) if not service_dict.get("id") else service_dict["id"]
     service_dict["created_at"] = datetime.now(timezone.utc).isoformat()
     await db.services.insert_one(service_dict)
-    return {"success": True, "id": service_dict["id"], "service": service_dict}
+    return {"success": True, "id": service_dict["id"], "service": {k: v for k, v in service_dict.items() if k != "_id"}}
 
 @api_router.put("/services/{service_id}")
 async def update_service(service_id: str, service: ServiceModel):
@@ -638,7 +638,7 @@ async def create_class(class_item: ClassModel):
     class_dict["id"] = str(uuid.uuid4()) if not class_dict.get("id") else class_dict["id"]
     class_dict["created_at"] = datetime.now(timezone.utc).isoformat()
     await db.classes.insert_one(class_dict)
-    return {"success": True, "id": class_dict["id"], "class": class_dict}
+    return {"success": True, "id": class_dict["id"], "class": {k: v for k, v in class_dict.items() if k != "_id"}}
 
 @api_router.put("/classes/{class_id}")
 async def update_class(class_id: str, class_item: ClassModel):
@@ -680,7 +680,7 @@ async def create_retreat(retreat: RetreatModel):
         {"id": "50-50", "label": "50/50 Split", "amount": price / 2, "description": "Pay half now, half later"}
     ]
     await db.retreats.insert_one(retreat_dict)
-    return {"success": True, "id": retreat_dict["id"], "retreat": retreat_dict}
+    return {"success": True, "id": retreat_dict["id"], "retreat": {k: v for k, v in retreat_dict.items() if k != "_id"}}
 
 @api_router.put("/retreats/{retreat_id}")
 async def update_retreat(retreat_id: str, retreat: RetreatModel):
@@ -730,7 +730,7 @@ async def create_fundraiser(fundraiser: FundraiserModel):
     if not fundraiser_dict.get("createdDate"):
         fundraiser_dict["createdDate"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     await db.fundraisers.insert_one(fundraiser_dict)
-    return {"success": True, "id": fundraiser_dict["id"], "fundraiser": fundraiser_dict}
+    return {"success": True, "id": fundraiser_dict["id"], "fundraiser": {k: v for k, v in fundraiser_dict.items() if k != "_id"}}
 
 @api_router.put("/fundraisers/{fundraiser_id}")
 async def update_fundraiser(fundraiser_id: str, fundraiser: FundraiserModel):
@@ -776,7 +776,7 @@ async def create_appointment(appointment: AppointmentModel):
     appointment_dict["id"] = str(uuid.uuid4()) if not appointment_dict.get("id") else appointment_dict["id"]
     appointment_dict["created_at"] = datetime.now(timezone.utc).isoformat()
     await db.appointments.insert_one(appointment_dict)
-    return {"success": True, "id": appointment_dict["id"], "appointment": appointment_dict}
+    return {"success": True, "id": appointment_dict["id"], "appointment": {k: v for k, v in appointment_dict.items() if k != "_id"}}
 
 @api_router.patch("/appointments/{appointment_id}/status")
 async def update_appointment_status(appointment_id: str, status: str):
