@@ -1,0 +1,144 @@
+{
+  "summary": "Completed comprehensive testing of JWT Authentication and CRUD APIs. All authentication endpoints working correctly. Found a backend bug in CRUD update operations that overwrites the 'id' field.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "PUT /api/products/{id}, /api/services/{id}, /api/classes/{id}, /api/retreats/{id}",
+        "issue": "Update operations overwrite the 'id' field to None when id is not included in request body. This causes subsequent DELETE operations to fail with 404. The ProductModel has 'id: Optional[str] = None' and the update uses $set with the entire model_dump() which includes id=None.",
+        "priority": "HIGH",
+        "fix_suggestion": "In update_product/service/class/retreat functions, exclude 'id' from the update dict: product_dict.pop('id', None) before the $set operation"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Navbar.js",
+        "issues": ["React hydration warning: nested <a> tags in NavigationMenu - minor, does not affect functionality"]
+      },
+      {
+        "screen": "Admin Dashboard",
+        "issues": ["Console warning: 'Encountered two children with the same key' - minor React key warning"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/tests/test_auth_api.py",
+    "/app/test_reports/pytest/auth_pytest_results.xml"
+  ],
+  "action_items": [
+    "FIX CRITICAL: Update backend CRUD update functions to exclude 'id' field from $set operation to prevent id being overwritten to None",
+    "Optional: Fix nested <a> tags in Navbar.js NavigationMenu component"
+  ],
+  "critical_code_review_comments": [
+    "Backend CRUD update bug: In server.py lines 1047-1055 (and similar for services/classes/retreats), the update operation uses product_dict = product.model_dump() which includes id=None, then $set overwrites the document's id field. Fix: Add product_dict.pop('id', None) before the update."
+  ],
+  "updated_files": [
+    "/app/tests/test_auth_api.py"
+  ],
+  "success_rate": {
+    "backend": "83% (20/24 tests passed - 4 failures due to CRUD update bug)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "admin_email": "admin@mothernatural.com",
+    "admin_password": "Aniyah13"
+  },
+  "seed_data_creation": "Test users created via /api/auth/register with TEST_ prefix emails",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "JWT Authentication fully tested and working. Admin login, user registration, token verification all pass. CRUD operations have a bug where update overwrites id field - needs fix before retesting CRUD delete operations.",
+  "test_results": {
+    "auth_login_admin": {
+      "status": "PASS",
+      "details": "Admin login with admin@mothernatural.com / Aniyah13 returns valid JWT token and user data with role=admin"
+    },
+    "auth_login_invalid": {
+      "status": "PASS",
+      "details": "Invalid credentials correctly return 401 Unauthorized"
+    },
+    "auth_register": {
+      "status": "PASS",
+      "details": "New user registration works, returns JWT token, user has role=user and membershipLevel=basic"
+    },
+    "auth_register_duplicate": {
+      "status": "PASS",
+      "details": "Duplicate email registration correctly returns 400 Bad Request"
+    },
+    "auth_me_valid_token": {
+      "status": "PASS",
+      "details": "/api/auth/me returns current user info with valid Bearer token"
+    },
+    "auth_me_no_token": {
+      "status": "PASS",
+      "details": "/api/auth/me returns 401 without token"
+    },
+    "auth_me_invalid_token": {
+      "status": "PASS",
+      "details": "/api/auth/me returns 401 with invalid token"
+    },
+    "admin_get_users": {
+      "status": "PASS",
+      "details": "Admin can get all users via /api/admin/users"
+    },
+    "admin_get_users_no_token": {
+      "status": "PASS",
+      "details": "/api/admin/users returns 401 without token"
+    },
+    "admin_get_users_regular_user": {
+      "status": "PASS",
+      "details": "Regular user gets 403 Forbidden when accessing /api/admin/users"
+    },
+    "admin_create_user": {
+      "status": "PASS",
+      "details": "Admin can create new users with custom role and membershipLevel"
+    },
+    "products_get": {
+      "status": "PASS",
+      "details": "GET /api/products returns list of products"
+    },
+    "products_create": {
+      "status": "PASS",
+      "details": "POST /api/products creates new product"
+    },
+    "products_update_delete": {
+      "status": "FAIL",
+      "details": "DELETE fails after UPDATE because update overwrites id to None"
+    },
+    "services_crud": {
+      "status": "FAIL",
+      "details": "Same issue as products - update overwrites id"
+    },
+    "classes_crud": {
+      "status": "FAIL",
+      "details": "Same issue as products - update overwrites id"
+    },
+    "retreats_crud": {
+      "status": "FAIL",
+      "details": "Same issue as products - update overwrites id"
+    },
+    "fundraisers_crud": {
+      "status": "PASS",
+      "details": "Create, update status, delete all work correctly"
+    },
+    "frontend_login": {
+      "status": "PASS",
+      "details": "Login form works, stores token in localStorage, redirects to home"
+    },
+    "frontend_signup": {
+      "status": "PASS",
+      "details": "Signup form works, creates user, stores token, redirects to home"
+    },
+    "frontend_admin_panel": {
+      "status": "PASS",
+      "details": "Admin panel accessible after login, shows all 11 tabs, displays products"
+    },
+    "sender_email_config": {
+      "status": "PASS",
+      "details": "SENDER_EMAIL is set to contact@mothernaturalhealinglab.com in backend/.env"
+    }
+  }
+}
