@@ -409,8 +409,12 @@ export const ProductManagement = () => {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="editProductImage">Image URL</Label>
-                <Input id="editProductImage" value={editingProduct.image || ''} onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })} placeholder="https://example.com/image.jpg" />
+                <ImageUpload
+                  label="Product Image"
+                  value={editingProduct.image || ''}
+                  onChange={(url) => setEditingProduct({ ...editingProduct, image: url })}
+                  placeholder="Enter image URL or upload a file"
+                />
               </div>
             </div>
           )}
