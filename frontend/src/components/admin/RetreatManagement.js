@@ -9,10 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const RetreatManagement = () => {
+  const { getAuthHeaders } = useAuth();
   const [retreats, setRetreats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAddRetreatDialog, setShowAddRetreatDialog] = useState(false);
