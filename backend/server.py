@@ -58,6 +58,32 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 
+# Startup event to create default admin user
+@app.on_event("startup")
+async def create_default_admin():
+    """Create the default admin user if it doesn't exist"""
+    admin_email = "admin@mothernatural.com"
+    admin_password = "Aniyah13"
+    
+    existing_admin = await db.auth_users.find_one({"email": admin_email})
+    if not existing_admin:
+        admin_user = {
+            "id": "admin-001",
+            "name": "Administrator",
+            "email": admin_email,
+            "hashed_password": get_password_hash(admin_password),
+            "role": "admin",
+            "membershipLevel": "platinum",
+            "joinedDate": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "is_active": True
+        }
+        await db.auth_users.insert_one(admin_user)
+        logger.info("Default admin user created")
+    else:
+        logger.info("Default admin user already exists")
+
+
 # Define Models
 class StatusCheck(BaseModel):
     model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
