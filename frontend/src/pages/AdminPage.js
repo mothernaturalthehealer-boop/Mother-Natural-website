@@ -249,6 +249,9 @@ export const AdminPage = () => {
             <TabsTrigger value="fundraisers">Fundraisers</TabsTrigger>
             <TabsTrigger value="contracts">Contracts</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="analytics" className="bg-primary/10">
+              <BarChart3 className="h-4 w-4 mr-1" />Analytics
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="products" className="space-y-4">
@@ -293,6 +296,10 @@ export const AdminPage = () => {
 
           <TabsContent value="users" className="space-y-4">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <AnalyticsDashboard />
           </TabsContent>
         </Tabs>
       </div>
