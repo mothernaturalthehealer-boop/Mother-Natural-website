@@ -1661,7 +1661,6 @@ async def get_dashboard_analytics():
     """Get comprehensive dashboard analytics"""
     now = datetime.now(timezone.utc)
     thirty_days_ago = (now - timedelta(days=30)).isoformat()
-    seven_days_ago = (now - timedelta(days=7)).isoformat()
     
     # Get counts
     products_count = await db.products.count_documents({})
