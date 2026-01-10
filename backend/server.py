@@ -31,6 +31,9 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# GridFS for file storage
+fs_bucket = AsyncIOMotorGridFSBucket(db, bucket_name="uploads")
+
 # Square client initialization
 square_client = Square(
     token=os.environ.get('SQUARE_ACCESS_TOKEN', ''),
