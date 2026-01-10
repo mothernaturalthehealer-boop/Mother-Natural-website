@@ -458,6 +458,369 @@ async def get_all_users():
     return users
 
 
+# ===============================
+# DATABASE CRUD API ENDPOINTS
+# ===============================
+
+# Product Models
+class ProductModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    name: str
+    price: float
+    category: str = ""
+    description: str = ""
+    sizes: List[str] = []
+    flavors: List[str] = []
+    image: str = ""
+    stock: int = 0
+    inStock: bool = True
+    rating: float = 4.5
+
+# Service Models
+class ServiceModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    name: str
+    duration: str
+    price: float
+    description: str = ""
+    paymentType: str = "full"
+    deposit: float = 0
+    image: str = ""
+
+# Class Models
+class ClassModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    name: str
+    instructor: str = ""
+    description: str = ""
+    duration: str = ""
+    sessions: int = 0
+    price: float
+    schedule: str = ""
+    spots: int = 10
+    level: str = "All Levels"
+    image: str = ""
+
+# Retreat Models
+class RetreatModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    name: str
+    location: str
+    duration: str = ""
+    dates: str
+    price: float
+    description: str = ""
+    capacity: int = 20
+    spotsLeft: int = 20
+    image: str = ""
+    includes: List[str] = []
+
+# Fundraiser Models
+class FundraiserModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    title: str
+    beneficiary: str
+    story: str = ""
+    goalAmount: float
+    raisedAmount: float = 0
+    image: str = ""
+    createdDate: str = ""
+    endDate: str = ""
+    status: str = "pending"
+    contributors: int = 0
+    applicantId: str = ""
+    applicantName: str = ""
+    applicantEmail: str = ""
+
+# Appointment Models
+class AppointmentModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    clientName: str = ""
+    clientEmail: str = ""
+    serviceName: str
+    serviceId: str = ""
+    date: str
+    time: str
+    status: str = "pending"
+    paymentStatus: str = "pending"
+    totalAmount: float = 0
+
+
+# ============= PRODUCTS API =============
+@api_router.get("/products")
+async def get_products():
+    """Get all products"""
+    products = await db.products.find({}, {"_id": 0}).to_list(1000)
+    return products
+
+@api_router.post("/products")
+async def create_product(product: ProductModel):
+    """Create a new product"""
+    product_dict = product.model_dump()
+    product_dict["id"] = str(uuid.uuid4()) if not product_dict.get("id") else product_dict["id"]
+    product_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.products.insert_one(product_dict)
+    return {"success": True, "id": product_dict["id"], "product": product_dict}
+
+@api_router.put("/products/{product_id}")
+async def update_product(product_id: str, product: ProductModel):
+    """Update a product"""
+    product_dict = product.model_dump()
+    product_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.products.update_one({"id": product_id}, {"$set": product_dict})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"success": True, "message": "Product updated"}
+
+@api_router.delete("/products/{product_id}")
+async def delete_product(product_id: str):
+    """Delete a product"""
+    result = await db.products.delete_one({"id": product_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"success": True, "message": "Product deleted"}
+
+
+# ============= SERVICES API =============
+@api_router.get("/services")
+async def get_services():
+    """Get all services"""
+    services = await db.services.find({}, {"_id": 0}).to_list(1000)
+    return services
+
+@api_router.post("/services")
+async def create_service(service: ServiceModel):
+    """Create a new service"""
+    service_dict = service.model_dump()
+    service_dict["id"] = str(uuid.uuid4()) if not service_dict.get("id") else service_dict["id"]
+    service_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.services.insert_one(service_dict)
+    return {"success": True, "id": service_dict["id"], "service": service_dict}
+
+@api_router.put("/services/{service_id}")
+async def update_service(service_id: str, service: ServiceModel):
+    """Update a service"""
+    service_dict = service.model_dump()
+    service_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.services.update_one({"id": service_id}, {"$set": service_dict})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Service not found")
+    return {"success": True, "message": "Service updated"}
+
+@api_router.delete("/services/{service_id}")
+async def delete_service(service_id: str):
+    """Delete a service"""
+    result = await db.services.delete_one({"id": service_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Service not found")
+    return {"success": True, "message": "Service deleted"}
+
+
+# ============= CLASSES API =============
+@api_router.get("/classes")
+async def get_classes():
+    """Get all classes"""
+    classes = await db.classes.find({}, {"_id": 0}).to_list(1000)
+    return classes
+
+@api_router.post("/classes")
+async def create_class(class_item: ClassModel):
+    """Create a new class"""
+    class_dict = class_item.model_dump()
+    class_dict["id"] = str(uuid.uuid4()) if not class_dict.get("id") else class_dict["id"]
+    class_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.classes.insert_one(class_dict)
+    return {"success": True, "id": class_dict["id"], "class": class_dict}
+
+@api_router.put("/classes/{class_id}")
+async def update_class(class_id: str, class_item: ClassModel):
+    """Update a class"""
+    class_dict = class_item.model_dump()
+    class_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.classes.update_one({"id": class_id}, {"$set": class_dict})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Class not found")
+    return {"success": True, "message": "Class updated"}
+
+@api_router.delete("/classes/{class_id}")
+async def delete_class(class_id: str):
+    """Delete a class"""
+    result = await db.classes.delete_one({"id": class_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Class not found")
+    return {"success": True, "message": "Class deleted"}
+
+
+# ============= RETREATS API =============
+@api_router.get("/retreats")
+async def get_retreats():
+    """Get all retreats"""
+    retreats = await db.retreats.find({}, {"_id": 0}).to_list(1000)
+    return retreats
+
+@api_router.post("/retreats")
+async def create_retreat(retreat: RetreatModel):
+    """Create a new retreat"""
+    retreat_dict = retreat.model_dump()
+    retreat_dict["id"] = str(uuid.uuid4()) if not retreat_dict.get("id") else retreat_dict["id"]
+    retreat_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    # Add default payment options
+    price = retreat_dict["price"]
+    retreat_dict["paymentOptions"] = [
+        {"id": "full", "label": "Pay in Full", "amount": price, "description": "One-time payment"},
+        {"id": "deposit", "label": "Deposit", "amount": price * 0.3, "description": "Pay 30% now, rest later"},
+        {"id": "50-50", "label": "50/50 Split", "amount": price / 2, "description": "Pay half now, half later"}
+    ]
+    await db.retreats.insert_one(retreat_dict)
+    return {"success": True, "id": retreat_dict["id"], "retreat": retreat_dict}
+
+@api_router.put("/retreats/{retreat_id}")
+async def update_retreat(retreat_id: str, retreat: RetreatModel):
+    """Update a retreat"""
+    retreat_dict = retreat.model_dump()
+    retreat_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    # Update payment options with new price
+    price = retreat_dict["price"]
+    retreat_dict["paymentOptions"] = [
+        {"id": "full", "label": "Pay in Full", "amount": price, "description": "One-time payment"},
+        {"id": "deposit", "label": "Deposit", "amount": price * 0.3, "description": "Pay 30% now, rest later"},
+        {"id": "50-50", "label": "50/50 Split", "amount": price / 2, "description": "Pay half now, half later"}
+    ]
+    result = await db.retreats.update_one({"id": retreat_id}, {"$set": retreat_dict})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Retreat not found")
+    return {"success": True, "message": "Retreat updated"}
+
+@api_router.delete("/retreats/{retreat_id}")
+async def delete_retreat(retreat_id: str):
+    """Delete a retreat"""
+    result = await db.retreats.delete_one({"id": retreat_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Retreat not found")
+    return {"success": True, "message": "Retreat deleted"}
+
+
+# ============= FUNDRAISERS API =============
+@api_router.get("/fundraisers")
+async def get_fundraisers():
+    """Get all fundraisers"""
+    fundraisers = await db.fundraisers.find({}, {"_id": 0}).to_list(1000)
+    return fundraisers
+
+@api_router.get("/fundraisers/active")
+async def get_active_fundraisers():
+    """Get only active fundraisers (for public view)"""
+    fundraisers = await db.fundraisers.find({"status": "active"}, {"_id": 0}).to_list(1000)
+    return fundraisers
+
+@api_router.post("/fundraisers")
+async def create_fundraiser(fundraiser: FundraiserModel):
+    """Create a new fundraiser (admin creates as active, user creates as pending)"""
+    fundraiser_dict = fundraiser.model_dump()
+    fundraiser_dict["id"] = str(uuid.uuid4()) if not fundraiser_dict.get("id") else fundraiser_dict["id"]
+    fundraiser_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    if not fundraiser_dict.get("createdDate"):
+        fundraiser_dict["createdDate"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    await db.fundraisers.insert_one(fundraiser_dict)
+    return {"success": True, "id": fundraiser_dict["id"], "fundraiser": fundraiser_dict}
+
+@api_router.put("/fundraisers/{fundraiser_id}")
+async def update_fundraiser(fundraiser_id: str, fundraiser: FundraiserModel):
+    """Update a fundraiser"""
+    fundraiser_dict = fundraiser.model_dump()
+    fundraiser_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.fundraisers.update_one({"id": fundraiser_id}, {"$set": fundraiser_dict})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Fundraiser not found")
+    return {"success": True, "message": "Fundraiser updated"}
+
+@api_router.patch("/fundraisers/{fundraiser_id}/status")
+async def update_fundraiser_status(fundraiser_id: str, status: str):
+    """Update fundraiser status (approve/reject/close)"""
+    result = await db.fundraisers.update_one(
+        {"id": fundraiser_id}, 
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Fundraiser not found")
+    return {"success": True, "message": f"Fundraiser status updated to {status}"}
+
+@api_router.delete("/fundraisers/{fundraiser_id}")
+async def delete_fundraiser(fundraiser_id: str):
+    """Delete a fundraiser"""
+    result = await db.fundraisers.delete_one({"id": fundraiser_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Fundraiser not found")
+    return {"success": True, "message": "Fundraiser deleted"}
+
+
+# ============= APPOINTMENTS API =============
+@api_router.get("/appointments")
+async def get_appointments():
+    """Get all appointments"""
+    appointments = await db.appointments.find({}, {"_id": 0}).to_list(1000)
+    return appointments
+
+@api_router.post("/appointments")
+async def create_appointment(appointment: AppointmentModel):
+    """Create a new appointment"""
+    appointment_dict = appointment.model_dump()
+    appointment_dict["id"] = str(uuid.uuid4()) if not appointment_dict.get("id") else appointment_dict["id"]
+    appointment_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.appointments.insert_one(appointment_dict)
+    return {"success": True, "id": appointment_dict["id"], "appointment": appointment_dict}
+
+@api_router.patch("/appointments/{appointment_id}/status")
+async def update_appointment_status(appointment_id: str, status: str):
+    """Update appointment status"""
+    result = await db.appointments.update_one(
+        {"id": appointment_id},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    return {"success": True, "message": f"Appointment status updated to {status}"}
+
+@api_router.delete("/appointments/{appointment_id}")
+async def delete_appointment(appointment_id: str):
+    """Delete an appointment"""
+    result = await db.appointments.delete_one({"id": appointment_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    return {"success": True, "message": "Appointment deleted"}
+
+
+# ============= CATEGORIES API =============
+@api_router.get("/categories")
+async def get_categories():
+    """Get all product categories"""
+    categories = await db.categories.find({}, {"_id": 0}).to_list(100)
+    return [cat.get("name") for cat in categories]
+
+@api_router.post("/categories")
+async def create_category(name: str):
+    """Create a new category"""
+    existing = await db.categories.find_one({"name": name})
+    if existing:
+        raise HTTPException(status_code=400, detail="Category already exists")
+    await db.categories.insert_one({"name": name, "created_at": datetime.now(timezone.utc).isoformat()})
+    return {"success": True, "message": f"Category '{name}' created"}
+
+@api_router.delete("/categories/{name}")
+async def delete_category(name: str):
+    """Delete a category"""
+    result = await db.categories.delete_one({"name": name})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return {"success": True, "message": f"Category '{name}' deleted"}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
