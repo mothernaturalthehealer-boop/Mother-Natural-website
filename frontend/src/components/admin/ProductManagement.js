@@ -295,9 +295,12 @@ export const ProductManagement = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="productImage">Image URL (Optional)</Label>
-                  <Input id="productImage" value={newProduct.image} onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })} placeholder="https://example.com/image.jpg" />
-                  <p className="text-xs text-muted-foreground">Paste a URL to an image. Leave empty for default image.</p>
+                  <ImageUpload
+                    label="Product Image (Optional)"
+                    value={newProduct.image}
+                    onChange={(url) => setNewProduct({ ...newProduct, image: url })}
+                    placeholder="Enter image URL or upload a file"
+                  />
                 </div>
               </div>
               <DialogFooter>
