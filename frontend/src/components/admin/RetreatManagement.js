@@ -46,7 +46,7 @@ export const RetreatManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/retreats`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...newRetreat,
           price: parseFloat(newRetreat.price),
@@ -79,7 +79,7 @@ export const RetreatManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/retreats/${editingRetreat.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...editingRetreat,
           price: parseFloat(editingRetreat.price),
@@ -99,7 +99,7 @@ export const RetreatManagement = () => {
 
   const handleDeleteRetreat = async (id) => {
     try {
-      await fetch(`${API_URL}/api/retreats/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/retreats/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       toast.success('Retreat deleted successfully');
       loadData();
     } catch (error) {

@@ -44,7 +44,7 @@ export const FundraiserManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/fundraisers`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...newFundraiser,
           goalAmount: parseFloat(newFundraiser.goalAmount),
@@ -67,7 +67,7 @@ export const FundraiserManagement = () => {
 
   const handleDeleteFundraiser = async (id) => {
     try {
-      await fetch(`${API_URL}/api/fundraisers/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/fundraisers/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       toast.success('Fundraiser deleted successfully');
       loadData();
     } catch (error) {
@@ -77,7 +77,7 @@ export const FundraiserManagement = () => {
 
   const handleApproveFundraiser = async (id) => {
     try {
-      await fetch(`${API_URL}/api/fundraisers/${id}/status?status=active`, { method: 'PATCH' });
+      await fetch(`${API_URL}/api/fundraisers/${id}/status?status=active`, { method: 'PATCH', headers: getAuthHeaders() });
       toast.success('Fundraiser approved and now active!');
       loadData();
     } catch (error) {
@@ -87,7 +87,7 @@ export const FundraiserManagement = () => {
 
   const handleRejectFundraiser = async (id) => {
     try {
-      await fetch(`${API_URL}/api/fundraisers/${id}/status?status=rejected`, { method: 'PATCH' });
+      await fetch(`${API_URL}/api/fundraisers/${id}/status?status=rejected`, { method: 'PATCH', headers: getAuthHeaders() });
       toast.success('Fundraiser rejected');
       loadData();
     } catch (error) {
@@ -98,7 +98,7 @@ export const FundraiserManagement = () => {
   const handleToggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'closed' : 'active';
     try {
-      await fetch(`${API_URL}/api/fundraisers/${id}/status?status=${newStatus}`, { method: 'PATCH' });
+      await fetch(`${API_URL}/api/fundraisers/${id}/status?status=${newStatus}`, { method: 'PATCH', headers: getAuthHeaders() });
       toast.success('Fundraiser status updated');
       loadData();
     } catch (error) {

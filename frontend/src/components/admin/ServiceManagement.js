@@ -46,7 +46,7 @@ export const ServiceManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/services`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...newService,
           price: parseFloat(newService.price),
@@ -78,7 +78,7 @@ export const ServiceManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/services/${editingService.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...editingService,
           price: parseFloat(editingService.price),
@@ -98,7 +98,7 @@ export const ServiceManagement = () => {
 
   const handleDeleteService = async (id) => {
     try {
-      await fetch(`${API_URL}/api/services/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/services/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       toast.success('Service deleted successfully');
       loadData();
     } catch (error) {

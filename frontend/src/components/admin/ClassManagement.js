@@ -46,7 +46,7 @@ export const ClassManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/classes`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...newClass,
           price: parseFloat(newClass.price),
@@ -79,7 +79,7 @@ export const ClassManagement = () => {
     try {
       const response = await fetch(`${API_URL}/api/classes/${editingClass.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           ...editingClass,
           price: parseFloat(editingClass.price),
@@ -100,7 +100,7 @@ export const ClassManagement = () => {
 
   const handleDeleteClass = async (id) => {
     try {
-      await fetch(`${API_URL}/api/classes/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/classes/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       toast.success('Class deleted successfully');
       loadData();
     } catch (error) {
