@@ -1166,6 +1166,8 @@ async def create_retreat(retreat: RetreatModel):
 async def update_retreat(retreat_id: str, retreat: RetreatModel):
     """Update a retreat"""
     retreat_dict = retreat.model_dump()
+    # Remove id field to prevent overwriting
+    retreat_dict.pop("id", None)
     retreat_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     # Update payment options with new price
     price = retreat_dict["price"]
