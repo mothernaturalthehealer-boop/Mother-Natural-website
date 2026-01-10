@@ -250,6 +250,304 @@ async def get_current_admin_user(current_user: dict = Depends(get_current_active
 async def root():
     return {"message": "Hello World"}
 
+
+# ===============================
+# AUTHENTICATION API ENDPOINTS
+# ===============================
+
+@api_router.post("/auth/register", response_model=TokenModel)
+async def register_user(user_data: UserRegisterModel):
+    """Register a new user (public registration)"""
+    # Check if user exists
+    existing_user = await get_user_by_email(user_data.email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # Create new user
+    user_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    new_user = {
+        "id": user_id,
+        "name": user_data.name,
+        "email": user_data.email,
+        "hashed_password": get_password_hash(user_data.password),
+        "role": "user",
+        "membershipLevel": "basic",
+        "joinedDate": now,
+        "created_at": now,
+        "is_active": True
+    }
+    
+    await db.auth_users.insert_one(new_user)
+    
+    # Generate token
+    access_token = create_access_token(data={"sub": user_data.email})
+    
+    # Return user data without password
+    user_response = {
+        "id": user_id,
+        "name": user_data.name,
+        "email": user_data.email,
+        "role": "user",
+        "membershipLevel": "basic",
+        "joinedDate": now
+    }
+    
+    return TokenModel(access_token=access_token, user=user_response)
+
+
+@api_router.post("/auth/token", response_model=TokenModel)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    """Login with OAuth2 form (username=email, password)"""
+    user = await authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token = create_access_token(data={"sub": user["email"]})
+    
+    user_response = {
+        "id": user["id"],
+        "name": user["name"],
+        "email": user["email"],
+        "role": user.get("role", "user"),
+        "membershipLevel": user.get("membershipLevel", "basic"),
+        "joinedDate": user.get("joinedDate", "")
+    }
+    
+    return TokenModel(access_token=access_token, user=user_response)
+
+
+@api_router.post("/auth/login", response_model=TokenModel)
+async def login_user(login_data: UserLoginModel):
+    """Login with JSON body (alternative to OAuth2 form)"""
+    user = await authenticate_user(login_data.email, login_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+        )
+    
+    access_token = create_access_token(data={"sub": user["email"]})
+    
+    user_response = {
+        "id": user["id"],
+        "name": user["name"],
+        "email": user["email"],
+        "role": user.get("role", "user"),
+        "membershipLevel": user.get("membershipLevel", "basic"),
+        "joinedDate": user.get("joinedDate", "")
+    }
+    
+    return TokenModel(access_token=access_token, user=user_response)
+
+
+@api_router.get("/auth/me", response_model=UserResponse)
+async def get_current_user_info(current_user: dict = Depends(get_current_active_user)):
+    """Get current authenticated user's info"""
+    return UserResponse(
+        id=current_user["id"],
+        name=current_user["name"],
+        email=current_user["email"],
+        role=current_user.get("role", "user"),
+        membershipLevel=current_user.get("membershipLevel", "basic"),
+        joinedDate=current_user.get("joinedDate", "")
+    )
+
+
+@api_router.put("/auth/profile")
+async def update_user_profile(
+    name: Optional[str] = Body(None),
+    membershipLevel: Optional[str] = Body(None),
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Update current user's profile"""
+    update_data = {}
+    if name:
+        update_data["name"] = name
+    if membershipLevel:
+        update_data["membershipLevel"] = membershipLevel
+    
+    if update_data:
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.auth_users.update_one(
+            {"email": current_user["email"]},
+            {"$set": update_data}
+        )
+    
+    updated_user = await get_user_by_email(current_user["email"])
+    return {
+        "success": True,
+        "user": {
+            "id": updated_user["id"],
+            "name": updated_user["name"],
+            "email": updated_user["email"],
+            "role": updated_user.get("role", "user"),
+            "membershipLevel": updated_user.get("membershipLevel", "basic"),
+            "joinedDate": updated_user.get("joinedDate", "")
+        }
+    }
+
+
+@api_router.put("/auth/change-password")
+async def change_password(
+    current_password: str = Body(...),
+    new_password: str = Body(...),
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Change user's password"""
+    if not verify_password(current_password, current_user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    await db.auth_users.update_one(
+        {"email": current_user["email"]},
+        {"$set": {
+            "hashed_password": get_password_hash(new_password),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"success": True, "message": "Password changed successfully"}
+
+
+# ===============================
+# ADMIN USER MANAGEMENT ENDPOINTS
+# ===============================
+
+@api_router.post("/admin/users", response_model=UserResponse)
+async def admin_create_user(
+    user_data: AdminCreateUserModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Admin creates a new user"""
+    # Check if user exists
+    existing_user = await get_user_by_email(user_data.email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    user_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    new_user = {
+        "id": user_id,
+        "name": user_data.name,
+        "email": user_data.email,
+        "hashed_password": get_password_hash(user_data.password),
+        "role": user_data.role,
+        "membershipLevel": user_data.membershipLevel,
+        "joinedDate": now,
+        "created_at": now,
+        "is_active": True,
+        "created_by": current_admin["id"]
+    }
+    
+    await db.auth_users.insert_one(new_user)
+    
+    return UserResponse(
+        id=user_id,
+        name=user_data.name,
+        email=user_data.email,
+        role=user_data.role,
+        membershipLevel=user_data.membershipLevel,
+        joinedDate=now
+    )
+
+
+@api_router.get("/admin/users", response_model=List[UserResponse])
+async def admin_get_all_users(current_admin: dict = Depends(get_current_admin_user)):
+    """Admin gets all users"""
+    users = await db.auth_users.find({}, {"_id": 0, "hashed_password": 0}).to_list(1000)
+    return [UserResponse(
+        id=u["id"],
+        name=u["name"],
+        email=u["email"],
+        role=u.get("role", "user"),
+        membershipLevel=u.get("membershipLevel", "basic"),
+        joinedDate=u.get("joinedDate", "")
+    ) for u in users]
+
+
+@api_router.put("/admin/users/{user_id}")
+async def admin_update_user(
+    user_id: str,
+    name: Optional[str] = Body(None),
+    role: Optional[str] = Body(None),
+    membershipLevel: Optional[str] = Body(None),
+    is_active: Optional[bool] = Body(None),
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Admin updates a user"""
+    update_data = {}
+    if name is not None:
+        update_data["name"] = name
+    if role is not None:
+        update_data["role"] = role
+    if membershipLevel is not None:
+        update_data["membershipLevel"] = membershipLevel
+    if is_active is not None:
+        update_data["is_active"] = is_active
+    
+    if update_data:
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        result = await db.auth_users.update_one({"id": user_id}, {"$set": update_data})
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"success": True, "message": "User updated"}
+
+
+@api_router.delete("/admin/users/{user_id}")
+async def admin_delete_user(
+    user_id: str,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Admin deletes a user"""
+    # Prevent admin from deleting themselves
+    if current_admin["id"] == user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete your own account"
+        )
+    
+    result = await db.auth_users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"success": True, "message": "User deleted"}
+
+
+@api_router.post("/admin/users/{user_id}/reset-password")
+async def admin_reset_user_password(
+    user_id: str,
+    new_password: str = Body(..., embed=True),
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Admin resets a user's password"""
+    result = await db.auth_users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "hashed_password": get_password_hash(new_password),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"success": True, "message": "Password reset successfully"}
+
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
     status_dict = input.model_dump()
