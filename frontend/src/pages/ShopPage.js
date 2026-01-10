@@ -130,20 +130,34 @@ export const ShopPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  // Load products and categories from localStorage (admin-managed)
+  // Load products and categories from API (with localStorage fallback)
   useEffect(() => {
-    const adminProducts = localStorage.getItem('adminProducts');
-    if (adminProducts) {
-      const parsed = JSON.parse(adminProducts);
-      if (parsed.length > 0) {
-        setProducts(parsed);
+    const loadData = async () => {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch(`${API_URL}/api/products`),
+          fetch(`${API_URL}/api/categories`)
+        ]);
+        if (productsRes.ok) {
+          const data = await productsRes.json();
+          if (data.length > 0) setProducts(data);
+        }
+        if (categoriesRes.ok) {
+          const data = await categoriesRes.json();
+          if (data.length > 0) setCategories(data);
+        }
+      } catch (error) {
+        // Fallback to localStorage
+        const adminProducts = localStorage.getItem('adminProducts');
+        if (adminProducts) {
+          const parsed = JSON.parse(adminProducts);
+          if (parsed.length > 0) setProducts(parsed);
+        }
+        const adminCategories = localStorage.getItem('adminCategories');
+        if (adminCategories) setCategories(JSON.parse(adminCategories));
       }
-    }
-    
-    const adminCategories = localStorage.getItem('adminCategories');
-    if (adminCategories) {
-      setCategories(JSON.parse(adminCategories));
-    }
+    };
+    loadData();
   }, []);
 
   const filteredProducts = activeCategory === 'all'
