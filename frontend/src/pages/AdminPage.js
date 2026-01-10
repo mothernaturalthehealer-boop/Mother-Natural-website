@@ -3019,6 +3019,17 @@ export const AdminPage = () => {
                     </div>
                   )}
                 </div>
+                
+                {/* Edit Image URL */}
+                <div className="space-y-2">
+                  <Label htmlFor="editProductImage">Image URL</Label>
+                  <Input
+                    id="editProductImage"
+                    value={editingProduct.image || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
               </div>
             )}
             <DialogFooter>
