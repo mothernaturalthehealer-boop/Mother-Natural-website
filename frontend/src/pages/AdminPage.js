@@ -1201,6 +1201,18 @@ export const AdminPage = () => {
                               </div>
                             )}
                           </div>
+                          
+                          {/* Image URL */}
+                          <div className="space-y-2">
+                            <Label htmlFor="productImage">Image URL (Optional)</Label>
+                            <Input
+                              id="productImage"
+                              value={newProduct.image}
+                              onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
+                              placeholder="https://example.com/image.jpg"
+                            />
+                            <p className="text-xs text-muted-foreground">Paste a URL to an image. Leave empty for default image.</p>
+                          </div>
                         </div>
                         <DialogFooter>
                           <Button variant="outline" onClick={() => setShowAddProductDialog(false)}>
