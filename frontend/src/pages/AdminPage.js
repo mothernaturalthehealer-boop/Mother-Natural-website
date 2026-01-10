@@ -2792,7 +2792,7 @@ export const AdminPage = () => {
 
         {/* Edit Product Dialog */}
         <Dialog open={showEditProductDialog} onOpenChange={setShowEditProductDialog}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-heading">Edit Product</DialogTitle>
               <DialogDescription>Update product details</DialogDescription>
@@ -2838,6 +2838,106 @@ export const AdminPage = () => {
                     onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
                     rows={3}
                   />
+                </div>
+                
+                {/* Edit Sizes Section */}
+                <div className="space-y-2">
+                  <Label>Sizes (Optional)</Label>
+                  <p className="text-xs text-muted-foreground">Add multiple sizes if this product comes in different sizes.</p>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editSizeInput}
+                      onChange={(e) => setEditSizeInput(e.target.value)}
+                      placeholder="e.g., Small, 4oz, 16oz"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (editSizeInput.trim() && !editingProduct.sizes?.includes(editSizeInput.trim())) {
+                            setEditingProduct({ ...editingProduct, sizes: [...(editingProduct.sizes || []), editSizeInput.trim()] });
+                            setEditSizeInput('');
+                          }
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => {
+                        if (editSizeInput.trim() && !editingProduct.sizes?.includes(editSizeInput.trim())) {
+                          setEditingProduct({ ...editingProduct, sizes: [...(editingProduct.sizes || []), editSizeInput.trim()] });
+                          setEditSizeInput('');
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  {editingProduct.sizes?.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {editingProduct.sizes.map((size, idx) => (
+                        <Badge key={idx} variant="secondary" className="px-3 py-1">
+                          {size}
+                          <button
+                            type="button"
+                            className="ml-2 text-muted-foreground hover:text-destructive"
+                            onClick={() => setEditingProduct({ ...editingProduct, sizes: editingProduct.sizes.filter((_, i) => i !== idx) })}
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Edit Flavors Section */}
+                <div className="space-y-2">
+                  <Label>Flavors (Optional)</Label>
+                  <p className="text-xs text-muted-foreground">Add multiple flavors if this product comes in different flavors.</p>
+                  <div className="flex gap-2">
+                    <Input
+                      value={editFlavorInput}
+                      onChange={(e) => setEditFlavorInput(e.target.value)}
+                      placeholder="e.g., Vanilla, Lavender, Mint"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (editFlavorInput.trim() && !editingProduct.flavors?.includes(editFlavorInput.trim())) {
+                            setEditingProduct({ ...editingProduct, flavors: [...(editingProduct.flavors || []), editFlavorInput.trim()] });
+                            setEditFlavorInput('');
+                          }
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => {
+                        if (editFlavorInput.trim() && !editingProduct.flavors?.includes(editFlavorInput.trim())) {
+                          setEditingProduct({ ...editingProduct, flavors: [...(editingProduct.flavors || []), editFlavorInput.trim()] });
+                          setEditFlavorInput('');
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  {editingProduct.flavors?.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {editingProduct.flavors.map((flavor, idx) => (
+                        <Badge key={idx} variant="secondary" className="px-3 py-1">
+                          {flavor}
+                          <button
+                            type="button"
+                            className="ml-2 text-muted-foreground hover:text-destructive"
+                            onClick={() => setEditingProduct({ ...editingProduct, flavors: editingProduct.flavors.filter((_, i) => i !== idx) })}
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
