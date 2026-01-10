@@ -608,7 +608,7 @@ export const AdminPage = () => {
       story: newFundraiser.story,
       goalAmount: parseFloat(newFundraiser.goalAmount),
       raisedAmount: 0,
-      image: newFundraiser.image,
+      image: newFundraiser.image || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
       createdDate: new Date().toISOString().split('T')[0],
       endDate: newFundraiser.endDate,
       status: 'active',
@@ -626,7 +626,7 @@ export const AdminPage = () => {
       beneficiary: '',
       story: '',
       goalAmount: '',
-      image: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
+      image: '',
       endDate: ''
     });
   };
@@ -648,6 +648,31 @@ export const AdminPage = () => {
     setFundraisers(updatedFundraisers);
     localStorage.setItem('fundraisers', JSON.stringify(updatedFundraisers));
     toast.success('Fundraiser status updated');
+  };
+
+  // Fundraiser approval handlers
+  const handleApproveFundraiser = (id) => {
+    const updatedFundraisers = fundraisers.map(f => {
+      if (f.id === id) {
+        return { ...f, status: 'active' };
+      }
+      return f;
+    });
+    setFundraisers(updatedFundraisers);
+    localStorage.setItem('fundraisers', JSON.stringify(updatedFundraisers));
+    toast.success('Fundraiser approved and now active!');
+  };
+
+  const handleRejectFundraiser = (id) => {
+    const updatedFundraisers = fundraisers.map(f => {
+      if (f.id === id) {
+        return { ...f, status: 'rejected' };
+      }
+      return f;
+    });
+    setFundraisers(updatedFundraisers);
+    localStorage.setItem('fundraisers', JSON.stringify(updatedFundraisers));
+    toast.success('Fundraiser rejected');
   };
 
   const handleEditContract = (type) => {
