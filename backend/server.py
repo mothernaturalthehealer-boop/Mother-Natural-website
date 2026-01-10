@@ -109,6 +109,142 @@ class UserModel(BaseModel):
     email: str
     joinedDate: Optional[str] = None
 
+# ===============================
+# AUTHENTICATION MODELS
+# ===============================
+
+class UserRegisterModel(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+class UserLoginModel(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenModel(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: dict
+
+class UserInDB(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    email: str
+    hashed_password: str
+    role: str = "user"  # "user" or "admin"
+    membershipLevel: str = "basic"
+    joinedDate: str
+    created_at: str
+    is_active: bool = True
+
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: str
+    role: str
+    membershipLevel: str
+    joinedDate: str
+
+class AdminCreateUserModel(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    role: str = "user"
+    membershipLevel: str = "basic"
+
+
+# ===============================
+# AUTHENTICATION HELPER FUNCTIONS
+# ===============================
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_user_by_email(email: str) -> Optional[dict]:
+    user = await db.auth_users.find_one({"email": email}, {"_id": 0})
+    return user
+
+async def authenticate_user(email: str, password: str) -> Optional[dict]:
+    user = await get_user_by_email(email)
+    if not user:
+        return None
+    if not verify_password(password, user.get("hashed_password", "")):
+        return None
+    return user
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[dict]:
+    """Get current user from JWT token - returns None if no token or invalid"""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+        user = await get_user_by_email(email)
+        return user
+    except JWTError:
+        return None
+
+async def get_current_active_user(token: str = Depends(oauth2_scheme)) -> dict:
+    """Require authenticated user - raises 401 if not authenticated"""
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    user = await get_user_by_email(email)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not user.get("is_active", True):
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return user
+
+async def get_current_admin_user(current_user: dict = Depends(get_current_active_user)) -> dict:
+    """Require admin role"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    return current_user
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
