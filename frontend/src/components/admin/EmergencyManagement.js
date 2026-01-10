@@ -1,37 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Check, Trash2, Eye } from 'lucide-react';
+import { Check, Trash2, Eye, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useAuth } from '@/context/AuthContext';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const EmergencyManagement = () => {
+  const { getAuthHeaders } = useAuth();
   const [emergencyRequests, setEmergencyRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const loadRequests = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/emergency-requests`, {
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEmergencyRequests(data);
+      }
+    } catch (error) {
+      console.error('Failed to load emergency requests:', error);
+      // Fallback to localStorage
+      const savedRequests = localStorage.getItem('emergencyRequests');
+      if (savedRequests) setEmergencyRequests(JSON.parse(savedRequests));
+    }
+    setLoading(false);
+  }, [getAuthHeaders]);
 
   useEffect(() => {
-    const savedRequests = localStorage.getItem('emergencyRequests');
-    if (savedRequests) setEmergencyRequests(JSON.parse(savedRequests));
-  }, []);
+    loadRequests();
+  }, [loadRequests]);
 
-  const handleMarkResolved = (id) => {
-    const updatedRequests = emergencyRequests.map(req => {
-      if (req.id === id) return { ...req, status: 'resolved', resolvedAt: new Date().toISOString() };
-      return req;
-    });
-    setEmergencyRequests(updatedRequests);
-    localStorage.setItem('emergencyRequests', JSON.stringify(updatedRequests));
-    toast.success('Marked as resolved');
+  const handleMarkResolved = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/api/emergency-requests/${id}/resolve`, {
+        method: 'PATCH',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        toast.success('Marked as resolved');
+        loadRequests();
+      }
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
   };
 
-  const handleDeleteRequest = (id) => {
-    const updatedRequests = emergencyRequests.filter(req => req.id !== id);
-    setEmergencyRequests(updatedRequests);
-    localStorage.setItem('emergencyRequests', JSON.stringify(updatedRequests));
-    toast.success('Request deleted');
+  const handleDeleteRequest = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/api/emergency-requests/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        toast.success('Request deleted');
+        loadRequests();
+      }
+    } catch (error) {
+      toast.error('Failed to delete request');
+    }
   };
 
   const viewDetails = (request) => {
@@ -41,9 +77,14 @@ export const EmergencyManagement = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="font-heading text-2xl">Emergency Requests</CardTitle>
-        <CardDescription>Crisis support requests from community members</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="font-heading text-2xl">Emergency Requests</CardTitle>
+          <CardDescription>Crisis support requests from community members ({emergencyRequests.length} total)</CardDescription>
+        </div>
+        <Button variant="outline" onClick={loadRequests} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
+        </Button>
       </CardHeader>
       <CardContent>
         {emergencyRequests.length === 0 ? (
@@ -118,6 +159,9 @@ export const EmergencyManagement = () => {
               <div><strong>Description:</strong></div>
               <p className="text-sm bg-muted p-3 rounded">{selectedRequest.description}</p>
               <div><strong>Submitted:</strong> {selectedRequest.submittedAt ? new Date(selectedRequest.submittedAt).toLocaleString() : '-'}</div>
+              {selectedRequest.resolvedAt && (
+                <div><strong>Resolved:</strong> {new Date(selectedRequest.resolvedAt).toLocaleString()}</div>
+              )}
             </div>
           )}
         </DialogContent>

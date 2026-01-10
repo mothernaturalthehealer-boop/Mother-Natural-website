@@ -1,51 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Check, X, Trash2 } from 'lucide-react';
+import { Check, X, Trash2, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const AppointmentManagement = () => {
+  const { getAuthHeaders } = useAuth();
   const [userAppointments, setUserAppointments] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const loadAppointments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/appointments`, {
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserAppointments(data);
+      }
+    } catch (error) {
+      console.error('Failed to load appointments:', error);
+      // Fallback to localStorage
+      const savedAppointments = localStorage.getItem('userAppointments');
+      if (savedAppointments) setUserAppointments(JSON.parse(savedAppointments));
+    }
+    setLoading(false);
+  }, [getAuthHeaders]);
 
   useEffect(() => {
-    const savedAppointments = localStorage.getItem('userAppointments');
-    if (savedAppointments) setUserAppointments(JSON.parse(savedAppointments));
-  }, []);
+    loadAppointments();
+  }, [loadAppointments]);
 
-  const handleApproveAppointment = (id) => {
-    const updatedAppointments = userAppointments.map(apt => {
-      if (apt.id === id) return { ...apt, status: 'confirmed' };
-      return apt;
-    });
-    setUserAppointments(updatedAppointments);
-    localStorage.setItem('userAppointments', JSON.stringify(updatedAppointments));
-    toast.success('Appointment approved');
+  const handleApproveAppointment = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/api/appointments/${id}/status?status=confirmed`, {
+        method: 'PATCH',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        toast.success('Appointment approved');
+        loadAppointments();
+      }
+    } catch (error) {
+      toast.error('Failed to approve appointment');
+    }
   };
 
-  const handleDenyAppointment = (id) => {
-    const updatedAppointments = userAppointments.map(apt => {
-      if (apt.id === id) return { ...apt, status: 'denied' };
-      return apt;
-    });
-    setUserAppointments(updatedAppointments);
-    localStorage.setItem('userAppointments', JSON.stringify(updatedAppointments));
-    toast.success('Appointment denied');
+  const handleDenyAppointment = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/api/appointments/${id}/status?status=denied`, {
+        method: 'PATCH',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        toast.success('Appointment denied');
+        loadAppointments();
+      }
+    } catch (error) {
+      toast.error('Failed to deny appointment');
+    }
   };
 
-  const handleDeleteAppointment = (id) => {
-    const updatedAppointments = userAppointments.filter(apt => apt.id !== id);
-    setUserAppointments(updatedAppointments);
-    localStorage.setItem('userAppointments', JSON.stringify(updatedAppointments));
-    toast.success('Appointment deleted');
+  const handleDeleteAppointment = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/api/appointments/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        toast.success('Appointment deleted');
+        loadAppointments();
+      }
+    } catch (error) {
+      toast.error('Failed to delete appointment');
+    }
   };
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="font-heading text-2xl">Appointments</CardTitle>
-        <CardDescription>Manage customer appointments</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="font-heading text-2xl">Appointments</CardTitle>
+          <CardDescription>Manage customer appointments ({userAppointments.length} total)</CardDescription>
+        </div>
+        <Button variant="outline" onClick={loadAppointments} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
+        </Button>
       </CardHeader>
       <CardContent>
         {userAppointments.length === 0 ? (

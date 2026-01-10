@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Edit, FileText } from 'lucide-react';
+import { Edit, FileText, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const defaultContractTemplates = {
   appointment: `APPOINTMENT BOOKING AGREEMENT
@@ -72,90 +76,167 @@ By signing below, you acknowledge that you have read, understood, and agree to t
 };
 
 export const ContractManagement = () => {
+  const { getAuthHeaders } = useAuth();
   const [contractTemplates, setContractTemplates] = useState(defaultContractTemplates);
+  const [signedContracts, setSignedContracts] = useState([]);
   const [editingContract, setEditingContract] = useState(null);
   const [showEditContractDialog, setShowEditContractDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Load templates
+      const templatesRes = await fetch(`${API_URL}/api/contracts/templates`, {
+        headers: getAuthHeaders()
+      });
+      if (templatesRes.ok) {
+        const templates = await templatesRes.json();
+        setContractTemplates({ ...defaultContractTemplates, ...templates });
+      }
+
+      // Load signed contracts
+      const signedRes = await fetch(`${API_URL}/api/contracts/signed`, {
+        headers: getAuthHeaders()
+      });
+      if (signedRes.ok) {
+        const signed = await signedRes.json();
+        setSignedContracts(signed);
+      }
+    } catch (error) {
+      console.error('Failed to load contracts:', error);
+      // Fallback to localStorage
+      const savedContracts = localStorage.getItem('contractTemplates');
+      if (savedContracts) {
+        setContractTemplates(JSON.parse(savedContracts));
+      }
+    }
+    setLoading(false);
+  }, [getAuthHeaders]);
 
   useEffect(() => {
-    const savedContracts = localStorage.getItem('contractTemplates');
-    if (savedContracts) {
-      setContractTemplates(JSON.parse(savedContracts));
-    }
-  }, []);
+    loadData();
+  }, [loadData]);
 
   const handleEditContract = (type) => {
     setEditingContract({ type, content: contractTemplates[type] });
     setShowEditContractDialog(true);
   };
 
-  const handleSaveContract = () => {
-    const updatedTemplates = { ...contractTemplates, [editingContract.type]: editingContract.content };
-    setContractTemplates(updatedTemplates);
-    localStorage.setItem('contractTemplates', JSON.stringify(updatedTemplates));
-    toast.success('Contract template updated');
-    setShowEditContractDialog(false);
-    setEditingContract(null);
+  const handleSaveContract = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/contracts/templates/${editingContract.type}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ content: editingContract.content })
+      });
+      if (response.ok) {
+        const updatedTemplates = { ...contractTemplates, [editingContract.type]: editingContract.content };
+        setContractTemplates(updatedTemplates);
+        toast.success('Contract template updated');
+        setShowEditContractDialog(false);
+        setEditingContract(null);
+      }
+    } catch (error) {
+      // Fallback to localStorage
+      const updatedTemplates = { ...contractTemplates, [editingContract.type]: editingContract.content };
+      setContractTemplates(updatedTemplates);
+      localStorage.setItem('contractTemplates', JSON.stringify(updatedTemplates));
+      toast.success('Contract template updated locally');
+      setShowEditContractDialog(false);
+      setEditingContract(null);
+    }
   };
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-heading text-2xl">Contract Templates</CardTitle>
-          <CardDescription>Edit your booking agreement templates</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Card className="border-primary/20">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-primary" />
-                  Appointment Contract
-                </CardTitle>
-                <Button variant="outline" size="sm" onClick={() => handleEditContract('appointment')}>
-                  <Edit className="h-4 w-4 mr-1" />Edit
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {contractTemplates.appointment?.substring(0, 150)}...
-              </p>
-            </CardContent>
-          </Card>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="font-heading text-2xl">Contract Management</h2>
+        <Button variant="outline" onClick={loadData} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
+        </Button>
+      </div>
 
-          <Card className="border-primary/20">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-primary" />
-                  Retreat Contract
-                </CardTitle>
-                <Button variant="outline" size="sm" onClick={() => handleEditContract('retreat')}>
-                  <Edit className="h-4 w-4 mr-1" />Edit
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {contractTemplates.retreat?.substring(0, 150)}...
-              </p>
-            </CardContent>
-          </Card>
-        </CardContent>
-      </Card>
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-xl">Contract Templates</CardTitle>
+            <CardDescription>Edit your booking agreement templates</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Card className="border-primary/20">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-primary" />
+                    Appointment Contract
+                  </CardTitle>
+                  <Button variant="outline" size="sm" onClick={() => handleEditContract('appointment')}>
+                    <Edit className="h-4 w-4 mr-1" />Edit
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {contractTemplates.appointment?.substring(0, 150)}...
+                </p>
+              </CardContent>
+            </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-heading text-2xl">Signed Contracts</CardTitle>
-          <CardDescription>View signed booking agreements</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-muted-foreground py-8">
-            Signed contracts will appear here after customers complete bookings.
-          </p>
-        </CardContent>
-      </Card>
+            <Card className="border-primary/20">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-primary" />
+                    Retreat Contract
+                  </CardTitle>
+                  <Button variant="outline" size="sm" onClick={() => handleEditContract('retreat')}>
+                    <Edit className="h-4 w-4 mr-1" />Edit
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {contractTemplates.retreat?.substring(0, 150)}...
+                </p>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-xl">Signed Contracts</CardTitle>
+            <CardDescription>View signed booking agreements ({signedContracts.length} total)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {signedContracts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Signed contracts will appear here after customers complete bookings.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Signed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {signedContracts.map((contract) => (
+                    <TableRow key={contract.id}>
+                      <TableCell className="font-medium">{contract.customerName}</TableCell>
+                      <TableCell className="capitalize">{contract.contractType}</TableCell>
+                      <TableCell>{contract.signedAt ? new Date(contract.signedAt).toLocaleDateString() : '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Edit Contract Dialog */}
       <Dialog open={showEditContractDialog} onOpenChange={setShowEditContractDialog}>
