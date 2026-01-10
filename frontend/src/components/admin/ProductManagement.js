@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +8,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showAddProductDialog, setShowAddProductDialog] = useState(false);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [showEditProductDialog, setShowEditProductDialog] = useState(false);
@@ -26,68 +29,92 @@ export const ProductManagement = () => {
   const [editSizeInput, setEditSizeInput] = useState('');
   const [editFlavorInput, setEditFlavorInput] = useState('');
 
-  useEffect(() => {
-    const savedProducts = localStorage.getItem('adminProducts');
-    if (savedProducts) setProducts(JSON.parse(savedProducts));
-    
-    const savedCategories = localStorage.getItem('adminCategories');
-    if (savedCategories) setCategories(JSON.parse(savedCategories));
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [productsRes, categoriesRes] = await Promise.all([
+        fetch(`${API_URL}/api/products`),
+        fetch(`${API_URL}/api/categories`)
+      ]);
+      if (productsRes.ok) setProducts(await productsRes.json());
+      if (categoriesRes.ok) setCategories(await categoriesRes.json());
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      // Fallback to localStorage
+      const savedProducts = localStorage.getItem('adminProducts');
+      if (savedProducts) setProducts(JSON.parse(savedProducts));
+      const savedCategories = localStorage.getItem('adminCategories');
+      if (savedCategories) setCategories(JSON.parse(savedCategories));
+    }
+    setLoading(false);
   }, []);
 
-  const handleAddCategory = () => {
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleAddCategory = async () => {
     if (!newCategory.trim()) {
       toast.error('Please enter a category name');
       return;
     }
-    if (categories.includes(newCategory.trim())) {
-      toast.error('Category already exists');
-      return;
+    try {
+      const response = await fetch(`${API_URL}/api/categories?name=${encodeURIComponent(newCategory.trim())}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        toast.success('Category added successfully!');
+        setNewCategory('');
+        setShowAddCategoryDialog(false);
+        loadData();
+      } else {
+        const data = await response.json();
+        toast.error(data.detail || 'Failed to add category');
+      }
+    } catch (error) {
+      toast.error('Failed to add category');
     }
-    const updatedCategories = [...categories, newCategory.trim()];
-    setCategories(updatedCategories);
-    localStorage.setItem('adminCategories', JSON.stringify(updatedCategories));
-    toast.success('Category added successfully!');
-    setNewCategory('');
-    setShowAddCategoryDialog(false);
   };
 
-  const handleDeleteCategory = (cat) => {
-    const updatedCategories = categories.filter(c => c !== cat);
-    setCategories(updatedCategories);
-    localStorage.setItem('adminCategories', JSON.stringify(updatedCategories));
-    toast.success('Category deleted');
+  const handleDeleteCategory = async (cat) => {
+    try {
+      await fetch(`${API_URL}/api/categories/${encodeURIComponent(cat)}`, { method: 'DELETE' });
+      toast.success('Category deleted');
+      loadData();
+    } catch (error) {
+      toast.error('Failed to delete category');
+    }
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.price) {
       toast.error('Please fill in all required fields');
       return;
     }
-    if (categories.length === 0) {
-      toast.error('Please add at least one category first');
-      return;
+    try {
+      const response = await fetch(`${API_URL}/api/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newProduct,
+          price: parseFloat(newProduct.price),
+          category: newProduct.category || (categories[0]?.toLowerCase() || ''),
+          image: newProduct.image || 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg'
+        })
+      });
+      if (response.ok) {
+        toast.success('Product added successfully!');
+        setShowAddProductDialog(false);
+        setNewProduct({ name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '' });
+        setNewSizeInput('');
+        setNewFlavorInput('');
+        loadData();
+      } else {
+        toast.error('Failed to add product');
+      }
+    } catch (error) {
+      toast.error('Failed to add product');
     }
-    const product = {
-      id: Date.now(),
-      name: newProduct.name,
-      price: parseFloat(newProduct.price),
-      category: newProduct.category || categories[0]?.toLowerCase(),
-      description: newProduct.description || '',
-      sizes: newProduct.sizes || [],
-      flavors: newProduct.flavors || [],
-      stock: 0,
-      inStock: true,
-      image: newProduct.image || 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg',
-      rating: 4.5
-    };
-    const updatedProducts = [...products, product];
-    setProducts(updatedProducts);
-    localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
-    toast.success('Product added successfully!');
-    setShowAddProductDialog(false);
-    setNewProduct({ name: '', price: '', category: categories[0]?.toLowerCase() || '', description: '', sizes: [], flavors: [], image: '' });
-    setNewSizeInput('');
-    setNewFlavorInput('');
   };
 
   const handleEditProduct = (product) => {
@@ -97,29 +124,38 @@ export const ProductManagement = () => {
     setShowEditProductDialog(true);
   };
 
-  const handleSaveEditedProduct = () => {
+  const handleSaveEditedProduct = async () => {
     if (!editingProduct.name || !editingProduct.price) {
       toast.error('Please fill in all required fields');
       return;
     }
-    const updatedProducts = products.map(p => {
-      if (p.id === editingProduct.id) {
-        return { ...editingProduct, price: parseFloat(editingProduct.price) };
+    try {
+      const response = await fetch(`${API_URL}/api/products/${editingProduct.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...editingProduct, price: parseFloat(editingProduct.price) })
+      });
+      if (response.ok) {
+        toast.success('Product updated successfully');
+        setShowEditProductDialog(false);
+        setEditingProduct(null);
+        loadData();
+      } else {
+        toast.error('Failed to update product');
       }
-      return p;
-    });
-    setProducts(updatedProducts);
-    localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
-    toast.success('Product updated successfully');
-    setShowEditProductDialog(false);
-    setEditingProduct(null);
+    } catch (error) {
+      toast.error('Failed to update product');
+    }
   };
 
-  const handleDeleteProduct = (id) => {
-    const updatedProducts = products.filter(p => p.id !== id);
-    setProducts(updatedProducts);
-    localStorage.setItem('adminProducts', JSON.stringify(updatedProducts));
-    toast.success('Product deleted successfully');
+  const handleDeleteProduct = async (id) => {
+    try {
+      await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
+      toast.success('Product deleted successfully');
+      loadData();
+    } catch (error) {
+      toast.error('Failed to delete product');
+    }
   };
 
   return (
