@@ -9,164 +9,136 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 - Private social community
 - Fundraiser section with admin approval workflow
 - Crisis support feature
-- Admin Panel for business management
+- Admin Panel for business management with analytics
 
 ## Tech Stack
 - **Frontend**: React 19, Tailwind CSS, shadcn/ui
-- **Backend**: FastAPI (Python)
-- **Database**: MongoDB
-- **Payments**: Square Payment Gateway (Production)
-- **Email**: Resend API
-- **Authentication**: JWT (python-jose, passlib)
+- **Backend**: Python FastAPI, MongoDB (via motor)
+- **File Storage**: MongoDB GridFS for image uploads
+- **Payments**: Square API (Production)
+- **Email**: Resend API (sender: contact@mothernaturalhealinglab.com)
+- **Authentication**: JWT (python-jose, passlib[bcrypt])
 
 ## Admin Credentials
 - **Email**: admin@mothernatural.com
 - **Password**: Aniyah13
-- **Test Email**: mothernaturalcontact@gmail.com
 
 ---
 
-## What's Been Implemented
+## CHANGELOG - What's Been Implemented
 
-### Phase 1-4: Core Features (Completed - Jan 2025)
-- ✅ Complete frontend application structure
-- ✅ All public pages (Shop, Appointments, Classes, Retreats, Community, Fundraisers)
-- ✅ Square payment integration (Production)
-- ✅ Contract signing system
-- ✅ Crisis support feature
-- ✅ Shopping cart with variant support
+### January 11, 2025 - Major Release
 
-### Phase 5: Admin Panel Refactoring (Completed - Jan 10, 2025)
-**Before:** 3181 lines in one monolithic file
-**After:** 300 lines main file + 11 modular components (~2100 lines total)
-
-Components created:
-- `ProductManagement.js` - Product CRUD with categories, sizes, flavors
-- `ServiceManagement.js` - Service CRUD with edit dialog
-- `ClassManagement.js` - Class CRUD with edit dialog  
-- `RetreatManagement.js` - Retreat CRUD with edit dialog
-- `FundraiserManagement.js` - Fundraiser management with approval workflow
-- `UserManagement.js` - User list, personal & bulk email
-- `AppointmentManagement.js` - Appointment approval/denial
-- `OrderManagement.js` - Order viewing
-- `EmergencyManagement.js` - Crisis request handling
-- `CommunityManagement.js` - Post moderation
-- `ContractManagement.js` - Contract template editing
-
-### Phase 6: Database Migration (Completed - Jan 10, 2025)
-**Migrated from localStorage to MongoDB**
-
-API Endpoints created:
-- `GET/POST/PUT/DELETE /api/products` - Product CRUD
-- `GET/POST/PUT/DELETE /api/services` - Service CRUD
-- `GET/POST/PUT/DELETE /api/classes` - Class CRUD
-- `GET/POST/PUT/DELETE /api/retreats` - Retreat CRUD
-- `GET/POST/PUT/DELETE /api/fundraisers` - Fundraiser CRUD + status updates
-- `GET/POST/PATCH/DELETE /api/appointments` - Appointment management
-- `GET/POST/DELETE /api/categories` - Category management
-
-### Phase 7: JWT Authentication (Completed - Jan 11, 2025)
-**Secure authentication system implemented**
-
-New Auth Endpoints:
-- `POST /api/auth/register` - Public user registration
-- `POST /api/auth/login` - User login (returns JWT)
-- `POST /api/auth/token` - OAuth2 token endpoint
-- `GET /api/auth/me` - Get current user (requires auth)
-- `PUT /api/auth/profile` - Update profile (requires auth)
-- `PUT /api/auth/change-password` - Change password (requires auth)
-
-Admin User Management:
-- `POST /api/admin/users` - Admin creates users (admin only)
-- `GET /api/admin/users` - List all users (admin only)
-- `PUT /api/admin/users/{id}` - Update user (admin only)
-- `DELETE /api/admin/users/{id}` - Delete user (admin only)
-- `POST /api/admin/users/{id}/reset-password` - Reset password (admin only)
-
-Features:
-- JWT tokens with 24-hour expiration
-- bcrypt password hashing
+#### JWT Authentication System ✅
+- User registration (public) and admin user creation
+- Login with JWT tokens (24-hour expiration)
 - Role-based access control (user/admin)
-- Default admin user created on startup
-- Frontend AuthContext with token storage
-- Protected API endpoints
+- Password change and profile update
+- Default admin user auto-created on startup
 
-### Phase 8: Email Configuration (Completed - Jan 11, 2025)
-- ✅ Sender email updated to contact@mothernaturalhealinglab.com
-- ✅ Payment receipt emails sent automatically after successful payments
-- ✅ Email templates with Mother Natural branding
+#### Complete Database Migration ✅
+- All admin components migrated from localStorage to MongoDB
+- User Management - loads from /api/admin/users
+- Appointments - loads from /api/appointments
+- Orders - loads from /api/orders
+- Emergency Requests - loads from /api/emergency-requests
+- Community Posts - loads from /api/community-posts
+- Contract Templates - loads from /api/contracts/templates
+- Signed Contracts - loads from /api/contracts/signed
 
----
+#### Image Upload (GridFS) ✅
+- File-based image upload to MongoDB GridFS
+- Support for JPEG, PNG, GIF, WebP (max 5MB)
+- ImageUpload component with URL input + file upload button
+- Image preview and deletion
+- API endpoints: POST /api/upload/image, GET /api/images/{filename}
 
-## Prioritized Backlog
+#### Advanced Analytics Dashboard ✅
+- Overview stats: Total Revenue, Users, Orders, Appointments
+- Revenue analytics: Daily/Monthly trends, breakdown by type
+- Product analytics: Top sellers, category breakdown
+- User analytics: Signups, role/membership breakdown
+- Appointment analytics: Status breakdown, popular services
+- Class analytics: Total spots, level breakdown
+- Retreat analytics: Capacity utilization, booking stats
+- Fundraiser analytics: Raised vs goal, contributor stats
+- Alert section for pending emergencies/appointments
 
-### P0 - Critical (All Completed ✅)
-- [x] Refactor AdminPage.js (technical debt)
-- [x] Database migration (MongoDB API)
-- [x] JWT Authentication
-- [x] Test email functionality
+#### Email Configuration ✅
+- Sender email updated to contact@mothernaturalhealinglab.com
+- Payment receipts sent on successful transactions
+- Bulk email to all users supported
 
-### P1 - High Priority (All Completed ✅)
-- [x] Update admin components to use auth headers
-- [x] Payment receipt emails on successful purchases
-- [x] Fix CRUD update bug (id overwrite issue)
-
-### P2 - Medium Priority
-- [ ] Verify custom domain on Resend (see DNS instructions below)
-- [ ] Migrate remaining localStorage components to database API:
-  - [ ] UserManagement
-  - [ ] AppointmentManagement  
-  - [ ] OrderManagement
-  - [ ] EmergencyManagement
-  - [ ] CommunityManagement
-  - [ ] ContractManagement
-
-### P3 - Future/Backlog
-- [ ] Native mobile app
-- [ ] Advanced analytics dashboard
-- [ ] Image upload (file-based instead of URL)
-
----
-
-## Resend Domain Verification Guide
-
-To send emails from `contact@mothernaturalhealinglab.com`, you need to verify your domain with Resend.
-
-### Steps:
-1. **Log in to Resend Dashboard** at https://resend.com/domains
-2. **Add Domain**: Click "Add Domain" and enter `mothernaturalhealinglab.com`
-3. **Add DNS Records**: Resend will provide DNS records to add:
-   - **MX Record** (for receiving)
-   - **TXT Record** (SPF for sending authorization)
-   - **CNAME Records** (DKIM for email signing)
-4. **Add Records to DNS Provider**: Log in to your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.) and add these DNS records
-5. **Verify**: Return to Resend and click "Verify DNS Configuration"
-6. **Wait**: DNS propagation can take 24-48 hours
-
-Once verified, emails will be sent from `contact@mothernaturalhealinglab.com` instead of `onboarding@resend.dev`.
+### January 10, 2025
+- Admin panel refactored (3181 lines → 11 modular components)
+- Payment flow bug fixed
+- Product variants (sizes/flavors) implemented
+- Fundraiser approval workflow added
+- Database migration started
 
 ---
 
 ## API Endpoints Summary
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | /api/auth/register | User registration | Public |
-| POST | /api/auth/login | User login | Public |
-| GET | /api/auth/me | Get current user | Required |
-| GET/POST | /api/products | Product listing/creation | GET:Public, POST:Recommended |
-| PUT/DELETE | /api/products/{id} | Product update/deletion | Recommended |
-| GET/POST | /api/services | Service management | GET:Public, POST:Recommended |
-| GET/POST | /api/classes | Class management | GET:Public, POST:Recommended |
-| GET/POST | /api/retreats | Retreat management | GET:Public, POST:Recommended |
-| GET/POST | /api/fundraisers | Fundraiser management | GET:Public, POST:Recommended |
-| PATCH | /api/fundraisers/{id}/status | Approve/reject fundraisers | Recommended |
-| GET/POST | /api/appointments | Appointment management | GET:Public, POST:Recommended |
-| POST | /api/email/send | Send single email | Recommended |
-| POST | /api/email/bulk | Send bulk email | Recommended |
-| GET/POST | /api/payments/process | Square payment processing | Public |
-| GET | /api/admin/users | List all users | Admin Only |
-| POST | /api/admin/users | Create user | Admin Only |
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/register | User registration |
+| POST | /api/auth/login | User login |
+| GET | /api/auth/me | Get current user |
+| PUT | /api/auth/profile | Update profile |
+| PUT | /api/auth/change-password | Change password |
+
+### Admin User Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/admin/users | List all users |
+| POST | /api/admin/users | Create user |
+| PUT | /api/admin/users/{id} | Update user |
+| DELETE | /api/admin/users/{id} | Delete user |
+
+### Data APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/POST/PUT/DELETE | /api/products | Products CRUD |
+| GET/POST/PUT/DELETE | /api/services | Services CRUD |
+| GET/POST/PUT/DELETE | /api/classes | Classes CRUD |
+| GET/POST/PUT/DELETE | /api/retreats | Retreats CRUD |
+| GET/POST/DELETE | /api/fundraisers | Fundraisers CRUD |
+| PATCH | /api/fundraisers/{id}/status | Approve/reject |
+| GET/POST/PATCH/DELETE | /api/appointments | Appointments CRUD |
+| GET/POST/DELETE | /api/emergency-requests | Emergency CRUD |
+| PATCH | /api/emergency-requests/{id}/resolve | Mark resolved |
+| GET/POST/DELETE | /api/community-posts | Community CRUD |
+| POST | /api/community-posts/{id}/like | Like post |
+| POST | /api/community-posts/{id}/comment | Add comment |
+
+### Image Upload
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/upload/image | Upload image to GridFS |
+| GET | /api/images/{filename} | Retrieve image |
+| DELETE | /api/images/{filename} | Delete image |
+
+### Contract Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/contracts/templates | Get templates |
+| PUT | /api/contracts/templates/{type} | Update template |
+| GET | /api/contracts/signed | Get signed contracts |
+| POST | /api/contracts/signed | Store signed contract |
+
+### Analytics
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/analytics/dashboard | Overview stats |
+| GET | /api/analytics/revenue | Revenue breakdown |
+| GET | /api/analytics/products | Product performance |
+| GET | /api/analytics/users | User growth |
+| GET | /api/analytics/appointments | Appointment stats |
+| GET | /api/analytics/classes | Class enrollment |
+| GET | /api/analytics/retreats | Retreat capacity |
+| GET | /api/analytics/fundraisers | Fundraiser progress |
 
 ---
 
@@ -175,15 +147,16 @@ Once verified, emails will be sent from `contact@mothernaturalhealinglab.com` in
 ```
 /app
 ├── backend/
-│   ├── server.py          # FastAPI with all API endpoints (~1300 lines)
+│   ├── server.py          # FastAPI backend (~1800 lines)
 │   ├── requirements.txt
 │   ├── .env
 │   └── tests/
-│       └── test_auth_api.py
+│       ├── test_auth_api.py
+│       └── test_new_features.py
 └── frontend/
     ├── src/
     │   ├── components/
-    │   │   ├── admin/            # Modular admin components
+    │   │   ├── admin/           # 12 modular admin components
     │   │   │   ├── ProductManagement.js
     │   │   │   ├── ServiceManagement.js
     │   │   │   ├── ClassManagement.js
@@ -195,18 +168,17 @@ Once verified, emails will be sent from `contact@mothernaturalhealinglab.com` in
     │   │   │   ├── EmergencyManagement.js
     │   │   │   ├── CommunityManagement.js
     │   │   │   ├── ContractManagement.js
+    │   │   │   ├── AnalyticsDashboard.js (NEW)
     │   │   │   └── index.js
-    │   │   ├── ui/               # shadcn components
-    │   │   ├── PaymentForm.js
-    │   │   └── ContractSigningDialog.js
-    │   ├── context/
-    │   │   └── AuthContext.js    # JWT auth state management
-    │   ├── hooks/
-    │   │   └── useApi.js         # Authenticated API helper
-    │   ├── pages/
-    │   │   ├── AdminPage.js      # Lean orchestrator (~300 lines)
-    │   │   ├── AuthPages.js      # Login & Signup pages
+    │   │   ├── ImageUpload.js (NEW)
+    │   │   ├── ui/
     │   │   └── ...
+    │   ├── context/
+    │   │   └── AuthContext.js
+    │   ├── hooks/
+    │   │   └── useApi.js
+    │   ├── pages/
+    │   │   └── AdminPage.js
     │   └── App.js
     └── .env
 ```
@@ -215,18 +187,52 @@ Once verified, emails will be sent from `contact@mothernaturalhealinglab.com` in
 
 ## Testing Status
 - ✅ JWT Authentication - 24/24 tests passed
-- ✅ Admin Panel - All features tested
-- ✅ Database API - All endpoints working
-- ✅ Email sending - Verified with real email
-- ✅ Shop page - Loading from database
-- ✅ Payment flow - Verified working
-- ✅ CRUD Operations - Create, Update, Delete all working
+- ✅ New Features - 27/27 tests passed
+- ✅ Image Upload API
+- ✅ Emergency Requests API
+- ✅ Community Posts API
+- ✅ Contract Templates API
+- ✅ Analytics APIs (8 endpoints)
+- ✅ Frontend Admin Panel
 
 ---
 
-## Notes
-- Square is in **Production mode** - REAL charges
-- Resend emails sent from contact@mothernaturalhealinglab.com (requires domain verification)
-- Database is persistent via MongoDB
-- Frontend has fallback to localStorage if API fails
-- Default admin user created automatically on server startup
+## Resend Domain Verification Guide
+
+To send emails from `contact@mothernaturalhealinglab.com`:
+
+1. **Log in to Resend Dashboard**: https://resend.com/domains
+2. **Add Domain**: `mothernaturalhealinglab.com`
+3. **Add DNS Records** to your domain registrar:
+   - MX Record (for receiving)
+   - TXT Record (SPF)
+   - CNAME Records (DKIM)
+4. **Verify**: Click "Verify DNS Configuration" in Resend
+5. DNS propagation can take 24-48 hours
+
+---
+
+## Completed Features Summary
+
+| Feature | Status |
+|---------|--------|
+| E-commerce Shop | ✅ Complete |
+| Product Variants (sizes/flavors) | ✅ Complete |
+| Appointment Booking | ✅ Complete |
+| Contract Signing | ✅ Complete |
+| Wellness Classes | ✅ Complete |
+| Retreat Booking | ✅ Complete |
+| Community Platform | ✅ Complete |
+| Fundraiser System | ✅ Complete |
+| Crisis Support | ✅ Complete |
+| Admin Dashboard | ✅ Complete |
+| JWT Authentication | ✅ Complete |
+| Database Migration | ✅ Complete |
+| Image Upload (GridFS) | ✅ Complete |
+| Analytics Dashboard | ✅ Complete |
+| Email Integration | ✅ Complete |
+| Square Payments | ✅ Complete |
+
+---
+
+## Ready for Production Deployment! 🚀
