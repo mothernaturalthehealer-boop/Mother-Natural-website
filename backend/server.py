@@ -942,14 +942,18 @@ async def get_all_users():
 # ===============================
 
 # Product Models
+class ProductVariant(BaseModel):
+    name: str
+    price: float
+
 class ProductModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: Optional[str] = None
     name: str
-    price: float
+    price: float  # Base price (used when no variants)
     category: str = ""
     description: str = ""
-    sizes: List[str] = []
+    sizes: List[dict] = []  # List of {name: str, price: float}
     flavors: List[str] = []
     image: str = ""
     stock: int = 0
