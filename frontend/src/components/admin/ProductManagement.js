@@ -27,9 +27,13 @@ export const ProductManagement = () => {
   const [newProduct, setNewProduct] = useState({
     name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: ''
   });
-  const [newSizeInput, setNewSizeInput] = useState('');
+  // Size variant inputs (name + price)
+  const [newSizeName, setNewSizeName] = useState('');
+  const [newSizePrice, setNewSizePrice] = useState('');
+  const [editSizeName, setEditSizeName] = useState('');
+  const [editSizePrice, setEditSizePrice] = useState('');
+  // Flavor inputs
   const [newFlavorInput, setNewFlavorInput] = useState('');
-  const [editSizeInput, setEditSizeInput] = useState('');
   const [editFlavorInput, setEditFlavorInput] = useState('');
 
   const loadData = useCallback(async () => {
@@ -43,7 +47,6 @@ export const ProductManagement = () => {
       if (categoriesRes.ok) setCategories(await categoriesRes.json());
     } catch (error) {
       console.error('Failed to load data:', error);
-      // Fallback to localStorage
       const savedProducts = localStorage.getItem('adminProducts');
       if (savedProducts) setProducts(JSON.parse(savedProducts));
       const savedCategories = localStorage.getItem('adminCategories');
@@ -93,6 +96,35 @@ export const ProductManagement = () => {
     }
   };
 
+  const handleAddSizeVariant = () => {
+    if (!newSizeName.trim()) {
+      toast.error('Please enter a size name');
+      return;
+    }
+    if (!newSizePrice || parseFloat(newSizePrice) <= 0) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+    const exists = newProduct.sizes.some(s => s.name.toLowerCase() === newSizeName.trim().toLowerCase());
+    if (exists) {
+      toast.error('This size already exists');
+      return;
+    }
+    setNewProduct({
+      ...newProduct,
+      sizes: [...newProduct.sizes, { name: newSizeName.trim(), price: parseFloat(newSizePrice) }]
+    });
+    setNewSizeName('');
+    setNewSizePrice('');
+  };
+
+  const handleRemoveSizeVariant = (idx) => {
+    setNewProduct({
+      ...newProduct,
+      sizes: newProduct.sizes.filter((_, i) => i !== idx)
+    });
+  };
+
   const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.price) {
       toast.error('Please fill in all required fields');
@@ -113,8 +145,8 @@ export const ProductManagement = () => {
         toast.success('Product added successfully!');
         setShowAddProductDialog(false);
         setNewProduct({ name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '' });
-        setNewSizeInput('');
-        setNewFlavorInput('');
+        setNewSizeName('');
+        setNewSizePrice('');
         loadData();
       } else {
         toast.error('Failed to add product');
@@ -125,10 +157,44 @@ export const ProductManagement = () => {
   };
 
   const handleEditProduct = (product) => {
-    setEditingProduct({ ...product, sizes: product.sizes || [], flavors: product.flavors || [], image: product.image || '' });
-    setEditSizeInput('');
-    setEditFlavorInput('');
+    // Convert old format sizes (strings) to new format (objects with name and price)
+    const convertedSizes = (product.sizes || []).map(size => {
+      if (typeof size === 'string') {
+        return { name: size, price: product.price };
+      }
+      return size;
+    });
+    setEditingProduct({ ...product, sizes: convertedSizes });
     setShowEditProductDialog(true);
+  };
+
+  const handleEditAddSizeVariant = () => {
+    if (!editSizeName.trim()) {
+      toast.error('Please enter a size name');
+      return;
+    }
+    if (!editSizePrice || parseFloat(editSizePrice) <= 0) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+    const exists = editingProduct.sizes?.some(s => s.name.toLowerCase() === editSizeName.trim().toLowerCase());
+    if (exists) {
+      toast.error('This size already exists');
+      return;
+    }
+    setEditingProduct({
+      ...editingProduct,
+      sizes: [...(editingProduct.sizes || []), { name: editSizeName.trim(), price: parseFloat(editSizePrice) }]
+    });
+    setEditSizeName('');
+    setEditSizePrice('');
+  };
+
+  const handleEditRemoveSizeVariant = (idx) => {
+    setEditingProduct({
+      ...editingProduct,
+      sizes: editingProduct.sizes.filter((_, i) => i !== idx)
+    });
   };
 
   const handleSaveEditedProduct = async () => {
@@ -146,6 +212,8 @@ export const ProductManagement = () => {
         toast.success('Product updated successfully');
         setShowEditProductDialog(false);
         setEditingProduct(null);
+        setEditSizeName('');
+        setEditSizePrice('');
         loadData();
       } else {
         toast.error('Failed to update product');
@@ -168,50 +236,52 @@ export const ProductManagement = () => {
     }
   };
 
+  // Helper to get price display for a product
+  const getPriceDisplay = (product) => {
+    if (product.sizes && product.sizes.length > 0) {
+      const prices = product.sizes.map(s => typeof s === 'object' ? s.price : product.price);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      if (minPrice === maxPrice) {
+        return `$${minPrice.toFixed(2)}`;
+      }
+      return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
+    }
+    return `$${(product.price || 0).toFixed(2)}`;
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Categories Card */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="font-heading text-xl">Product Categories</CardTitle>
+            <CardTitle className="font-heading text-2xl">Product Categories</CardTitle>
             <CardDescription>Manage your product categories</CardDescription>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
-            </Button>
-            <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
-              <Button onClick={() => setShowAddCategoryDialog(true)} size="sm">
-                <Plus className="h-4 w-4 mr-2" />Add Category
-              </Button>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Add New Category</DialogTitle>
-                  <DialogDescription>Create a new product category</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="categoryName">Category Name</Label>
-                    <Input
-                      id="categoryName"
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                      placeholder="e.g., Teas, Oils, Tinctures"
-                    />
-                  </div>
+          <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
+            <Button onClick={() => setShowAddCategoryDialog(true)} variant="outline"><Plus className="h-4 w-4 mr-2" />Add Category</Button>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="font-heading">Add New Category</DialogTitle>
+                <DialogDescription>Enter a name for the new category.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="catName">Category Name *</Label>
+                  <Input id="catName" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="e.g., Oils, Herbs" />
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Cancel</Button>
-                  <Button onClick={handleAddCategory} className="bg-primary hover:bg-primary-dark">Add Category</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Cancel</Button>
+                <Button onClick={handleAddCategory} className="bg-primary hover:bg-primary-dark">Add Category</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           {categories.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">No categories yet. Add your first category above.</p>
+            <p className="text-muted-foreground">No categories yet. Add one to get started.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
@@ -230,85 +300,119 @@ export const ProductManagement = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="font-heading text-2xl">Products</CardTitle>
-            <CardDescription>Manage your shop products</CardDescription>
+            <CardDescription>{products.length} products in your shop</CardDescription>
           </div>
-          <Dialog open={showAddProductDialog} onOpenChange={setShowAddProductDialog}>
-            <Button onClick={() => setShowAddProductDialog(true)} className="bg-primary hover:bg-primary-dark">
-              <Plus className="h-4 w-4 mr-2" />Add Product
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={loadData} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
             </Button>
-            <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="font-heading">Add New Product</DialogTitle>
-                <DialogDescription>Add a new product to your shop</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="productName">Product Name *</Label>
-                  <Input id="productName" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder="e.g., Lavender Calm Tea" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price ($) *</Label>
-                  <Input id="price" type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder="19.99" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  {categories.length === 0 ? (
-                    <p className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">No categories yet. Please add categories first.</p>
-                  ) : (
-                    <select id="category" value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} className="w-full px-3 py-2 border border-input rounded-md bg-background">
-                      {categories.map((cat) => (<option key={cat} value={cat.toLowerCase()}>{cat}</option>))}
-                    </select>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} placeholder="Product description..." rows={3} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Sizes (Optional)</Label>
-                  <p className="text-xs text-muted-foreground">Add multiple sizes if this product comes in different sizes.</p>
-                  <div className="flex gap-2">
-                    <Input value={newSizeInput} onChange={(e) => setNewSizeInput(e.target.value)} placeholder="e.g., Small, 4oz" onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (newSizeInput.trim() && !newProduct.sizes.includes(newSizeInput.trim())) { setNewProduct({ ...newProduct, sizes: [...newProduct.sizes, newSizeInput.trim()] }); setNewSizeInput(''); }}}} />
-                    <Button type="button" variant="outline" onClick={() => { if (newSizeInput.trim() && !newProduct.sizes.includes(newSizeInput.trim())) { setNewProduct({ ...newProduct, sizes: [...newProduct.sizes, newSizeInput.trim()] }); setNewSizeInput(''); }}}>Add</Button>
+            <Dialog open={showAddProductDialog} onOpenChange={setShowAddProductDialog}>
+              <Button onClick={() => setShowAddProductDialog(true)} className="bg-primary hover:bg-primary-dark"><Plus className="h-4 w-4 mr-2" />Add Product</Button>
+              <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="font-heading">Add New Product</DialogTitle>
+                  <DialogDescription>Fill in the product details below.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Product Name *</Label>
+                    <Input id="name" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder="e.g., Organic Lavender Oil" />
                   </div>
-                  {newProduct.sizes.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {newProduct.sizes.map((size, idx) => (
-                        <Badge key={idx} variant="secondary" className="px-3 py-1">{size}<button type="button" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => setNewProduct({ ...newProduct, sizes: newProduct.sizes.filter((_, i) => i !== idx) })}>×</button></Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Flavors (Optional)</Label>
-                  <p className="text-xs text-muted-foreground">Add multiple flavors if this product comes in different flavors.</p>
-                  <div className="flex gap-2">
-                    <Input value={newFlavorInput} onChange={(e) => setNewFlavorInput(e.target.value)} placeholder="e.g., Vanilla, Lavender" onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (newFlavorInput.trim() && !newProduct.flavors.includes(newFlavorInput.trim())) { setNewProduct({ ...newProduct, flavors: [...newProduct.flavors, newFlavorInput.trim()] }); setNewFlavorInput(''); }}}} />
-                    <Button type="button" variant="outline" onClick={() => { if (newFlavorInput.trim() && !newProduct.flavors.includes(newFlavorInput.trim())) { setNewProduct({ ...newProduct, flavors: [...newProduct.flavors, newFlavorInput.trim()] }); setNewFlavorInput(''); }}}>Add</Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Base Price ($) *</Label>
+                    <Input id="price" type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder="19.99" />
+                    <p className="text-xs text-muted-foreground">This is the default price. Size variants below can have different prices.</p>
                   </div>
-                  {newProduct.flavors.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {newProduct.flavors.map((flavor, idx) => (
-                        <Badge key={idx} variant="secondary" className="px-3 py-1">{flavor}<button type="button" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => setNewProduct({ ...newProduct, flavors: newProduct.flavors.filter((_, i) => i !== idx) })}>×</button></Badge>
-                      ))}
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    {categories.length === 0 ? (
+                      <p className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">No categories yet. Please add categories first.</p>
+                    ) : (
+                      <select id="category" value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} className="w-full px-3 py-2 border border-input rounded-md bg-background">
+                        {categories.map((cat) => (<option key={cat} value={cat.toLowerCase()}>{cat}</option>))}
+                      </select>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} placeholder="Product description..." rows={3} />
+                  </div>
+                  
+                  {/* Size Variants with Prices */}
+                  <div className="space-y-2 border rounded-lg p-4 bg-muted/30">
+                    <Label className="text-base font-semibold">Size Variants with Prices</Label>
+                    <p className="text-xs text-muted-foreground">Add different sizes with their own prices (e.g., Small $10, Large $20).</p>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={newSizeName} 
+                        onChange={(e) => setNewSizeName(e.target.value)} 
+                        placeholder="Size name (e.g., Small, 4oz)" 
+                        className="flex-1"
+                      />
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        value={newSizePrice} 
+                        onChange={(e) => setNewSizePrice(e.target.value)} 
+                        placeholder="Price"
+                        className="w-24"
+                      />
+                      <Button type="button" variant="outline" onClick={handleAddSizeVariant}>Add</Button>
                     </div>
-                  )}
+                    {newProduct.sizes.length > 0 && (
+                      <div className="space-y-2 mt-3">
+                        {newProduct.sizes.map((size, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-background p-2 rounded border">
+                            <span className="font-medium">{size.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-green-600 font-semibold">${size.price.toFixed(2)}</span>
+                              <button 
+                                type="button" 
+                                className="text-muted-foreground hover:text-destructive"
+                                onClick={() => handleRemoveSizeVariant(idx)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Flavors */}
+                  <div className="space-y-2">
+                    <Label>Flavors (Optional)</Label>
+                    <p className="text-xs text-muted-foreground">Add multiple flavors if this product comes in different flavors.</p>
+                    <div className="flex gap-2">
+                      <Input value={newFlavorInput} onChange={(e) => setNewFlavorInput(e.target.value)} placeholder="e.g., Vanilla, Lavender" onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (newFlavorInput.trim() && !newProduct.flavors.includes(newFlavorInput.trim())) { setNewProduct({ ...newProduct, flavors: [...newProduct.flavors, newFlavorInput.trim()] }); setNewFlavorInput(''); }}}} />
+                      <Button type="button" variant="outline" onClick={() => { if (newFlavorInput.trim() && !newProduct.flavors.includes(newFlavorInput.trim())) { setNewProduct({ ...newProduct, flavors: [...newProduct.flavors, newFlavorInput.trim()] }); setNewFlavorInput(''); }}}>Add</Button>
+                    </div>
+                    {newProduct.flavors.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {newProduct.flavors.map((flavor, idx) => (
+                          <Badge key={idx} variant="secondary" className="px-3 py-1">{flavor}<button type="button" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => setNewProduct({ ...newProduct, flavors: newProduct.flavors.filter((_, i) => i !== idx) })}>×</button></Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <ImageUpload
+                      label="Product Image (Optional)"
+                      value={newProduct.image}
+                      onChange={(url) => setNewProduct({ ...newProduct, image: url })}
+                      placeholder="Enter image URL or upload a file"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <ImageUpload
-                    label="Product Image (Optional)"
-                    value={newProduct.image}
-                    onChange={(url) => setNewProduct({ ...newProduct, image: url })}
-                    placeholder="Enter image URL or upload a file"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowAddProductDialog(false)}>Cancel</Button>
-                <Button onClick={handleAddProduct} className="bg-primary hover:bg-primary-dark">Add Product</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowAddProductDialog(false)}>Cancel</Button>
+                  <Button onClick={handleAddProduct} className="bg-primary hover:bg-primary-dark">Add Product</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           {products.length === 0 ? (
@@ -321,24 +425,37 @@ export const ProductManagement = () => {
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Variants</TableHead>
-                  <TableHead>Description</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell><Badge variant="outline" className="capitalize">{product.category}</Badge></TableCell>
-                    <TableCell>${product.price}</TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1 text-xs">
-                        {product.sizes?.length > 0 && <span className="text-muted-foreground">Sizes: {product.sizes.join(', ')}</span>}
-                        {product.flavors?.length > 0 && <span className="text-muted-foreground">Flavors: {product.flavors.join(', ')}</span>}
-                        {(!product.sizes || product.sizes.length === 0) && (!product.flavors || product.flavors.length === 0) && <span className="text-muted-foreground">-</span>}
+                      <div className="flex items-center gap-3">
+                        {product.image && (
+                          <img src={product.image} alt={product.name} className="w-10 h-10 rounded object-cover" />
+                        )}
+                        <span className="font-medium">{product.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate">{product.description || '-'}</TableCell>
+                    <TableCell><Badge variant="outline">{product.category || 'uncategorized'}</Badge></TableCell>
+                    <TableCell className="font-semibold text-green-600">{getPriceDisplay(product)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {product.sizes?.length > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            {product.sizes.length} size{product.sizes.length > 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                        {product.flavors?.length > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            {product.flavors.length} flavor{product.flavors.length > 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                        {(!product.sizes?.length && !product.flavors?.length) && <span className="text-muted-foreground">-</span>}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
                         <Button variant="ghost" size="icon" onClick={() => handleEditProduct(product)}><Edit className="h-4 w-4" /></Button>
@@ -358,7 +475,7 @@ export const ProductManagement = () => {
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading">Edit Product</DialogTitle>
-            <DialogDescription>Update product details</DialogDescription>
+            <DialogDescription>Update the product details below.</DialogDescription>
           </DialogHeader>
           {editingProduct && (
             <div className="space-y-4 py-4">
@@ -367,8 +484,9 @@ export const ProductManagement = () => {
                 <Input id="editProductName" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="editProductPrice">Price ($) *</Label>
+                <Label htmlFor="editProductPrice">Base Price ($) *</Label>
                 <Input id="editProductPrice" type="number" step="0.01" value={editingProduct.price} onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })} />
+                <p className="text-xs text-muted-foreground">This is the default price when no size variant is selected.</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="editProductCategory">Category</Label>
@@ -380,20 +498,52 @@ export const ProductManagement = () => {
                 <Label htmlFor="editProductDesc">Description</Label>
                 <Textarea id="editProductDesc" value={editingProduct.description || ''} onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })} rows={3} />
               </div>
-              <div className="space-y-2">
-                <Label>Sizes</Label>
+
+              {/* Size Variants with Prices */}
+              <div className="space-y-2 border rounded-lg p-4 bg-muted/30">
+                <Label className="text-base font-semibold">Size Variants with Prices</Label>
+                <p className="text-xs text-muted-foreground">Each size can have its own price.</p>
                 <div className="flex gap-2">
-                  <Input value={editSizeInput} onChange={(e) => setEditSizeInput(e.target.value)} placeholder="Add size" onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (editSizeInput.trim() && !editingProduct.sizes?.includes(editSizeInput.trim())) { setEditingProduct({ ...editingProduct, sizes: [...(editingProduct.sizes || []), editSizeInput.trim()] }); setEditSizeInput(''); }}}} />
-                  <Button type="button" variant="outline" onClick={() => { if (editSizeInput.trim() && !editingProduct.sizes?.includes(editSizeInput.trim())) { setEditingProduct({ ...editingProduct, sizes: [...(editingProduct.sizes || []), editSizeInput.trim()] }); setEditSizeInput(''); }}}>Add</Button>
+                  <Input 
+                    value={editSizeName} 
+                    onChange={(e) => setEditSizeName(e.target.value)} 
+                    placeholder="Size name" 
+                    className="flex-1"
+                  />
+                  <Input 
+                    type="number" 
+                    step="0.01"
+                    value={editSizePrice} 
+                    onChange={(e) => setEditSizePrice(e.target.value)} 
+                    placeholder="Price"
+                    className="w-24"
+                  />
+                  <Button type="button" variant="outline" onClick={handleEditAddSizeVariant}>Add</Button>
                 </div>
                 {editingProduct.sizes?.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="space-y-2 mt-3">
                     {editingProduct.sizes.map((size, idx) => (
-                      <Badge key={idx} variant="secondary" className="px-3 py-1">{size}<button type="button" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => setEditingProduct({ ...editingProduct, sizes: editingProduct.sizes.filter((_, i) => i !== idx) })}>×</button></Badge>
+                      <div key={idx} className="flex items-center justify-between bg-background p-2 rounded border">
+                        <span className="font-medium">{typeof size === 'object' ? size.name : size}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600 font-semibold">
+                            ${(typeof size === 'object' ? size.price : editingProduct.price).toFixed(2)}
+                          </span>
+                          <button 
+                            type="button" 
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => handleEditRemoveSizeVariant(idx)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
+
+              {/* Flavors */}
               <div className="space-y-2">
                 <Label>Flavors</Label>
                 <div className="flex gap-2">
@@ -408,6 +558,7 @@ export const ProductManagement = () => {
                   </div>
                 )}
               </div>
+
               <div className="space-y-2">
                 <ImageUpload
                   label="Product Image"
