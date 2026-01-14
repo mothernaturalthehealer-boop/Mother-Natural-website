@@ -11,20 +11,60 @@ import { toast } from 'sonner';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-// Product card with variant selection
+// Product card with variant selection and dynamic pricing
 const ProductCard = ({ product, onAddToCart }) => {
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
+  // Handle both old format (string array) and new format (object array with prices)
+  const getSizeOptions = () => {
+    if (!product.sizes || product.sizes.length === 0) return [];
+    return product.sizes.map(size => {
+      if (typeof size === 'object' && size.name) {
+        return { name: size.name, price: size.price };
+      }
+      return { name: size, price: product.price };
+    });
+  };
+
+  const sizeOptions = getSizeOptions();
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(sizeOptions.length > 0 ? 0 : -1);
   const [selectedFlavor, setSelectedFlavor] = useState(product.flavors?.[0] || '');
   
-  const hasMultipleSizes = product.sizes && product.sizes.length > 1;
+  const hasMultipleSizes = sizeOptions.length > 1;
   const hasMultipleFlavors = product.flavors && product.flavors.length > 1;
   
+  // Get current price based on selected size
+  const getCurrentPrice = () => {
+    if (selectedSizeIndex >= 0 && sizeOptions[selectedSizeIndex]) {
+      return sizeOptions[selectedSizeIndex].price;
+    }
+    return product.price;
+  };
+
+  // Get price range for display when no size is selected yet
+  const getPriceRange = () => {
+    if (sizeOptions.length === 0) {
+      return { min: product.price, max: product.price, hasRange: false };
+    }
+    const prices = sizeOptions.map(s => s.price);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return { min, max, hasRange: min !== max };
+  };
+
+  const currentPrice = getCurrentPrice();
+  const priceRange = getPriceRange();
+  
+  const handleSizeChange = (value) => {
+    const index = sizeOptions.findIndex(s => s.name === value);
+    setSelectedSizeIndex(index >= 0 ? index : 0);
+  };
+
   const handleAddToCart = () => {
+    const selectedSize = selectedSizeIndex >= 0 ? sizeOptions[selectedSizeIndex]?.name : '';
     const variantInfo = [];
     if (selectedSize) variantInfo.push(selectedSize);
     if (selectedFlavor) variantInfo.push(selectedFlavor);
     
-    onAddToCart(product, selectedSize, selectedFlavor, variantInfo.join(' - '));
+    onAddToCart(product, selectedSize, selectedFlavor, variantInfo.join(' - '), currentPrice);
   };
 
   return (
@@ -61,18 +101,24 @@ const ProductCard = ({ product, onAddToCart }) => {
       </CardHeader>
       
       <CardContent className="pt-0 pb-2 space-y-3">
-        {/* Size Dropdown - Only show if multiple sizes */}
+        {/* Size Dropdown with Prices - Only show if multiple sizes */}
         {hasMultipleSizes && (
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Size</label>
-            <Select value={selectedSize} onValueChange={setSelectedSize}>
+            <Select 
+              value={sizeOptions[selectedSizeIndex]?.name || ''} 
+              onValueChange={handleSizeChange}
+            >
               <SelectTrigger className="w-full h-9" data-testid={`size-select-${product.id}`}>
                 <SelectValue placeholder="Select size" />
               </SelectTrigger>
               <SelectContent>
-                {product.sizes.map((size) => (
-                  <SelectItem key={size} value={size}>
-                    {size}
+                {sizeOptions.map((size) => (
+                  <SelectItem key={size.name} value={size.name}>
+                    <span className="flex justify-between items-center w-full gap-4">
+                      <span>{size.name}</span>
+                      <span className="text-green-600 font-semibold">${size.price.toFixed(2)}</span>
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -102,7 +148,16 @@ const ProductCard = ({ product, onAddToCart }) => {
       
       <CardFooter className="flex flex-col space-y-3 mt-auto pt-2">
         <div className="flex items-center justify-between w-full">
-          <span className="text-2xl font-bold text-primary">${product.price}</span>
+          <div>
+            {/* Show price range if multiple sizes exist and prices differ */}
+            {priceRange.hasRange && !hasMultipleSizes ? (
+              <span className="text-xl font-bold text-primary">
+                ${priceRange.min.toFixed(2)} - ${priceRange.max.toFixed(2)}
+              </span>
+            ) : (
+              <span className="text-2xl font-bold text-primary">${currentPrice.toFixed(2)}</span>
+            )}
+          </div>
           {(product.inStock !== false) && (
             <Badge variant="outline" className="border-success text-success">
               In Stock
@@ -164,7 +219,7 @@ export const ShopPage = () => {
     ? products
     : products.filter(p => p.category?.toLowerCase() === activeCategory.toLowerCase());
 
-  const handleAddToCart = (product, selectedSize, selectedFlavor, variantLabel) => {
+  const handleAddToCart = (product, selectedSize, selectedFlavor, variantLabel, price) => {
     // Create a unique ID that includes variant info
     const variantId = `${product.id}${selectedSize ? `-${selectedSize}` : ''}${selectedFlavor ? `-${selectedFlavor}` : ''}`;
     
@@ -178,7 +233,7 @@ export const ShopPage = () => {
       id: variantId,
       productId: product.id,
       name: displayName,
-      price: product.price,
+      price: price, // Use the variant-specific price
       image: product.image,
       type: 'product',
       size: selectedSize || null,
