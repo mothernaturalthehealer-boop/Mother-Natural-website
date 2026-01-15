@@ -98,7 +98,10 @@ const ProductCard = ({ product, onAddToCart, onViewProduct }) => {
         </div>
       </div>
       
-      <CardHeader className="flex-grow pb-2">
+      <CardHeader 
+        className="flex-grow pb-2 cursor-pointer" 
+        onClick={() => onViewProduct(product.id)}
+      >
         <CardTitle className="font-heading text-lg line-clamp-1">{product.name}</CardTitle>
         <CardDescription className="line-clamp-2 text-sm">
           {product.description}
