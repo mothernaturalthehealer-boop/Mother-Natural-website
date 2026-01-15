@@ -69,7 +69,10 @@ const ProductCard = ({ product, onAddToCart, onViewProduct }) => {
 
   return (
     <Card className="group hover:shadow-elegant transition-all duration-300 overflow-hidden flex flex-col">
-      <div className="relative h-56 overflow-hidden">
+      <div 
+        className="relative h-56 overflow-hidden cursor-pointer"
+        onClick={() => onViewProduct(product.id)}
+      >
         <img
           src={product.image || 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg'}
           alt={product.name}
@@ -82,9 +85,17 @@ const ProductCard = ({ product, onAddToCart, onViewProduct }) => {
           size="icon"
           variant="ghost"
           className="absolute top-3 left-3 bg-white/80 hover:bg-white backdrop-blur opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => e.stopPropagation()}
         >
           <Heart className="h-4 w-4" />
         </Button>
+        {/* View Details Overlay */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <Button variant="secondary" size="sm" className="gap-2">
+            <Eye className="h-4 w-4" />
+            View Details
+          </Button>
+        </div>
       </div>
       
       <CardHeader className="flex-grow pb-2">
