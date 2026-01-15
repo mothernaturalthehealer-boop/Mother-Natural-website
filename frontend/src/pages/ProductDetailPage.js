@@ -200,7 +200,7 @@ export const ProductDetailPage = () => {
 
             {/* Description */}
             <div className="prose prose-sm max-w-none">
-              <p className="text-muted-foreground text-lg leading-relaxed whitespace-pre-wrap">
+              <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">
                 {product.description || 'No description available for this product.'}
               </p>
             </div>
