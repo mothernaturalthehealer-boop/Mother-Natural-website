@@ -27,6 +27,32 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 
 ## ✅ ALL FEATURES COMPLETE - READY FOR DEPLOYMENT
 
+### Recent Fixes (Jan 15, 2026)
+
+#### Issue 1: Services Not Showing for Customers ✅ FIXED
+- **Problem**: Services created in admin panel weren't appearing on the public Appointments page
+- **Root Cause**: AppointmentsPage.js was reading from localStorage instead of the API
+- **Fix**: Updated to fetch from `/api/services` endpoint
+- **File**: `frontend/src/pages/AppointmentsPage.js` (lines 25-47)
+
+#### Issue 2: Home Screen App Icon ✅ FIXED
+- **Problem**: Default black box showing instead of brand's purple logo
+- **Fix**: Created all required icon files from user's logo:
+  - `favicon.ico` (multi-size: 16x16, 32x32, 48x48)
+  - `logo192.png` (192x192)
+  - `logo512.png` (512x512)
+  - `apple-touch-icon.png` (180x180)
+- **Files**: `frontend/public/`
+
+#### Issue 3: Home Screen App Name ✅ FIXED
+- **Problem**: App name showed "emergent" instead of brand name
+- **Fix**: 
+  - Created `manifest.json` with `name: "Mother Natural: The Healing Lab"` and `short_name: "Natural Healing Lab"`
+  - Updated `index.html` with correct title and Apple PWA meta tags
+- **Files**: `frontend/public/manifest.json`, `frontend/public/index.html`
+
+---
+
 ### 1. JWT Authentication System ✅
 - User registration (public) and admin user creation
 - Login with JWT tokens (24-hour expiration)
