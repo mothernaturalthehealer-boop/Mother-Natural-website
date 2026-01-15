@@ -225,15 +225,15 @@ export const AppointmentsPage = () => {
               </Card>
             ) : (
             <div className="grid sm:grid-cols-2 gap-4">
-              {services.map((service) => (
+              {services.filter(service => service.id).map((service) => (
                 <Card
                   key={service.id}
                   className={`cursor-pointer transition-all duration-300 ${
-                    selectedService === service.id.toString()
+                    selectedService === String(service.id)
                       ? 'ring-2 ring-primary shadow-elegant'
                       : 'hover:shadow-md'
                   }`}
-                  onClick={() => setSelectedService(service.id.toString())}
+                  onClick={() => setSelectedService(String(service.id))}
                   data-testid={`service-card-${service.id}`}
                 >
                   <CardHeader>
