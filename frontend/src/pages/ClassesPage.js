@@ -140,7 +140,7 @@ export const ClassesPage = () => {
                     </CardDescription>
                   )}
                   {classItem.description && (
-                    <p className="text-muted-foreground text-sm mt-2 line-clamp-3">
+                    <p className="text-muted-foreground text-sm mt-2 whitespace-pre-wrap line-clamp-3">
                       {classItem.description}
                     </p>
                   )}
