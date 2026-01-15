@@ -238,7 +238,7 @@ export const AppointmentsPage = () => {
                 >
                   <CardHeader>
                     <CardTitle className="font-heading text-lg">{service.name}</CardTitle>
-                    <CardDescription>{service.description}</CardDescription>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{service.description}</p>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between text-sm">

@@ -9,30 +9,46 @@ export const HomePage = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
+  const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-  // Load featured products and testimonials from localStorage
+  // Load featured products from API and testimonials
   useEffect(() => {
-    // Load products (show first 3 as featured)
-    const savedProducts = localStorage.getItem('adminProducts');
-    if (savedProducts) {
-      const products = JSON.parse(savedProducts);
-      setFeaturedProducts(products.slice(0, 3));
-    }
+    // Load products from API (show first 3 as featured)
+    const loadProducts = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/products`);
+        if (response.ok) {
+          const products = await response.json();
+          // Filter out any products with null IDs and take first 3
+          setFeaturedProducts(products.filter(p => p.id).slice(0, 3));
+        }
+      } catch (error) {
+        console.error('Failed to load products:', error);
+      }
+    };
+    loadProducts();
 
-    // Load testimonials from community posts (show first 3 with good content)
-    const savedPosts = localStorage.getItem('communityPosts');
-    if (savedPosts) {
-      const posts = JSON.parse(savedPosts);
-      // Convert community posts to testimonial format
-      const testimonialPosts = posts.slice(0, 3).map(post => ({
-        name: post.author?.name || 'Community Member',
-        text: post.content,
-        rating: 5,
-        image: post.author?.avatar || ''
-      }));
-      setTestimonials(testimonialPosts);
-    }
-  }, []);
+    // Load testimonials from community posts API (show first 3 with good content)
+    const loadTestimonials = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/community-posts`);
+        if (response.ok) {
+          const posts = await response.json();
+          // Convert community posts to testimonial format
+          const testimonialPosts = posts.slice(0, 3).map(post => ({
+            name: post.authorName || 'Community Member',
+            text: post.content,
+            rating: 5,
+            image: post.image || ''
+          }));
+          setTestimonials(testimonialPosts);
+        }
+      } catch (error) {
+        console.error('Failed to load testimonials:', error);
+      }
+    };
+    loadTestimonials();
+  }, [API_URL]);
 
   const services = [
     {
