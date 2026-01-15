@@ -69,8 +69,14 @@ export const AuthProvider = ({ children }) => {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Login failed');
+        let errorMessage = 'Login failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || 'Login failed';
+        } catch (e) {
+          errorMessage = 'Server connection error. Please try again.';
+        }
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
