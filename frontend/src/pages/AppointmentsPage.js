@@ -61,19 +61,30 @@ export const AppointmentsPage = () => {
     },
   ];
 
-  // Load services from localStorage (admin-managed)
+  const API_URL = process.env.REACT_APP_BACKEND_URL;
+  const [loading, setLoading] = useState(true);
+
+  // Load services from API
   useEffect(() => {
-    const adminServices = localStorage.getItem('adminServices');
-    if (adminServices) {
-      const parsed = JSON.parse(adminServices);
-      if (parsed.length > 0) {
-        setServices(parsed);
-        return;
+    const fetchServices = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/services`);
+        if (response.ok) {
+          const data = await response.json();
+          setServices(data);
+        } else {
+          console.error('Failed to fetch services');
+          setServices([]);
+        }
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        setServices([]);
+      } finally {
+        setLoading(false);
       }
-    }
-    // No services configured by admin - show empty state
-    setServices([]);
-  }, []);
+    };
+    fetchServices();
+  }, [API_URL]);
 
   const timeSlots = [
     '9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
