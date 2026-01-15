@@ -23,44 +23,6 @@ export const AppointmentsPage = () => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [services, setServices] = useState([]);
-
-  // Default services (fallback if admin hasn't created any)
-  const defaultServices = [
-    {
-      id: 1,
-      name: 'Energy Healing Session',
-      duration: '60 min',
-      price: 85,
-      description: 'Restore balance and harmony through energy work',
-      paymentType: 'full'
-    },
-    {
-      id: 2,
-      name: 'Holistic Health Consultation',
-      duration: '90 min',
-      price: 120,
-      description: 'Comprehensive wellness assessment and personalized plan',
-      paymentType: 'deposit',
-      deposit: 60
-    },
-    {
-      id: 3,
-      name: 'Herbal Medicine Consultation',
-      duration: '45 min',
-      price: 75,
-      description: 'Custom herbal recommendations for your needs',
-      paymentType: 'full'
-    },
-    {
-      id: 4,
-      name: 'Spiritual Guidance Session',
-      duration: '60 min',
-      price: 95,
-      description: 'Connect with your inner wisdom and life purpose',
-      paymentType: 'full'
-    },
-  ];
-
   const API_URL = process.env.REACT_APP_BACKEND_URL;
   const [loading, setLoading] = useState(true);
 
