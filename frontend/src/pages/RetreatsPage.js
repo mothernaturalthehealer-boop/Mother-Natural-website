@@ -230,7 +230,7 @@ export const RetreatsPage = () => {
                 <div className="md:col-span-3 flex flex-col">
                   <CardHeader>
                     <CardTitle className="font-heading text-2xl sm:text-3xl">{retreat.name}</CardTitle>
-                    <CardDescription className="text-base">{retreat.description}</CardDescription>
+                    <p className="text-base text-muted-foreground whitespace-pre-wrap">{retreat.description}</p>
                   </CardHeader>
 
                   <CardContent className="flex-grow space-y-4">
