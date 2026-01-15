@@ -1,86 +1,84 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, ShoppingBag, BookOpen, Mountain, User, Award, FileText } from 'lucide-react';
+import { Calendar, ShoppingBag, BookOpen, Mountain, Award, FileText } from 'lucide-react';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const DashboardPage = () => {
-  const { user } = useAuth();
+  const { user, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
+  
+  const [appointments, setAppointments] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [signedContracts, setSignedContracts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const loadUserData = async () => {
+      setLoading(true);
+      try {
+        // Load user's appointments
+        const aptsResponse = await fetch(`${API_URL}/api/appointments`, {
+          headers: getAuthHeaders()
+        });
+        if (aptsResponse.ok) {
+          const allApts = await aptsResponse.json();
+          // Filter to user's appointments by email
+          const userApts = allApts.filter(apt => 
+            apt.email === user.email || apt.userId === user.id
+          );
+          setAppointments(userApts);
+        }
+
+        // Load user's orders
+        const ordersResponse = await fetch(`${API_URL}/api/orders`, {
+          headers: getAuthHeaders()
+        });
+        if (ordersResponse.ok) {
+          const allOrders = await ordersResponse.json();
+          // Filter to user's orders
+          const userOrders = allOrders.filter(order => 
+            order.email === user.email || order.userId === user.id || order.customer_email === user.email
+          );
+          setOrders(userOrders);
+        }
+
+        // Load user's signed contracts
+        const contractsResponse = await fetch(`${API_URL}/api/contracts/signed`, {
+          headers: getAuthHeaders()
+        });
+        if (contractsResponse.ok) {
+          const allContracts = await contractsResponse.json();
+          // Filter to user's contracts
+          const userContracts = allContracts.filter(contract => 
+            contract.customerEmail === user.email || contract.userId === user.id
+          );
+          setSignedContracts(userContracts);
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+      setLoading(false);
+    };
+
+    loadUserData();
+  }, [user, navigate, getAuthHeaders]);
 
   if (!user) {
-    navigate('/login');
     return null;
   }
-
-  const upcomingAppointments = [
-    {
-      id: 1,
-      service: 'Energy Healing Session',
-      date: 'June 15, 2024',
-      time: '2:00 PM',
-      practitioner: 'Sarah Johnson'
-    },
-    {
-      id: 2,
-      service: 'Holistic Health Consultation',
-      date: 'June 22, 2024',
-      time: '10:00 AM',
-      practitioner: 'Dr. Lisa Martinez'
-    },
-  ];
-
-  const enrolledClasses = [
-    {
-      id: 1,
-      name: 'Introduction to Herbalism',
-      progress: 50,
-      nextSession: 'June 18, 2024 - 6:00 PM'
-    },
-    {
-      id: 2,
-      name: 'Meditation & Mindfulness',
-      progress: 75,
-      nextSession: 'June 17, 2024 - 7:00 AM'
-    },
-  ];
-
-  const bookedRetreats = [
-    {
-      id: 1,
-      name: 'Mountain Meditation Retreat',
-      dates: 'June 15-17, 2024',
-      location: 'Blue Ridge Mountains, NC',
-      status: 'Confirmed'
-    },
-  ];
-
-  const recentOrders = [
-    {
-      id: 1,
-      date: 'June 10, 2024',
-      items: ['Lavender Calm Tea', 'Rose Essential Oil'],
-      total: 51.98,
-      status: 'Shipped'
-    },
-    {
-      id: 2,
-      date: 'June 5, 2024',
-      items: ['Healing Herbal Tincture'],
-      total: 24.99,
-      status: 'Delivered'
-    },
-  ];
-
-  // Get user's signed contracts
-  const signedContracts = JSON.parse(localStorage.getItem('signedContracts') || '[]').filter(
-    contract => contract.userId === user.id
-  );
 
   return (
     <div className="min-h-screen py-12">
@@ -88,7 +86,7 @@ export const DashboardPage = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="font-heading text-4xl font-bold mb-2">Welcome back, {user.name}!</h1>
-          <p className="text-muted-foreground">Your wellness dashboard</p>
+          <p className="text-muted-foreground">Your personal dashboard</p>
         </div>
 
         {/* Membership Card */}
@@ -98,7 +96,7 @@ export const DashboardPage = () => {
               <div>
                 <CardTitle className="font-heading text-2xl mb-2">Membership Status</CardTitle>
                 <CardDescription className="text-white/80">
-                  Member since {new Date(user.joinedDate).toLocaleDateString()}
+                  Member since {user.joinedDate ? new Date(user.joinedDate).toLocaleDateString() : 'Recently'}
                 </CardDescription>
               </div>
               <Badge className="bg-white text-primary text-lg px-4 py-2">
@@ -111,109 +109,65 @@ export const DashboardPage = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
-            <TabsTrigger value="classes">Classes</TabsTrigger>
-            <TabsTrigger value="retreats">Retreats</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="contracts">Contracts</TabsTrigger>
+            <TabsTrigger value="explore">Explore</TabsTrigger>
           </TabsList>
 
           {/* Appointments Tab */}
           <TabsContent value="appointments" className="space-y-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-2xl font-semibold">Upcoming Appointments</h2>
+              <h2 className="font-heading text-2xl font-semibold">Your Appointments</h2>
               <Button onClick={() => navigate('/appointments')} variant="outline">
                 <Calendar className="mr-2 h-4 w-4" />
                 Book New
               </Button>
             </div>
-            {upcomingAppointments.map((apt) => (
-              <Card key={apt.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="font-heading text-lg">{apt.service}</CardTitle>
-                      <CardDescription>with {apt.practitioner}</CardDescription>
-                    </div>
-                    <Badge variant="outline" className="border-primary text-primary">
-                      Confirmed
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {apt.date} at {apt.time}
-                  </div>
+            {loading ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Loading...</p>
                 </CardContent>
               </Card>
-            ))}
-          </TabsContent>
-
-          {/* Classes Tab */}
-          <TabsContent value="classes" className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-2xl font-semibold">Enrolled Classes</h2>
-              <Button onClick={() => navigate('/classes')} variant="outline">
-                <BookOpen className="mr-2 h-4 w-4" />
-                Browse Classes
-              </Button>
-            </div>
-            {enrolledClasses.map((cls) => (
-              <Card key={cls.id}>
-                <CardHeader>
-                  <CardTitle className="font-heading text-lg">{cls.name}</CardTitle>
-                  <CardDescription>Next session: {cls.nextSession}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium">{cls.progress}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primary h-2 rounded-full transition-all"
-                        style={{ width: `${cls.progress}%` }}
-                      />
-                    </div>
-                  </div>
+            ) : appointments.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Calendar className="h-16 w-16 mx-auto text-muted-foreground opacity-50 mb-4" />
+                  <p className="text-muted-foreground">No appointments yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Book your first appointment to get started
+                  </p>
+                  <Button onClick={() => navigate('/appointments')} className="mt-4">
+                    Book an Appointment
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
-          </TabsContent>
-
-          {/* Retreats Tab */}
-          <TabsContent value="retreats" className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-2xl font-semibold">Booked Retreats</h2>
-              <Button onClick={() => navigate('/retreats')} variant="outline">
-                <Mountain className="mr-2 h-4 w-4" />
-                Explore Retreats
-              </Button>
-            </div>
-            {bookedRetreats.map((retreat) => (
-              <Card key={retreat.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="font-heading text-lg">{retreat.name}</CardTitle>
-                      <CardDescription>{retreat.location}</CardDescription>
+            ) : (
+              appointments.map((apt) => (
+                <Card key={apt.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="font-heading text-lg">{apt.serviceName || apt.service}</CardTitle>
+                        <CardDescription>{apt.date} at {apt.time}</CardDescription>
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className={
+                          apt.status === 'confirmed' ? 'border-green-500 text-green-600' :
+                          apt.status === 'denied' ? 'border-red-500 text-red-600' :
+                          'border-primary text-primary'
+                        }
+                      >
+                        {apt.status || 'Pending'}
+                      </Badge>
                     </div>
-                    <Badge className="bg-success text-success-foreground">
-                      {retreat.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {retreat.dates}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+                </Card>
+              ))
+            )}
           </TabsContent>
 
           {/* Orders Tab */}
@@ -225,36 +179,63 @@ export const DashboardPage = () => {
                 Continue Shopping
               </Button>
             </div>
-            {recentOrders.map((order) => (
-              <Card key={order.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="font-heading text-lg">Order #{order.id}</CardTitle>
-                      <CardDescription>{order.date}</CardDescription>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={`${
-                        order.status === 'Delivered'
-                          ? 'border-success text-success'
-                          : 'border-primary text-primary'
-                      }`}
-                    >
-                      {order.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="text-sm text-muted-foreground">
-                      {order.items.join(', ')}
-                    </div>
-                    <div className="text-lg font-bold text-primary">${order.total}</div>
-                  </div>
+            {loading ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Loading...</p>
                 </CardContent>
               </Card>
-            ))}
+            ) : orders.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground opacity-50 mb-4" />
+                  <p className="text-muted-foreground">No orders yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Your order history will appear here after your first purchase
+                  </p>
+                  <Button onClick={() => navigate('/shop')} className="mt-4">
+                    Browse Shop
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              orders.map((order) => (
+                <Card key={order.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="font-heading text-lg">Order #{order.id?.slice(-8) || order.id}</CardTitle>
+                        <CardDescription>
+                          {order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Recent order'}
+                        </CardDescription>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`${
+                          order.status === 'completed' || order.status === 'Delivered'
+                            ? 'border-green-500 text-green-600'
+                            : 'border-primary text-primary'
+                        }`}
+                      >
+                        {order.status || 'Processing'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {order.items && (
+                        <div className="text-sm text-muted-foreground">
+                          {order.items.map(item => item.name).join(', ')}
+                        </div>
+                      )}
+                      <div className="text-lg font-bold text-primary">
+                        ${((order.total_amount || 0) / 100).toFixed(2)}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </TabsContent>
 
           {/* Contracts Tab */}
@@ -263,7 +244,13 @@ export const DashboardPage = () => {
               <h2 className="font-heading text-2xl font-semibold">Signed Contracts</h2>
               <Badge variant="outline">{signedContracts.length} contracts</Badge>
             </div>
-            {signedContracts.length === 0 ? (
+            {loading ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Loading...</p>
+                </CardContent>
+              </Card>
+            ) : signedContracts.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <FileText className="h-16 w-16 mx-auto text-muted-foreground opacity-50 mb-4" />
@@ -280,65 +267,57 @@ export const DashboardPage = () => {
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="font-heading text-lg capitalize">
-                          {contract.type} Booking Agreement
+                          {contract.contractType} Booking Agreement
                         </CardTitle>
                         <CardDescription>
-                          Signed on {new Date(contract.signedDate).toLocaleDateString()} at{' '}
-                          {new Date(contract.signedDate).toLocaleTimeString()}
+                          Signed on {contract.signedAt ? new Date(contract.signedAt).toLocaleDateString() : 'Recently'}
                         </CardDescription>
                       </div>
-                      <Badge className="bg-success text-success-foreground">Signed</Badge>
+                      <Badge className="bg-green-500 text-white">Signed</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      {Object.entries(contract.bookingDetails).map(([key, value]) => {
-                        if (key !== 'userId') {
-                          return (
-                            <div key={key}>
-                              <span className="text-muted-foreground capitalize">
-                                {key.replace(/([A-Z])/g, ' $1')}:
-                              </span>
-                              <div className="font-medium">{value}</div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })}
-                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Customer: {contract.customerName}
+                    </p>
                   </CardContent>
-                  <CardFooter>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full">
-                          <FileText className="mr-2 h-4 w-4" />
-                          View Contract
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-3xl max-h-[90vh]">
-                        <DialogHeader>
-                          <DialogTitle className="font-heading text-2xl">
-                            {contract.type === 'appointment' ? 'Appointment' : 'Retreat'} Booking Agreement
-                          </DialogTitle>
-                        </DialogHeader>
-                        <ScrollArea className="h-96 w-full border rounded-md p-4 bg-muted/30">
-                          <pre className="text-sm whitespace-pre-wrap font-body">{contract.contractText}</pre>
-                        </ScrollArea>
-                        <div className="border-t pt-4">
-                          <h4 className="font-semibold mb-2">Your Signature:</h4>
-                          <div className="border rounded-lg p-4 bg-white">
-                            <img src={contract.signature} alt="Signature" className="max-h-32" />
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Signed on {new Date(contract.signedDate).toLocaleString()}
-                          </p>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </CardFooter>
                 </Card>
               ))
             )}
+          </TabsContent>
+
+          {/* Explore Tab */}
+          <TabsContent value="explore" className="space-y-4">
+            <h2 className="font-heading text-2xl font-semibold mb-4">Explore More</h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/classes')}>
+                <CardContent className="text-center py-8">
+                  <BookOpen className="h-12 w-12 mx-auto text-primary mb-4" />
+                  <h3 className="font-heading text-lg font-semibold">Classes</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Explore our variety of classes
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/retreats')}>
+                <CardContent className="text-center py-8">
+                  <Mountain className="h-12 w-12 mx-auto text-primary mb-4" />
+                  <h3 className="font-heading text-lg font-semibold">Retreats</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Join a transformative retreat
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/community')}>
+                <CardContent className="text-center py-8">
+                  <Award className="h-12 w-12 mx-auto text-primary mb-4" />
+                  <h3 className="font-heading text-lg font-semibold">Community</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Connect with others
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
