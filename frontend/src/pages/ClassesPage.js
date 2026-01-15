@@ -8,24 +8,32 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Clock, Users, Calendar, BookOpen } from 'lucide-react';
 
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
 export const ClassesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [classes, setClasses] = useState([]);
 
-  // Load classes from localStorage (admin-managed)
+  // Load classes from database
   useEffect(() => {
-    const adminClasses = localStorage.getItem('adminClasses');
-    if (adminClasses) {
-      const parsed = JSON.parse(adminClasses);
-      if (parsed.length > 0) {
-        setClasses(parsed);
-        return;
+    const loadClasses = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/classes`);
+        if (response.ok) {
+          const data = await response.json();
+          setClasses(data);
+        }
+      } catch (error) {
+        // Fallback to localStorage
+        const adminClasses = localStorage.getItem('adminClasses');
+        if (adminClasses) {
+          setClasses(JSON.parse(adminClasses));
+        }
       }
-    }
-    // No classes configured by admin - show empty state
-    setClasses([]);
+    };
+    loadClasses();
   }, []);
 
   const handleEnroll = (classItem) => {
