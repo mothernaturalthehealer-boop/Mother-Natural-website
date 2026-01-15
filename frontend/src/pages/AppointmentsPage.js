@@ -64,7 +64,7 @@ export const AppointmentsPage = () => {
       return;
     }
 
-    const service = services.find(s => s.id.toString() === selectedService);
+    const service = services.find(s => String(s.id) === selectedService);
     
     // Prepare booking data for contract
     const booking = {
