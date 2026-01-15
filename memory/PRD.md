@@ -224,6 +224,19 @@ All requested features have been implemented and tested:
 - ✅ File-based Image Upload (GridFS)
 - ✅ Advanced Analytics Dashboard
 - ✅ Product Size Variants with Individual Prices
-- ✅ Email Configuration (domain verification pending user action)
+- ✅ Email Configuration (domain verification pending - API key may need refresh)
+- ✅ Services Display on Appointments Page (Fixed Jan 15, 2026)
+- ✅ PWA Support with Brand Icons (Fixed Jan 15, 2026)
+- ✅ Correct App Name for Home Screen (Fixed Jan 15, 2026)
 
-**59 automated tests passing - 100% success rate**
+**76 automated tests passing - 100% success rate**
+
+---
+
+## Pending Items / Notes
+
+### Resend Email API Key
+- The current Resend API key may be invalid (returns "API key is invalid" error)
+- Domain verification is complete (DKIM & SPF verified on user's Resend dashboard)
+- User may need to generate a fresh API key from Resend dashboard
+- Update `RESEND_API_KEY` in `/app/backend/.env` with new key
