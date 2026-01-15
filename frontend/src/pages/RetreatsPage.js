@@ -208,6 +208,7 @@ export const RetreatsPage = () => {
         </div>
 
         {/* Retreats Grid */}
+        {retreats.length > 0 ? (
         <div className="space-y-8">
           {retreats.map((retreat) => (
             <Card key={retreat.id} className="overflow-hidden hover:shadow-elegant transition-shadow" data-testid={`retreat-card-${retreat.id}`}>
