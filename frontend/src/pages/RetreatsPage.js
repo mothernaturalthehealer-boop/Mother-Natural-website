@@ -287,6 +287,15 @@ export const RetreatsPage = () => {
             </Card>
           ))}
         </div>
+        ) : (
+          <div className="text-center py-20">
+            <Mountain className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Retreats Coming Soon</h3>
+            <p className="text-muted-foreground">
+              Our healing retreats are being planned. Check back soon!
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Payment Options Dialog */}
