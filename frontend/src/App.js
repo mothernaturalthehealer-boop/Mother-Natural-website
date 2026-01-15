@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/sonner';
 // Pages
 import { HomePage } from '@/pages/HomePage';
 import { ShopPage } from '@/pages/ShopPage';
+import { ProductDetailPage } from '@/pages/ProductDetailPage';
 import { AppointmentsPage } from '@/pages/AppointmentsPage';
 import { ClassesPage } from '@/pages/ClassesPage';
 import { RetreatsPage } from '@/pages/RetreatsPage';
@@ -30,6 +31,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/shop" element={<ShopPage />} />
+                <Route path="/shop/product/:productId" element={<ProductDetailPage />} />
                 <Route path="/appointments" element={<AppointmentsPage />} />
                 <Route path="/classes" element={<ClassesPage />} />
                 <Route path="/retreats" element={<RetreatsPage />} />
