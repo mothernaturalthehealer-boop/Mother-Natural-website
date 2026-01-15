@@ -986,6 +986,14 @@ class ClassModel(BaseModel):
     spots: int = 10
     level: str = "All Levels"
     image: str = ""
+    # New fields for enhanced class management
+    startDate: str = ""  # Class start date
+    endDate: str = ""  # Class end date (optional)
+    classDays: List[str] = []  # Days the class meets (e.g., ["Monday", "Wednesday", "Friday"])
+    classTime: str = ""  # Time the class meets (e.g., "6:30 PM")
+    paymentType: str = "full"  # "full" = pay upfront, "perSession" = pay per session
+    packageDeals: List[dict] = []  # Package deals [{sessions: 4, price: 80, name: "4-Class Pack"}]
+    dropInPrice: float = 0  # Price for single drop-in class
 
 # Retreat Models
 class RetreatModel(BaseModel):
