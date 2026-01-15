@@ -211,6 +211,19 @@ export const AppointmentsPage = () => {
           {/* Services */}
           <div className="lg:col-span-2 space-y-6">
             <h2 className="font-heading text-2xl font-semibold mb-4">Select a Service</h2>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-3 text-muted-foreground">Loading services...</span>
+              </div>
+            ) : services.length === 0 ? (
+              <Card className="p-8 text-center">
+                <CardContent>
+                  <p className="text-muted-foreground">No services are currently available.</p>
+                  <p className="text-sm text-muted-foreground mt-2">Please check back soon or contact us for more information.</p>
+                </CardContent>
+              </Card>
+            ) : (
             <div className="grid sm:grid-cols-2 gap-4">
               {services.map((service) => (
                 <Card
@@ -247,6 +260,7 @@ export const AppointmentsPage = () => {
                 </Card>
               ))}
             </div>
+            )}
           </div>
 
           {/* Booking Form */}
