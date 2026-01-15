@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Mail, Send, RefreshCw, Plus, Trash2, Edit } from 'lucide-react';
+import { Mail, Send, RefreshCw, Plus, Trash2, Edit, Key } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -20,13 +20,17 @@ export const UserManagement = () => {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showBulkEmailDialog, setShowBulkEmailDialog] = useState(false);
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
+  const [showEditUserDialog, setShowEditUserDialog] = useState(false);
+  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
   const [bulkEmailSubject, setBulkEmailSubject] = useState('');
   const [bulkEmailMessage, setBulkEmailMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user', membershipLevel: 'basic' });
+  const [newPassword, setNewPassword] = useState('');
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -40,7 +44,6 @@ export const UserManagement = () => {
       }
     } catch (error) {
       console.error('Failed to load users:', error);
-      // Fallback to localStorage
       const savedUsers = localStorage.getItem('registeredUsers');
       if (savedUsers) setUsersList(JSON.parse(savedUsers));
     }
@@ -73,6 +76,72 @@ export const UserManagement = () => {
       }
     } catch (error) {
       toast.error('Failed to create user');
+    }
+  };
+
+  const handleEditUser = (user) => {
+    setEditingUser({ ...user });
+    setShowEditUserDialog(true);
+  };
+
+  const handleSaveEditedUser = async () => {
+    if (!editingUser.name) {
+      toast.error('Please enter a name');
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({
+          name: editingUser.name,
+          role: editingUser.role,
+          membershipLevel: editingUser.membershipLevel,
+          is_active: editingUser.is_active !== false
+        })
+      });
+      if (response.ok) {
+        toast.success('User updated successfully!');
+        setShowEditUserDialog(false);
+        setEditingUser(null);
+        loadUsers();
+      } else {
+        const data = await response.json();
+        toast.error(data.detail || 'Failed to update user');
+      }
+    } catch (error) {
+      toast.error('Failed to update user');
+    }
+  };
+
+  const handleResetPassword = (user) => {
+    setSelectedUser(user);
+    setNewPassword('');
+    setShowResetPasswordDialog(true);
+  };
+
+  const handleSaveNewPassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${selectedUser.id}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ new_password: newPassword })
+      });
+      if (response.ok) {
+        toast.success('Password reset successfully!');
+        setShowResetPasswordDialog(false);
+        setSelectedUser(null);
+        setNewPassword('');
+      } else {
+        const data = await response.json();
+        toast.error(data.detail || 'Failed to reset password');
+      }
+    } catch (error) {
+      toast.error('Failed to reset password');
     }
   };
 
@@ -217,12 +286,18 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>{user.joinedDate ? new Date(user.joinedDate).toLocaleDateString() : '-'}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="ghost" size="sm" onClick={() => openEmailDialog(user)}>
-                        <Mail className="h-4 w-4 mr-1" />Email
+                    <div className="flex justify-end space-x-1">
+                      <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)} title="Edit User">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleResetPassword(user)} title="Reset Password">
+                        <Key className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => openEmailDialog(user)} title="Send Email">
+                        <Mail className="h-4 w-4" />
                       </Button>
                       {user.role !== 'admin' && (
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)} className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)} className="text-destructive hover:text-destructive" title="Delete User">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
@@ -276,6 +351,84 @@ export const UserManagement = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddUserDialog(false)}>Cancel</Button>
             <Button onClick={handleAddUser} className="bg-primary hover:bg-primary-dark">Create User</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Edit User</DialogTitle>
+            <DialogDescription>Update user information</DialogDescription>
+          </DialogHeader>
+          {editingUser && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="editUserName">Name *</Label>
+                <Input id="editUserName" value={editingUser.name} onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })} placeholder="Full name" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editUserEmail">Email</Label>
+                <Input id="editUserEmail" type="email" value={editingUser.email} disabled className="bg-muted" />
+                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editUserRole">Role</Label>
+                  <select id="editUserRole" value={editingUser.role || 'user'} onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })} className="w-full px-3 py-2 border border-input rounded-md bg-background">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editUserMembership">Membership</Label>
+                  <select id="editUserMembership" value={editingUser.membershipLevel || 'basic'} onChange={(e) => setEditingUser({ ...editingUser, membershipLevel: e.target.value })} className="w-full px-3 py-2 border border-input rounded-md bg-background">
+                    <option value="basic">Basic</option>
+                    <option value="premium">Premium</option>
+                    <option value="platinum">Platinum</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Account Status</Label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="editUserActive" 
+                    checked={editingUser.is_active !== false} 
+                    onChange={(e) => setEditingUser({ ...editingUser, is_active: e.target.checked })}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="editUserActive" className="font-normal">Account is active</Label>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditUserDialog(false)}>Cancel</Button>
+            <Button onClick={handleSaveEditedUser} className="bg-primary hover:bg-primary-dark">Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Reset Password</DialogTitle>
+            <DialogDescription>Set a new password for {selectedUser?.name}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password *</Label>
+              <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" />
+              <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResetPasswordDialog(false)}>Cancel</Button>
+            <Button onClick={handleSaveNewPassword} className="bg-primary hover:bg-primary-dark">Reset Password</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
