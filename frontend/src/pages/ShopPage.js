@@ -256,6 +256,10 @@ export const ShopPage = () => {
     toast.success(`${displayName} added to cart!`);
   };
 
+  const handleViewProduct = (productId) => {
+    navigate(`/shop/product/${productId}`);
+  };
+
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4">
@@ -287,6 +291,7 @@ export const ShopPage = () => {
                 key={product.id} 
                 product={product} 
                 onAddToCart={handleAddToCart}
+                onViewProduct={handleViewProduct}
               />
             ))}
           </div>
