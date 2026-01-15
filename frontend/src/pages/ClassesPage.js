@@ -138,7 +138,7 @@ export const ClassesPage = () => {
             <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-xl font-semibold mb-2">Classes Coming Soon</h3>
             <p className="text-muted-foreground">
-              Our wellness classes are being scheduled. Check back soon!
+              Our classes are being scheduled. Check back soon!
             </p>
           </div>
         )}
