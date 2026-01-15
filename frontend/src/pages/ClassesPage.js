@@ -50,9 +50,9 @@ export const ClassesPage = () => {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="font-heading text-4xl sm:text-5xl font-bold mb-4">Wellness Classes</h1>
+          <h1 className="font-heading text-4xl sm:text-5xl font-bold mb-4">Classes</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Expand your knowledge and deepen your practice with our expert-led courses
+            Explore our variety of classes designed to support your journey
           </p>
         </div>
 
