@@ -103,7 +103,7 @@ const ProductCard = ({ product, onAddToCart, onViewProduct }) => {
         onClick={() => onViewProduct(product.id)}
       >
         <CardTitle className="font-heading text-lg line-clamp-1">{product.name}</CardTitle>
-        <CardDescription className="line-clamp-2 text-sm">
+        <CardDescription className="line-clamp-2 text-sm whitespace-pre-wrap">
           {product.description}
         </CardDescription>
         {product.rating && (
