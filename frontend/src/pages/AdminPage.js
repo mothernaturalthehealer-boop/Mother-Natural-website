@@ -65,23 +65,44 @@ export const AdminPage = () => {
     }
   }, [user, loading, navigate]);
 
-  // Load stats
+  // Load stats from database
   useEffect(() => {
-    const products = JSON.parse(localStorage.getItem('adminProducts') || '[]');
-    const services = JSON.parse(localStorage.getItem('adminServices') || '[]');
-    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const appointments = JSON.parse(localStorage.getItem('userAppointments') || '[]');
-    const retreats = JSON.parse(localStorage.getItem('adminRetreats') || '[]');
+    const loadStats = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/analytics/dashboard`);
+        if (response.ok) {
+          const data = await response.json();
+          setStats({
+            products: data.inventory?.products || 0,
+            services: data.inventory?.services || 0,
+            users: data.overview?.totalUsers || 0,
+            orders: data.overview?.totalOrders || 0,
+            appointments: data.appointments?.total || 0,
+            retreats: data.inventory?.retreats || 0
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+        // Fallback to localStorage
+        const products = JSON.parse(localStorage.getItem('adminProducts') || '[]');
+        const services = JSON.parse(localStorage.getItem('adminServices') || '[]');
+        const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+        const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        const appointments = JSON.parse(localStorage.getItem('userAppointments') || '[]');
+        const retreats = JSON.parse(localStorage.getItem('adminRetreats') || '[]');
+        
+        setStats({
+          products: products.length,
+          services: services.length,
+          users: users.length,
+          orders: orders.length,
+          appointments: appointments.length,
+          retreats: retreats.length
+        });
+      }
+    };
     
-    setStats({
-      products: products.length,
-      services: services.length,
-      users: users.length,
-      orders: orders.length,
-      appointments: appointments.length,
-      retreats: retreats.length
-    });
+    loadStats();
 
     // Load admin settings
     const savedSettings = localStorage.getItem('adminSettings');
