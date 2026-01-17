@@ -501,6 +501,11 @@ export const ProductManagement = () => {
                 <p className="text-xs text-muted-foreground">This is the default price when no size variant is selected.</p>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="editProductStock">Stock Count *</Label>
+                <Input id="editProductStock" type="number" min="0" value={editingProduct.stock || ''} onChange={(e) => setEditingProduct({ ...editingProduct, stock: e.target.value })} placeholder="100" />
+                <p className="text-xs text-muted-foreground">Number of items available. Customers will see stock availability.</p>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="editProductCategory">Category</Label>
                 <select id="editProductCategory" value={editingProduct.category} onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })} className="w-full px-3 py-2 border border-input rounded-md bg-background">
                   {categories.map((cat) => (<option key={cat} value={cat.toLowerCase()}>{cat}</option>))}
