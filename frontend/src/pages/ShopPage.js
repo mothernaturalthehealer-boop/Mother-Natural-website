@@ -172,20 +172,31 @@ const ProductCard = ({ product, onAddToCart, onViewProduct }) => {
               <span className="text-2xl font-bold text-primary">${currentPrice.toFixed(2)}</span>
             )}
           </div>
-          {(product.inStock !== false) && (
-            <Badge variant="outline" className="border-success text-success">
-              In Stock
+          {/* Stock Display */}
+          {product.stock > 0 ? (
+            product.stock <= 5 ? (
+              <Badge variant="destructive" className="text-xs">
+                Only {product.stock} left!
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="border-success text-success text-xs">
+                {product.stock} in stock
+              </Badge>
+            )
+          ) : (
+            <Badge variant="destructive" className="text-xs">
+              Out of Stock
             </Badge>
           )}
         </div>
         <Button
           className="w-full bg-primary hover:bg-primary-dark"
           onClick={handleAddToCart}
-          disabled={product.inStock === false}
+          disabled={!product.stock || product.stock <= 0}
           data-testid={`add-to-cart-${product.id}`}
         >
           <ShoppingCart className="mr-2 h-4 w-4" />
-          Add to Cart
+          {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
         </Button>
       </CardFooter>
     </Card>
