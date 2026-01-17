@@ -436,6 +436,7 @@ export const ProductManagement = () => {
                   <TableHead>Product</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
+                  <TableHead>Stock</TableHead>
                   <TableHead>Variants</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -453,6 +454,15 @@ export const ProductManagement = () => {
                     </TableCell>
                     <TableCell><Badge variant="outline">{product.category || 'uncategorized'}</Badge></TableCell>
                     <TableCell className="font-semibold text-green-600">{getPriceDisplay(product)}</TableCell>
+                    <TableCell>
+                      {product.stock > 0 ? (
+                        <Badge variant={product.stock <= 5 ? "destructive" : "secondary"}>
+                          {product.stock} in stock
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive">Out of stock</Badge>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {product.sizes?.length > 0 && (
