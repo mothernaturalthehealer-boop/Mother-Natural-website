@@ -25,7 +25,7 @@ export const ProductManagement = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [newCategory, setNewCategory] = useState('');
   const [newProduct, setNewProduct] = useState({
-    name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: ''
+    name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '', stock: ''
   });
   // Size variant inputs (name + price)
   const [newSizeName, setNewSizeName] = useState('');
@@ -137,6 +137,8 @@ export const ProductManagement = () => {
         body: JSON.stringify({
           ...newProduct,
           price: parseFloat(newProduct.price),
+          stock: parseInt(newProduct.stock) || 0,
+          inStock: parseInt(newProduct.stock) > 0,
           category: newProduct.category || (categories[0]?.toLowerCase() || ''),
           image: newProduct.image || 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg'
         })
@@ -144,7 +146,7 @@ export const ProductManagement = () => {
       if (response.ok) {
         toast.success('Product added successfully!');
         setShowAddProductDialog(false);
-        setNewProduct({ name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '' });
+        setNewProduct({ name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '', stock: '' });
         setNewSizeName('');
         setNewSizePrice('');
         loadData();
@@ -206,7 +208,12 @@ export const ProductManagement = () => {
       const response = await fetch(`${API_URL}/api/products/${editingProduct.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-        body: JSON.stringify({ ...editingProduct, price: parseFloat(editingProduct.price) })
+        body: JSON.stringify({ 
+          ...editingProduct, 
+          price: parseFloat(editingProduct.price),
+          stock: parseInt(editingProduct.stock) || 0,
+          inStock: parseInt(editingProduct.stock) > 0
+        })
       });
       if (response.ok) {
         toast.success('Product updated successfully');
