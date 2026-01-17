@@ -267,11 +267,22 @@ export const ProductDetailPage = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min(product.stock || 999, quantity + 1))}
+                  disabled={quantity >= (product.stock || 999)}
                 >
                   +
                 </Button>
               </div>
+              {/* Stock Display */}
+              {product.stock > 0 ? (
+                product.stock <= 5 ? (
+                  <p className="text-sm text-destructive font-medium">Only {product.stock} left in stock!</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{product.stock} in stock</p>
+                )
+              ) : (
+                <p className="text-sm text-destructive font-medium">Out of Stock</p>
+              )}
             </div>
 
             {/* Add to Cart Button */}
@@ -279,11 +290,11 @@ export const ProductDetailPage = () => {
               size="lg"
               className="w-full h-14 text-lg bg-primary hover:bg-primary-dark"
               onClick={handleAddToCart}
-              disabled={product.inStock === false}
+              disabled={!product.stock || product.stock <= 0}
               data-testid="add-to-cart-detail"
             >
               <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart - ${(currentPrice * quantity).toFixed(2)}
+              {product.stock > 0 ? `Add to Cart - $${(currentPrice * quantity).toFixed(2)}` : 'Out of Stock'}
             </Button>
 
             <Separator />
