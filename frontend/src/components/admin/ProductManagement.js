@@ -331,6 +331,11 @@ export const ProductManagement = () => {
                     <p className="text-xs text-muted-foreground">This is the default price. Size variants below can have different prices.</p>
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="stock">Stock Count *</Label>
+                    <Input id="stock" type="number" min="0" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })} placeholder="100" />
+                    <p className="text-xs text-muted-foreground">Number of items available. Customers will see stock availability.</p>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
                     {categories.length === 0 ? (
                       <p className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">No categories yet. Please add categories first.</p>
