@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, ShoppingBag, BookOpen, Mountain, Award, FileText } from 'lucide-react';
+import { Calendar, ShoppingBag, BookOpen, Mountain, Award, FileText, User, Camera } from 'lucide-react';
+import { ProfileImageUploader } from '@/components/ImageCropUploader';
+import { toast } from 'sonner';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
