@@ -148,6 +148,7 @@ class UserRegisterModel(BaseModel):
     name: str
     email: EmailStr
     password: str
+    profileImage: Optional[str] = None
 
 class UserLoginModel(BaseModel):
     email: EmailStr
@@ -169,6 +170,7 @@ class UserInDB(BaseModel):
     joinedDate: str
     created_at: str
     is_active: bool = True
+    profileImage: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: str
@@ -177,6 +179,7 @@ class UserResponse(BaseModel):
     role: str
     membershipLevel: str
     joinedDate: str
+    profileImage: Optional[str] = None
 
 class AdminCreateUserModel(BaseModel):
     name: str
