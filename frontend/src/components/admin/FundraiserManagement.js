@@ -222,10 +222,12 @@ export const FundraiserManagement = () => {
               <Label htmlFor="story">Story/Description *</Label>
               <Textarea id="story" value={newFundraiser.story} onChange={(e) => setNewFundraiser({ ...newFundraiser, story: e.target.value })} placeholder="Share the beneficiary's story..." rows={4} />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="imageUrl">Image URL (optional)</Label>
-              <Input id="imageUrl" value={newFundraiser.image} onChange={(e) => setNewFundraiser({ ...newFundraiser, image: e.target.value })} placeholder="https://..." />
-            </div>
+            <ImageCropUploader
+              label="Fundraiser Image"
+              currentImage={newFundraiser.image}
+              onImageUploaded={(url) => setNewFundraiser({ ...newFundraiser, image: url })}
+              aspectRatio={16/9}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddFundraiserDialog(false)}>Cancel</Button>
