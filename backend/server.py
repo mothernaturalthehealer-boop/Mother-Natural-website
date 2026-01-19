@@ -377,7 +377,8 @@ async def login_user(login_data: UserLoginModel):
         "email": user["email"],
         "role": user.get("role", "user"),
         "membershipLevel": user.get("membershipLevel", "basic"),
-        "joinedDate": user.get("joinedDate", "")
+        "joinedDate": user.get("joinedDate", ""),
+        "profileImage": user.get("profileImage")
     }
     
     return TokenModel(access_token=access_token, user=user_response)
@@ -392,7 +393,8 @@ async def get_current_user_info(current_user: dict = Depends(get_current_active_
         email=current_user["email"],
         role=current_user.get("role", "user"),
         membershipLevel=current_user.get("membershipLevel", "basic"),
-        joinedDate=current_user.get("joinedDate", "")
+        joinedDate=current_user.get("joinedDate", ""),
+        profileImage=current_user.get("profileImage")
     )
 
 
