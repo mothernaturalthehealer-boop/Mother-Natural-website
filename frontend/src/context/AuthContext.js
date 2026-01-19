@@ -213,6 +213,7 @@ export const AuthProvider = ({ children }) => {
       signup, 
       logout, 
       updateProfile,
+      updateUser,
       changePassword,
       getAuthHeaders,
       isAdmin
