@@ -434,15 +434,12 @@ export const ClassManagement = () => {
       </div>
 
       {/* Image Section */}
-      <div className="space-y-2">
-        <Label htmlFor={isNew ? "classImage" : "editClassImage"}>Image URL (Optional)</Label>
-        <Input
-          id={isNew ? "classImage" : "editClassImage"}
-          value={data.image || ''}
-          onChange={(e) => setData({ ...data, image: e.target.value })}
-          placeholder="https://example.com/image.jpg"
-        />
-      </div>
+      <ImageCropUploader
+        label="Class Image"
+        currentImage={data.image || ''}
+        onImageUploaded={(url) => setData({ ...data, image: url })}
+        aspectRatio={16/9}
+      />
     </div>
   );
 
