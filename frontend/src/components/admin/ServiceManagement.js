@@ -200,10 +200,12 @@ export const ServiceManagement = () => {
                 <Input id="deposit" type="number" value={newService.deposit} onChange={(e) => setNewService({ ...newService, deposit: e.target.value })} placeholder="50" />
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="serviceImage">Image URL (Optional)</Label>
-              <Input id="serviceImage" value={newService.image} onChange={(e) => setNewService({ ...newService, image: e.target.value })} placeholder="https://example.com/image.jpg" />
-            </div>
+            <ImageCropUploader
+              label="Service Image"
+              currentImage={newService.image}
+              onImageUploaded={(url) => setNewService({ ...newService, image: url })}
+              aspectRatio={16/9}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddServiceDialog(false)}>Cancel</Button>
