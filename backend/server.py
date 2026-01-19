@@ -460,45 +460,6 @@ async def change_password(
     return {"success": True, "message": "Password changed successfully"}
 
 
-class UpdateProfileModel(BaseModel):
-    name: Optional[str] = None
-    profileImage: Optional[str] = None
-
-@api_router.put("/auth/profile")
-async def update_user_profile(
-    profile_data: UpdateProfileModel,
-    current_user: dict = Depends(get_current_user)
-):
-    """Update current user's profile (name and/or profile image)"""
-    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
-    
-    if profile_data.name:
-        update_data["name"] = profile_data.name
-    if profile_data.profileImage is not None:
-        update_data["profileImage"] = profile_data.profileImage
-    
-    await db.auth_users.update_one(
-        {"email": current_user["email"]},
-        {"$set": update_data}
-    )
-    
-    # Return updated user data
-    updated_user = await get_user_by_email(current_user["email"])
-    return {
-        "success": True,
-        "message": "Profile updated successfully",
-        "user": {
-            "id": updated_user["id"],
-            "name": updated_user["name"],
-            "email": updated_user["email"],
-            "role": updated_user.get("role", "user"),
-            "membershipLevel": updated_user.get("membershipLevel", "basic"),
-            "joinedDate": updated_user.get("joinedDate", ""),
-            "profileImage": updated_user.get("profileImage")
-        }
-    }
-
-
 # ===============================
 # ADMIN USER MANAGEMENT ENDPOINTS
 # ===============================
