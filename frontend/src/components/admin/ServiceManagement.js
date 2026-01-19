@@ -254,10 +254,12 @@ export const ServiceManagement = () => {
                   <Input id="editDeposit" type="number" value={editingService.deposit || ''} onChange={(e) => setEditingService({ ...editingService, deposit: e.target.value })} />
                 </div>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="editServiceImage">Image URL</Label>
-                <Input id="editServiceImage" value={editingService.image || ''} onChange={(e) => setEditingService({ ...editingService, image: e.target.value })} />
-              </div>
+              <ImageCropUploader
+                label="Service Image"
+                currentImage={editingService.image || ''}
+                onImageUploaded={(url) => setEditingService({ ...editingService, image: url })}
+                aspectRatio={16/9}
+              />
             </div>
           )}
           <DialogFooter>
