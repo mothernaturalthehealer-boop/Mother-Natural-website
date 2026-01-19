@@ -113,11 +113,51 @@ export const DashboardPage = () => {
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="font-heading text-4xl font-bold mb-2">Welcome back, {user.name}!</h1>
-          <p className="text-muted-foreground">Your personal dashboard</p>
+        {/* Header with Profile */}
+        <div className="mb-8 flex items-center gap-6">
+          {/* Profile Picture */}
+          <div className="relative group">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-muted border-4 border-primary/20">
+              {user.profileImage ? (
+                <img 
+                  src={user.profileImage.startsWith('http') ? user.profileImage : `${API_URL}${user.profileImage}`}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                  <User className="h-10 w-10 text-primary" />
+                </div>
+              )}
+            </div>
+            <button 
+              onClick={() => setShowProfileEdit(true)}
+              className="absolute bottom-0 right-0 p-1.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
+              title="Change profile picture"
+            >
+              <Camera className="h-4 w-4" />
+            </button>
+          </div>
+          <div>
+            <h1 className="font-heading text-4xl font-bold mb-2">Welcome back, {user.name}!</h1>
+            <p className="text-muted-foreground">Your personal dashboard</p>
+          </div>
         </div>
+
+        {/* Profile Picture Edit Dialog */}
+        <Dialog open={showProfileEdit} onOpenChange={setShowProfileEdit}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Update Profile Picture</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <ProfileImageUploader
+                currentImage={user.profileImage || ''}
+                onImageUploaded={handleProfileImageUpdate}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Membership Card */}
         <Card className="mb-8 bg-gradient-primary border-0 text-white">
