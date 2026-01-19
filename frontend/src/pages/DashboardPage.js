@@ -14,13 +14,41 @@ import { toast } from 'sonner';
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const DashboardPage = () => {
-  const { user, getAuthHeaders } = useAuth();
+  const { user, getAuthHeaders, updateUser } = useAuth();
   const navigate = useNavigate();
   
   const [appointments, setAppointments] = useState([]);
   const [orders, setOrders] = useState([]);
   const [signedContracts, setSignedContracts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+
+  const handleProfileImageUpdate = async (imageUrl) => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({ profileImage: imageUrl })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (updateUser && data.user) {
+          updateUser(data.user);
+        }
+        toast.success('Profile picture updated!');
+        setShowProfileEdit(false);
+      } else {
+        toast.error('Failed to update profile picture');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile picture');
+    }
+  };
 
   useEffect(() => {
     if (!user) {
