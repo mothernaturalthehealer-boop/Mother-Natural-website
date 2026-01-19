@@ -402,6 +402,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_active_
 async def update_user_profile(
     name: Optional[str] = Body(None),
     membershipLevel: Optional[str] = Body(None),
+    profileImage: Optional[str] = Body(None),
     current_user: dict = Depends(get_current_active_user)
 ):
     """Update current user's profile"""
@@ -410,6 +411,8 @@ async def update_user_profile(
         update_data["name"] = name
     if membershipLevel:
         update_data["membershipLevel"] = membershipLevel
+    if profileImage is not None:
+        update_data["profileImage"] = profileImage
     
     if update_data:
         update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
@@ -427,7 +430,8 @@ async def update_user_profile(
             "email": updated_user["email"],
             "role": updated_user.get("role", "user"),
             "membershipLevel": updated_user.get("membershipLevel", "basic"),
-            "joinedDate": updated_user.get("joinedDate", "")
+            "joinedDate": updated_user.get("joinedDate", ""),
+            "profileImage": updated_user.get("profileImage")
         }
     }
 
