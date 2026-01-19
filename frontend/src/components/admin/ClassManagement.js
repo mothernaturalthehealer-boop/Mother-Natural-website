@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, RefreshCw, Calendar, Clock, DollarSign, Package } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { ImageCropUploader } from '@/components/ImageCropUploader';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
