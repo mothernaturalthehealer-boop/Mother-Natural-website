@@ -202,10 +202,12 @@ export const RetreatManagement = () => {
               <Label htmlFor="retreatDesc">Description</Label>
               <Textarea id="retreatDesc" value={newRetreat.description} onChange={(e) => setNewRetreat({ ...newRetreat, description: e.target.value })} placeholder="Retreat description..." rows={3} />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="retreatImage">Image URL (Optional)</Label>
-              <Input id="retreatImage" value={newRetreat.image} onChange={(e) => setNewRetreat({ ...newRetreat, image: e.target.value })} placeholder="https://example.com/image.jpg" />
-            </div>
+            <ImageCropUploader
+              label="Retreat Image"
+              currentImage={newRetreat.image}
+              onImageUploaded={(url) => setNewRetreat({ ...newRetreat, image: url })}
+              aspectRatio={16/9}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddRetreatDialog(false)}>Cancel</Button>
