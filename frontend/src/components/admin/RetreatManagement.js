@@ -257,10 +257,12 @@ export const RetreatManagement = () => {
                 <Label htmlFor="editRetreatDesc">Description</Label>
                 <Textarea id="editRetreatDesc" value={editingRetreat.description || ''} onChange={(e) => setEditingRetreat({ ...editingRetreat, description: e.target.value })} rows={3} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="editRetreatImage">Image URL</Label>
-                <Input id="editRetreatImage" value={editingRetreat.image || ''} onChange={(e) => setEditingRetreat({ ...editingRetreat, image: e.target.value })} />
-              </div>
+              <ImageCropUploader
+                label="Retreat Image"
+                currentImage={editingRetreat.image || ''}
+                onImageUploaded={(url) => setEditingRetreat({ ...editingRetreat, image: url })}
+                aspectRatio={16/9}
+              />
             </div>
           )}
           <DialogFooter>
