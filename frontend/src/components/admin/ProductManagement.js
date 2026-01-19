@@ -409,14 +409,12 @@ export const ProductManagement = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <ImageUpload
-                      label="Product Image (Optional)"
-                      value={newProduct.image}
-                      onChange={(url) => setNewProduct({ ...newProduct, image: url })}
-                      placeholder="Enter image URL or upload a file"
-                    />
-                  </div>
+                  <ImageCropUploader
+                    label="Product Image"
+                    currentImage={newProduct.image}
+                    onImageUploaded={(url) => setNewProduct({ ...newProduct, image: url })}
+                    aspectRatio={1}
+                  />
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setShowAddProductDialog(false)}>Cancel</Button>
