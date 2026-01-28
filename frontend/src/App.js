@@ -51,6 +51,7 @@ function App() {
           <Toaster position="top-right" richColors />
         </BrowserRouter>
       </CartProvider>
+      </SettingsProvider>
     </AuthProvider>
   );
 }
