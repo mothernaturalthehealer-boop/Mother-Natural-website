@@ -467,6 +467,79 @@ export const ClassManagement = () => {
         </div>
       </div>
 
+      {/* Add-ons Section */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+          <Gift className="h-4 w-4" /> Add-ons (Optional)
+        </h3>
+        <p className="text-xs text-muted-foreground">Offer optional add-ons like materials kits, additional services, etc.</p>
+        
+        {/* Existing Add-ons */}
+        {(data.addOns || []).length > 0 && (
+          <div className="space-y-2">
+            {data.addOns.map((addon, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div>
+                  <span className="font-medium">{addon.name}</span>
+                  <span className="text-primary font-semibold ml-2">${addon.price}</span>
+                  {addon.description && <p className="text-xs text-muted-foreground">{addon.description}</p>}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveAddOn(index, isNew)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Add New Add-on */}
+        <div className="grid grid-cols-4 gap-2 items-end">
+          <div className="space-y-1">
+            <Label className="text-xs">Add-on Name</Label>
+            <Input
+              value={newAddOn.name}
+              onChange={(e) => setNewAddOn({ ...newAddOn, name: e.target.value })}
+              placeholder="Materials Kit"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Price ($)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={newAddOn.price}
+              onChange={(e) => setNewAddOn({ ...newAddOn, price: e.target.value })}
+              placeholder="25"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Description</Label>
+            <Input
+              value={newAddOn.description}
+              onChange={(e) => setNewAddOn({ ...newAddOn, description: e.target.value })}
+              placeholder="Optional"
+              className="h-9"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => handleAddAddOn(isNew)}
+            className="h-9"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Image Section */}
       <ImageCropUploader
         label="Class Image"
@@ -474,6 +547,23 @@ export const ClassManagement = () => {
         onImageUploaded={(url) => setData({ ...data, image: url })}
         aspectRatio={16/9}
       />
+
+      {/* Hidden Toggle */}
+      <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+        <div className="space-y-0.5">
+          <Label className="text-base flex items-center gap-2">
+            {data.isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            Hide from Customers
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Hidden classes won't appear to customers until you're ready
+          </p>
+        </div>
+        <Switch
+          checked={data.isHidden || false}
+          onCheckedChange={(checked) => setData({ ...data, isHidden: checked })}
+        />
+      </div>
     </div>
   );
 
