@@ -1177,9 +1177,10 @@ async def delete_class(class_id: str):
 
 # ============= RETREATS API =============
 @api_router.get("/retreats")
-async def get_retreats():
-    """Get all retreats"""
-    retreats = await db.retreats.find({}, {"_id": 0}).to_list(1000)
+async def get_retreats(include_hidden: bool = False):
+    """Get all retreats (hidden items excluded by default for public)"""
+    query = {} if include_hidden else {"$or": [{"isHidden": False}, {"isHidden": {"$exists": False}}]}
+    retreats = await db.retreats.find(query, {"_id": 0}).to_list(1000)
     return retreats
 
 @api_router.post("/retreats")
