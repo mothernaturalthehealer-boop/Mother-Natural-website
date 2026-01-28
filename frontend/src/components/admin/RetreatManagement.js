@@ -234,6 +234,40 @@ export const RetreatManagement = () => {
               onImageUploaded={(url) => setNewRetreat({ ...newRetreat, image: url })}
               aspectRatio={16/9}
             />
+
+            {/* Add-ons Section */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2"><Gift className="h-4 w-4" /> Add-ons (Optional)</Label>
+              <p className="text-xs text-muted-foreground">Offer optional add-ons like spa packages, private sessions, etc.</p>
+              {(newRetreat.addOns || []).length > 0 && (
+                <div className="space-y-2">
+                  {newRetreat.addOns.map((addon, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                      <span>{addon.name} - ${addon.price}</span>
+                      <Button variant="ghost" size="sm" onClick={() => handleRemoveAddOn(index, true)} className="text-destructive"><Trash2 className="h-3 w-3" /></Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="grid grid-cols-4 gap-2 items-end">
+                <Input value={newAddOn.name} onChange={(e) => setNewAddOn({ ...newAddOn, name: e.target.value })} placeholder="Add-on name" className="h-9" />
+                <Input type="number" value={newAddOn.price} onChange={(e) => setNewAddOn({ ...newAddOn, price: e.target.value })} placeholder="Price" className="h-9" />
+                <Input value={newAddOn.description} onChange={(e) => setNewAddOn({ ...newAddOn, description: e.target.value })} placeholder="Description" className="h-9" />
+                <Button type="button" variant="outline" size="sm" onClick={() => handleAddAddOn(true)} className="h-9"><Plus className="h-4 w-4" /></Button>
+              </div>
+            </div>
+
+            {/* Hidden Toggle */}
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+              <div className="space-y-0.5">
+                <Label className="text-base flex items-center gap-2">
+                  {newRetreat.isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  Hide from Customers
+                </Label>
+                <p className="text-xs text-muted-foreground">Hidden retreats won't appear until you're ready</p>
+              </div>
+              <Switch checked={newRetreat.isHidden || false} onCheckedChange={(checked) => setNewRetreat({ ...newRetreat, isHidden: checked })} />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddRetreatDialog(false)}>Cancel</Button>
