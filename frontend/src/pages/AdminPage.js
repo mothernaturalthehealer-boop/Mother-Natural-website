@@ -271,6 +271,9 @@ export const AdminPage = () => {
             <TabsTrigger value="fundraisers">Fundraisers</TabsTrigger>
             <TabsTrigger value="contracts">Contracts</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="tax" className="bg-green-500/10">
+              <Receipt className="h-4 w-4 mr-1" />Tax
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="bg-primary/10">
               <BarChart3 className="h-4 w-4 mr-1" />Analytics
             </TabsTrigger>
