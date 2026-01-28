@@ -186,21 +186,21 @@ export const CartPage = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">${getCartTotal().toFixed(2)}</span>
+                  <span className="font-medium">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   <span className="font-medium">Free</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax</span>
-                  <span className="font-medium">${(getCartTotal() * 0.08).toFixed(2)}</span>
+                  <span className="text-muted-foreground">Tax ({formatTaxRate()})</span>
+                  <span className="font-medium">${tax.toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-lg font-semibold">Total</span>
                   <span className="text-2xl font-bold text-primary">
-                    ${(getCartTotal() * 1.08).toFixed(2)}
+                    ${totalWithTax.toFixed(2)}
                   </span>
                 </div>
               </CardContent>
