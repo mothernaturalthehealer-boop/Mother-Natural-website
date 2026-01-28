@@ -630,7 +630,13 @@ export const ClassManagement = () => {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell><Badge variant="outline">{classItem.level}</Badge></TableCell>
+                  <TableCell>
+                    {classItem.isHidden ? (
+                      <Badge variant="outline" className="text-orange-600 border-orange-300">Hidden</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-green-600 border-green-300">Visible</Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Button variant="ghost" size="icon" onClick={() => handleEditClass(classItem)}><Edit className="h-4 w-4" /></Button>
