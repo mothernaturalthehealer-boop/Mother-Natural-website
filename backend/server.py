@@ -968,6 +968,7 @@ class ProductModel(BaseModel):
     stock: int = 0
     inStock: bool = True
     rating: float = 4.5
+    isHidden: bool = False  # Hidden from customers until ready
 
 # Service Models
 class ServiceModel(BaseModel):
@@ -980,6 +981,7 @@ class ServiceModel(BaseModel):
     paymentType: str = "full"
     deposit: float = 0
     image: str = ""
+    isHidden: bool = False  # Hidden from customers until ready
 
 # Class Models
 class ClassModel(BaseModel):
@@ -1003,6 +1005,8 @@ class ClassModel(BaseModel):
     paymentType: str = "full"  # "full" = pay upfront, "perSession" = pay per session
     packageDeals: List[dict] = []  # Package deals [{sessions: 4, price: 80, name: "4-Class Pack"}]
     dropInPrice: float = 0  # Price for single drop-in class
+    isHidden: bool = False  # Hidden from customers until ready
+    addOns: List[dict] = []  # Add-ons [{name: str, price: float, description: str}]
 
 # Retreat Models
 class RetreatModel(BaseModel):
@@ -1018,6 +1022,8 @@ class RetreatModel(BaseModel):
     spotsLeft: int = 20
     image: str = ""
     includes: List[str] = []
+    isHidden: bool = False  # Hidden from customers until ready
+    addOns: List[dict] = []  # Add-ons [{name: str, price: float, description: str}]
 
 # Fundraiser Models
 class FundraiserModel(BaseModel):
@@ -1036,6 +1042,7 @@ class FundraiserModel(BaseModel):
     applicantId: str = ""
     applicantName: str = ""
     applicantEmail: str = ""
+    isHidden: bool = False  # Hidden from customers until ready
 
 # Appointment Models
 class AppointmentModel(BaseModel):
