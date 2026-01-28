@@ -323,6 +323,10 @@ export const AdminPage = () => {
             <UserManagement />
           </TabsContent>
 
+          <TabsContent value="tax" className="space-y-4">
+            <TaxSettings />
+          </TabsContent>
+
           <TabsContent value="analytics" className="space-y-4">
             <AnalyticsDashboard />
           </TabsContent>
