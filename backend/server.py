@@ -1229,15 +1229,19 @@ async def delete_retreat(retreat_id: str):
 
 # ============= FUNDRAISERS API =============
 @api_router.get("/fundraisers")
-async def get_fundraisers():
-    """Get all fundraisers"""
-    fundraisers = await db.fundraisers.find({}, {"_id": 0}).to_list(1000)
+async def get_fundraisers(include_hidden: bool = False):
+    """Get all fundraisers (hidden items excluded by default for public)"""
+    query = {} if include_hidden else {"$or": [{"isHidden": False}, {"isHidden": {"$exists": False}}]}
+    fundraisers = await db.fundraisers.find(query, {"_id": 0}).to_list(1000)
     return fundraisers
 
 @api_router.get("/fundraisers/active")
 async def get_active_fundraisers():
     """Get only active fundraisers (for public view)"""
-    fundraisers = await db.fundraisers.find({"status": "active"}, {"_id": 0}).to_list(1000)
+    fundraisers = await db.fundraisers.find({
+        "status": "active",
+        "$or": [{"isHidden": False}, {"isHidden": {"$exists": False}}]
+    }, {"_id": 0}).to_list(1000)
     return fundraisers
 
 @api_router.post("/fundraisers")
