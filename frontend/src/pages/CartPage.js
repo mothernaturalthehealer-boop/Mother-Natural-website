@@ -43,7 +43,9 @@ export const CartPage = () => {
     console.error('Payment failed:', error);
   };
 
-  const totalWithTax = getCartTotal() * 1.08;
+  const subtotal = getCartTotal();
+  const tax = calculateTax(subtotal);
+  const totalWithTax = calculateTotal(subtotal);
 
   if (cart.length === 0 && !showPayment) {
     return (
