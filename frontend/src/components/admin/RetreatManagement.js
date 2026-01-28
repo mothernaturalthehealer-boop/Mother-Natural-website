@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Trash2, RefreshCw, Eye, EyeOff, Gift } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ImageCropUploader } from '@/components/ImageCropUploader';
 
@@ -22,8 +23,33 @@ export const RetreatManagement = () => {
   const [showEditRetreatDialog, setShowEditRetreatDialog] = useState(false);
   const [editingRetreat, setEditingRetreat] = useState(null);
   const [newRetreat, setNewRetreat] = useState({
-    name: '', location: '', duration: '', dates: '', price: '', description: '', capacity: '', image: ''
+    name: '', location: '', duration: '', dates: '', price: '', description: '', capacity: '', image: '', isHidden: false, addOns: []
   });
+  const [newAddOn, setNewAddOn] = useState({ name: '', price: '', description: '' });
+
+  const handleAddAddOn = (isNew = true) => {
+    if (!newAddOn.name || !newAddOn.price) {
+      toast.error('Please fill in add-on name and price');
+      return;
+    }
+    const addon = { name: newAddOn.name, price: parseFloat(newAddOn.price), description: newAddOn.description || '' };
+    if (isNew) {
+      setNewRetreat({ ...newRetreat, addOns: [...(newRetreat.addOns || []), addon] });
+    } else {
+      setEditingRetreat({ ...editingRetreat, addOns: [...(editingRetreat.addOns || []), addon] });
+    }
+    setNewAddOn({ name: '', price: '', description: '' });
+  };
+
+  const handleRemoveAddOn = (index, isNew = true) => {
+    if (isNew) {
+      const addons = [...(newRetreat.addOns || [])]; addons.splice(index, 1);
+      setNewRetreat({ ...newRetreat, addOns: addons });
+    } else {
+      const addons = [...(editingRetreat.addOns || [])]; addons.splice(index, 1);
+      setEditingRetreat({ ...editingRetreat, addOns: addons });
+    }
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
