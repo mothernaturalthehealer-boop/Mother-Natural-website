@@ -595,18 +595,21 @@ export const ClassManagement = () => {
                 <TableHead>Days</TableHead>
                 <TableHead>Start Date</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead>Level</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {classes.filter(c => c.id).map((classItem) => (
-                <TableRow key={classItem.id}>
+                <TableRow key={classItem.id} className={classItem.isHidden ? 'opacity-60' : ''}>
                   <TableCell>
                     <div>
                       <span className="font-medium">{classItem.name}</span>
                       {classItem.sessions > 0 && (
                         <span className="text-xs text-muted-foreground ml-2">({classItem.sessions} sessions)</span>
+                      )}
+                      {classItem.addOns?.length > 0 && (
+                        <Badge variant="secondary" className="ml-2 text-xs">+{classItem.addOns.length} add-on{classItem.addOns.length > 1 ? 's' : ''}</Badge>
                       )}
                     </div>
                   </TableCell>
