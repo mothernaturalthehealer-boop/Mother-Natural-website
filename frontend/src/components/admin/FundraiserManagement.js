@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Plus, Check, X, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, Check, X, Trash2, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ImageCropUploader } from '@/components/ImageCropUploader';
 
@@ -20,13 +21,13 @@ export const FundraiserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [showAddFundraiserDialog, setShowAddFundraiserDialog] = useState(false);
   const [newFundraiser, setNewFundraiser] = useState({
-    title: '', beneficiary: '', story: '', goalAmount: '', image: '', endDate: ''
+    title: '', beneficiary: '', story: '', goalAmount: '', image: '', endDate: '', isHidden: false
   });
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/fundraisers`);
+      const response = await fetch(`${API_URL}/api/fundraisers?include_hidden=true`);
       if (response.ok) setFundraisers(await response.json());
     } catch (error) {
       const saved = localStorage.getItem('fundraisers');
