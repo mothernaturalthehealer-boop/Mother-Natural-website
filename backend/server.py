@@ -1690,6 +1690,46 @@ async def create_signed_contract(contract: SignedContractModel):
     return {"success": True, "id": contract_dict["id"]}
 
 
+# ============= SETTINGS API =============
+
+class TaxSettingsModel(BaseModel):
+    taxEnabled: bool = True
+    taxRate: float = 0.08  # 8% default
+    taxLabel: str = "Sales Tax"
+
+@api_router.get("/settings/tax")
+async def get_tax_settings():
+    """Get current tax settings"""
+    settings = await db.settings.find_one({"type": "tax"}, {"_id": 0})
+    if not settings:
+        # Return default settings from env or defaults
+        return {
+            "taxEnabled": os.environ.get("TAX_ENABLED", "true").lower() == "true",
+            "taxRate": float(os.environ.get("TAX_RATE", "0.08")),
+            "taxLabel": "Sales Tax"
+        }
+    return settings
+
+@api_router.put("/settings/tax")
+async def update_tax_settings(
+    settings: TaxSettingsModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Update tax settings (admin only)"""
+    settings_dict = settings.model_dump()
+    settings_dict["type"] = "tax"
+    settings_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    settings_dict["updated_by"] = current_admin["id"]
+    
+    await db.settings.update_one(
+        {"type": "tax"},
+        {"$set": settings_dict},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Tax settings updated", "settings": settings_dict}
+
+
 # ============= ANALYTICS API =============
 
 @api_router.get("/analytics/dashboard")
