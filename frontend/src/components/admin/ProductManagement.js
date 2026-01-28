@@ -435,13 +435,14 @@ export const ProductManagement = () => {
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Variants</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.map((product) => (
-                  <TableRow key={product.id}>
+                  <TableRow key={product.id} className={product.isHidden ? 'opacity-60' : ''}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         {product.image && (
@@ -459,6 +460,13 @@ export const ProductManagement = () => {
                         </Badge>
                       ) : (
                         <Badge variant="destructive">Out of stock</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {product.isHidden ? (
+                        <Badge variant="outline" className="text-orange-600 border-orange-300">Hidden</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-green-600 border-green-300">Visible</Badge>
                       )}
                     </TableCell>
                     <TableCell>
