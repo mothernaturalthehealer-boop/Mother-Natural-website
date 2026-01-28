@@ -25,7 +25,7 @@ export const ProductManagement = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [newCategory, setNewCategory] = useState('');
   const [newProduct, setNewProduct] = useState({
-    name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '', stock: ''
+    name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '', stock: '', isHidden: false
   });
   // Size variant inputs (name + price)
   const [newSizeName, setNewSizeName] = useState('');
@@ -40,7 +40,7 @@ export const ProductManagement = () => {
     setLoading(true);
     try {
       const [productsRes, categoriesRes] = await Promise.all([
-        fetch(`${API_URL}/api/products`),
+        fetch(`${API_URL}/api/products?include_hidden=true`),
         fetch(`${API_URL}/api/categories`)
       ]);
       if (productsRes.ok) setProducts(await productsRes.json());
