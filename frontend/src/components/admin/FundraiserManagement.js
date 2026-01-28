@@ -229,6 +229,18 @@ export const FundraiserManagement = () => {
               onImageUploaded={(url) => setNewFundraiser({ ...newFundraiser, image: url })}
               aspectRatio={16/9}
             />
+
+            {/* Hidden Toggle */}
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+              <div className="space-y-0.5">
+                <Label className="text-base flex items-center gap-2">
+                  {newFundraiser.isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  Hide from Customers
+                </Label>
+                <p className="text-xs text-muted-foreground">Hidden fundraisers won't appear until you're ready</p>
+              </div>
+              <Switch checked={newFundraiser.isHidden || false} onCheckedChange={(checked) => setNewFundraiser({ ...newFundraiser, isHidden: checked })} />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddFundraiserDialog(false)}>Cancel</Button>
