@@ -15,6 +15,7 @@ export const CartPage = () => {
   const navigate = useNavigate();
   const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
+  const { taxSettings, calculateTax, calculateTotal, formatTaxRate } = useSettings();
   const [showPayment, setShowPayment] = useState(false);
 
   const handleCheckout = () => {
