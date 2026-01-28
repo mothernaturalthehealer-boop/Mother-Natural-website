@@ -54,7 +54,7 @@ export const RetreatManagement = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/retreats`);
+      const response = await fetch(`${API_URL}/api/retreats?include_hidden=true`);
       if (response.ok) setRetreats(await response.json());
     } catch (error) {
       const saved = localStorage.getItem('adminRetreats');
