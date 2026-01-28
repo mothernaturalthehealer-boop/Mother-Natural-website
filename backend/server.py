@@ -1061,9 +1061,10 @@ class AppointmentModel(BaseModel):
 
 # ============= PRODUCTS API =============
 @api_router.get("/products")
-async def get_products():
-    """Get all products"""
-    products = await db.products.find({}, {"_id": 0}).to_list(1000)
+async def get_products(include_hidden: bool = False):
+    """Get all products (hidden items excluded by default for public)"""
+    query = {} if include_hidden else {"$or": [{"isHidden": False}, {"isHidden": {"$exists": False}}]}
+    products = await db.products.find(query, {"_id": 0}).to_list(1000)
     return products
 
 @api_router.post("/products")
@@ -1100,9 +1101,10 @@ async def delete_product(product_id: str):
 
 # ============= SERVICES API =============
 @api_router.get("/services")
-async def get_services():
-    """Get all services"""
-    services = await db.services.find({}, {"_id": 0}).to_list(1000)
+async def get_services(include_hidden: bool = False):
+    """Get all services (hidden items excluded by default for public)"""
+    query = {} if include_hidden else {"$or": [{"isHidden": False}, {"isHidden": {"$exists": False}}]}
+    services = await db.services.find(query, {"_id": 0}).to_list(1000)
     return services
 
 @api_router.post("/services")
