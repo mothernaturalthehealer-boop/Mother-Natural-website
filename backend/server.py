@@ -1139,9 +1139,10 @@ async def delete_service(service_id: str):
 
 # ============= CLASSES API =============
 @api_router.get("/classes")
-async def get_classes():
-    """Get all classes"""
-    classes = await db.classes.find({}, {"_id": 0}).to_list(1000)
+async def get_classes(include_hidden: bool = False):
+    """Get all classes (hidden items excluded by default for public)"""
+    query = {} if include_hidden else {"$or": [{"isHidden": False}, {"isHidden": {"$exists": False}}]}
+    classes = await db.classes.find(query, {"_id": 0}).to_list(1000)
     return classes
 
 @api_router.post("/classes")
