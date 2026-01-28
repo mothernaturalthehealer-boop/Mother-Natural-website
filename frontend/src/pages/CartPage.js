@@ -56,7 +56,7 @@ export const CartPage = () => {
           </div>
           <h1 className="font-heading text-3xl font-bold mb-4">Your Cart is Empty</h1>
           <p className="text-muted-foreground mb-8">
-            Looks like you haven't added anything to your cart yet.
+            Looks like you haven&apos;t added anything to your cart yet.
           </p>
           <Button
             size="lg"
