@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, RefreshCw, Calendar, Clock, DollarSign, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, RefreshCw, Calendar, Clock, DollarSign, Package, Eye, EyeOff, Gift } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ImageCropUploader } from '@/components/ImageCropUploader';
 
@@ -41,9 +42,12 @@ export const ClassManagement = () => {
     classTime: '',
     paymentType: 'full',
     packageDeals: [],
-    dropInPrice: ''
+    dropInPrice: '',
+    isHidden: false,
+    addOns: []
   });
   const [newPackageDeal, setNewPackageDeal] = useState({ name: '', sessions: '', price: '' });
+  const [newAddOn, setNewAddOn] = useState({ name: '', price: '', description: '' });
 
   const loadData = useCallback(async () => {
     setLoading(true);
