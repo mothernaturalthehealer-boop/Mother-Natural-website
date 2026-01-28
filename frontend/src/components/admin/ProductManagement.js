@@ -616,6 +616,23 @@ export const ProductManagement = () => {
                 onImageUploaded={(url) => setEditingProduct({ ...editingProduct, image: url })}
                 aspectRatio={1}
               />
+
+              {/* Hidden Toggle */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+                <div className="space-y-0.5">
+                  <Label className="text-base flex items-center gap-2">
+                    {editingProduct.isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    Hide from Customers
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Hidden products won't appear on your shop until you're ready
+                  </p>
+                </div>
+                <Switch
+                  checked={editingProduct.isHidden || false}
+                  onCheckedChange={(checked) => setEditingProduct({ ...editingProduct, isHidden: checked })}
+                />
+              </div>
             </div>
           )}
           <DialogFooter>
