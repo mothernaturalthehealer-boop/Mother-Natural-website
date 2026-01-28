@@ -52,7 +52,7 @@ export const ClassManagement = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/classes`);
+      const response = await fetch(`${API_URL}/api/classes?include_hidden=true`);
       if (response.ok) setClasses(await response.json());
     } catch (error) {
       console.error('Failed to load classes:', error);
@@ -61,6 +61,36 @@ export const ClassManagement = () => {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  const handleAddAddOn = (isNew = true) => {
+    if (!newAddOn.name || !newAddOn.price) {
+      toast.error('Please fill in add-on name and price');
+      return;
+    }
+    const addon = {
+      name: newAddOn.name,
+      price: parseFloat(newAddOn.price),
+      description: newAddOn.description || ''
+    };
+    if (isNew) {
+      setNewClass({ ...newClass, addOns: [...(newClass.addOns || []), addon] });
+    } else {
+      setEditingClass({ ...editingClass, addOns: [...(editingClass.addOns || []), addon] });
+    }
+    setNewAddOn({ name: '', price: '', description: '' });
+  };
+
+  const handleRemoveAddOn = (index, isNew = true) => {
+    if (isNew) {
+      const addons = [...(newClass.addOns || [])];
+      addons.splice(index, 1);
+      setNewClass({ ...newClass, addOns: addons });
+    } else {
+      const addons = [...(editingClass.addOns || [])];
+      addons.splice(index, 1);
+      setEditingClass({ ...editingClass, addOns: addons });
+    }
+  };
 
   const handleDayToggle = (day, isNew = true) => {
     if (isNew) {
