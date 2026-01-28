@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Minus, Plus, Trash2, ShoppingBag, CreditCard, ArrowLeft } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, CreditCard, ArrowLeft, Receipt } from 'lucide-react';
 import { PaymentForm } from '@/components/PaymentForm';
 
 export const CartPage = () => {
