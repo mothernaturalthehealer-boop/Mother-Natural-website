@@ -275,6 +275,9 @@ export const AdminPage = () => {
             <TabsTrigger value="tax" className="bg-green-500/10">
               <Receipt className="h-4 w-4 mr-1" />Tax
             </TabsTrigger>
+            <TabsTrigger value="notifications" className="bg-amber-500/10">
+              <Bell className="h-4 w-4 mr-1" />Notifications
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="bg-primary/10">
               <BarChart3 className="h-4 w-4 mr-1" />Analytics
             </TabsTrigger>
@@ -326,6 +329,10 @@ export const AdminPage = () => {
 
           <TabsContent value="tax" className="space-y-4">
             <TaxSettings />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-4">
+            <NotificationSettings />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4">
