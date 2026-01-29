@@ -7,9 +7,21 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, ShoppingBag, BookOpen, Mountain, Award, FileText, User, Camera } from 'lucide-react';
+import { Calendar, ShoppingBag, BookOpen, Mountain, Award, FileText, User, Camera, Sparkles, ArrowRight } from 'lucide-react';
 import { ProfileImageUploader } from '@/components/ImageCropUploader';
 import { toast } from 'sonner';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Tier display config
+const tierDisplay = {
+  seed: { name: 'Seed', title: 'Sacred Initiate', icon: '🌱', color: 'text-green-600' },
+  root: { name: 'Root', title: 'Sacred Guardian', icon: '🌿', color: 'text-amber-700' },
+  bloom: { name: 'Bloom', title: 'Sovereign Healer', icon: '🌸', color: 'text-pink-600' },
+  divine: { name: 'Divine', title: 'Celestial Embodiment', icon: '✨', color: 'text-purple-600' },
+  basic: { name: 'Seed', title: 'Sacred Initiate', icon: '🌱', color: 'text-green-600' },
+  platinum: { name: 'Divine', title: 'Celestial Embodiment', icon: '✨', color: 'text-purple-600' }
+};
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
