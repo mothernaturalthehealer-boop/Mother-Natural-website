@@ -1,17 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Edit, FileText, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, RefreshCw, Copy, Eye } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-const defaultContractTemplates = {
-  appointment: `APPOINTMENT BOOKING AGREEMENT
+// Default contract templates
+const defaultTemplates = [
+  {
+    id: 'appointment',
+    name: 'Appointment Contract',
+    type: 'appointment',
+    description: 'Standard agreement for appointment bookings',
+    content: `APPOINTMENT BOOKING AGREEMENT
 
 This agreement is between Mother Natural: The Healing Lab and the client for appointment booking services.
 
@@ -38,7 +48,14 @@ This agreement is between Mother Natural: The Healing Lab and the client for app
 - Mother Natural reserves the right to refuse service
 
 By signing below, you acknowledge that you have read, understood, and agree to these terms.`,
-  retreat: `RETREAT BOOKING AGREEMENT
+    isDefault: true
+  },
+  {
+    id: 'retreat',
+    name: 'Retreat Contract',
+    type: 'retreat',
+    description: 'Standard agreement for retreat bookings',
+    content: `RETREAT BOOKING AGREEMENT
 
 This agreement is between Mother Natural: The Healing Lab and the client for retreat booking services.
 
@@ -68,31 +85,85 @@ This agreement is between Mother Natural: The Healing Lab and the client for ret
 - Client is responsible for their own health insurance
 - Mother Natural is not liable for lost or stolen personal items
 
-6. CHANGES TO RETREAT
-- Mother Natural reserves the right to modify retreat schedule due to weather or circumstances
-- In case of retreat cancellation by Mother Natural, full refund will be provided
+By signing below, you acknowledge that you have read, understood, and agree to these terms.`,
+    isDefault: true
+  },
+  {
+    id: 'class',
+    name: 'Class Enrollment Contract',
+    type: 'class',
+    description: 'Agreement for class enrollments',
+    content: `CLASS ENROLLMENT AGREEMENT
 
-By signing below, you acknowledge that you have read, understood, and agree to these terms.`
-};
+This agreement is between Mother Natural: The Healing Lab and the client for class enrollment.
+
+1. ENROLLMENT TERMS
+- Class fees are due at the time of enrollment
+- Classes are non-transferable unless approved by management
+
+2. CANCELLATION & REFUND POLICY
+- Full refund available up to 7 days before class start date
+- 50% refund available 3-7 days before class start date
+- No refund less than 3 days before class start date
+- Package deals and drop-in classes are non-refundable
+
+3. ATTENDANCE
+- Missed classes cannot be made up unless prior arrangements are made
+- Excessive absences may result in forfeiture of enrollment
+
+4. HEALTH & SAFETY
+- Participants must disclose any health conditions that may affect participation
+- Participants agree to follow instructor guidance and safety protocols
+- Mother Natural is not liable for injuries resulting from improper technique
+
+5. CONDUCT
+- Participants agree to arrive on time and maintain a respectful environment
+- Disruptive behavior may result in removal from class without refund
+
+By signing below, you acknowledge that you have read, understood, and agree to these terms.`,
+    isDefault: true
+  }
+];
 
 export const ContractManagement = () => {
   const { getAuthHeaders } = useAuth();
-  const [contractTemplates, setContractTemplates] = useState(defaultContractTemplates);
+  const [templates, setTemplates] = useState([]);
   const [signedContracts, setSignedContracts] = useState([]);
-  const [editingContract, setEditingContract] = useState(null);
-  const [showEditContractDialog, setShowEditContractDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [viewingContract, setViewingContract] = useState(null);
+  const [newTemplate, setNewTemplate] = useState({
+    name: '',
+    type: 'custom',
+    description: '',
+    content: ''
+  });
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      // Load templates
-      const templatesRes = await fetch(`${API_URL}/api/contracts/templates`, {
+      // Load templates from API
+      const templatesRes = await fetch(`${API_URL}/api/contract-templates`, {
         headers: getAuthHeaders()
       });
       if (templatesRes.ok) {
-        const templates = await templatesRes.json();
-        setContractTemplates({ ...defaultContractTemplates, ...templates });
+        const data = await templatesRes.json();
+        // Merge with defaults if needed
+        const mergedTemplates = [...defaultTemplates];
+        data.forEach(t => {
+          const existingIndex = mergedTemplates.findIndex(dt => dt.id === t.id);
+          if (existingIndex >= 0) {
+            mergedTemplates[existingIndex] = { ...mergedTemplates[existingIndex], ...t };
+          } else {
+            mergedTemplates.push(t);
+          }
+        });
+        setTemplates(mergedTemplates);
+      } else {
+        setTemplates(defaultTemplates);
       }
 
       // Load signed contracts
@@ -100,16 +171,11 @@ export const ContractManagement = () => {
         headers: getAuthHeaders()
       });
       if (signedRes.ok) {
-        const signed = await signedRes.json();
-        setSignedContracts(signed);
+        setSignedContracts(await signedRes.json());
       }
     } catch (error) {
       console.error('Failed to load contracts:', error);
-      // Fallback to localStorage
-      const savedContracts = localStorage.getItem('contractTemplates');
-      if (savedContracts) {
-        setContractTemplates(JSON.parse(savedContracts));
-      }
+      setTemplates(defaultTemplates);
     }
     setLoading(false);
   }, [getAuthHeaders]);
@@ -118,33 +184,106 @@ export const ContractManagement = () => {
     loadData();
   }, [loadData]);
 
-  const handleEditContract = (type) => {
-    setEditingContract({ type, content: contractTemplates[type] });
-    setShowEditContractDialog(true);
-  };
-
-  const handleSaveContract = async () => {
+  const handleAddTemplate = async () => {
+    if (!newTemplate.name || !newTemplate.content) {
+      toast.error('Please fill in template name and content');
+      return;
+    }
     try {
-      const response = await fetch(`${API_URL}/api/contracts/templates/${editingContract.type}`, {
-        method: 'PUT',
+      const response = await fetch(`${API_URL}/api/contract-templates`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-        body: JSON.stringify({ content: editingContract.content })
+        body: JSON.stringify({
+          ...newTemplate,
+          id: `custom-${Date.now()}`
+        })
       });
       if (response.ok) {
-        const updatedTemplates = { ...contractTemplates, [editingContract.type]: editingContract.content };
-        setContractTemplates(updatedTemplates);
-        toast.success('Contract template updated');
-        setShowEditContractDialog(false);
-        setEditingContract(null);
+        toast.success('Contract template created!');
+        setShowAddDialog(false);
+        setNewTemplate({ name: '', type: 'custom', description: '', content: '' });
+        loadData();
+      } else {
+        toast.error('Failed to create template');
       }
     } catch (error) {
-      // Fallback to localStorage
-      const updatedTemplates = { ...contractTemplates, [editingContract.type]: editingContract.content };
-      setContractTemplates(updatedTemplates);
-      localStorage.setItem('contractTemplates', JSON.stringify(updatedTemplates));
-      toast.success('Contract template updated locally');
-      setShowEditContractDialog(false);
-      setEditingContract(null);
+      toast.error('Failed to create template');
+    }
+  };
+
+  const handleEditTemplate = (template) => {
+    setEditingTemplate({ ...template });
+    setShowEditDialog(true);
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!editingTemplate.name || !editingTemplate.content) {
+      toast.error('Please fill in template name and content');
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/api/contract-templates/${editingTemplate.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify(editingTemplate)
+      });
+      if (response.ok) {
+        toast.success('Contract template updated!');
+        setShowEditDialog(false);
+        setEditingTemplate(null);
+        loadData();
+      } else {
+        toast.error('Failed to update template');
+      }
+    } catch (error) {
+      toast.error('Failed to update template');
+    }
+  };
+
+  const handleDeleteTemplate = async (template) => {
+    if (template.isDefault) {
+      toast.error('Cannot delete default templates');
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete "${template.name}"?`)) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/contract-templates/${template.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        toast.success('Contract template deleted');
+        loadData();
+      } else {
+        toast.error('Failed to delete template');
+      }
+    } catch (error) {
+      toast.error('Failed to delete template');
+    }
+  };
+
+  const handleDuplicateTemplate = (template) => {
+    setNewTemplate({
+      name: `${template.name} (Copy)`,
+      type: 'custom',
+      description: template.description,
+      content: template.content
+    });
+    setShowAddDialog(true);
+  };
+
+  const handleViewContract = (contract) => {
+    setViewingContract(contract);
+    setShowViewDialog(true);
+  };
+
+  const getTypeColor = (type) => {
+    switch (type) {
+      case 'appointment': return 'bg-blue-100 text-blue-800';
+      case 'retreat': return 'bg-green-100 text-green-800';
+      case 'class': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -152,58 +291,71 @@ export const ContractManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="font-heading text-2xl">Contract Management</h2>
-        <Button variant="outline" onClick={loadData} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={loadData} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />Refresh
+          </Button>
+          <Button onClick={() => setShowAddDialog(true)} className="bg-primary hover:bg-primary-dark">
+            <Plus className="h-4 w-4 mr-2" />Add Contract Template
+          </Button>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Contract Templates */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-heading text-xl">Contract Templates</CardTitle>
-            <CardDescription>Edit your booking agreement templates</CardDescription>
+            <CardTitle className="font-heading text-xl flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Contract Templates
+            </CardTitle>
+            <CardDescription>Manage your booking agreement templates ({templates.length} total)</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Card className="border-primary/20">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-primary" />
-                    Appointment Contract
-                  </CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => handleEditContract('appointment')}>
-                    <Edit className="h-4 w-4 mr-1" />Edit
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {contractTemplates.appointment?.substring(0, 150)}...
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-primary/20">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-primary" />
-                    Retreat Contract
-                  </CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => handleEditContract('retreat')}>
-                    <Edit className="h-4 w-4 mr-1" />Edit
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {contractTemplates.retreat?.substring(0, 150)}...
-                </p>
-              </CardContent>
-            </Card>
+          <CardContent className="space-y-3">
+            {templates.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No contract templates yet.</p>
+            ) : (
+              templates.map((template) => (
+                <Card key={template.id} className="border-l-4 border-l-primary/50">
+                  <CardHeader className="pb-2 pt-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CardTitle className="text-base">{template.name}</CardTitle>
+                          <Badge className={getTypeColor(template.type)}>{template.type}</Badge>
+                          {template.isDefault && <Badge variant="outline" className="text-xs">Default</Badge>}
+                        </div>
+                        {template.description && (
+                          <p className="text-xs text-muted-foreground">{template.description}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicateTemplate(template)} title="Duplicate">
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditTemplate(template)} title="Edit">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        {!template.isDefault && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteTemplate(template)} title="Delete">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-3">
+                    <p className="text-xs text-muted-foreground line-clamp-2 whitespace-pre-wrap">
+                      {template.content?.substring(0, 120)}...
+                    </p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </CardContent>
         </Card>
 
+        {/* Signed Contracts */}
         <Card>
           <CardHeader>
             <CardTitle className="font-heading text-xl">Signed Contracts</CardTitle>
@@ -221,14 +373,22 @@ export const ContractManagement = () => {
                     <TableHead>Customer</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Signed</TableHead>
+                    <TableHead className="text-right">View</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {signedContracts.map((contract) => (
                     <TableRow key={contract.id}>
                       <TableCell className="font-medium">{contract.customerName}</TableCell>
-                      <TableCell className="capitalize">{contract.contractType}</TableCell>
+                      <TableCell>
+                        <Badge className={getTypeColor(contract.contractType)}>{contract.contractType}</Badge>
+                      </TableCell>
                       <TableCell>{contract.signedAt ? new Date(contract.signedAt).toLocaleDateString() : '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewContract(contract)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -238,30 +398,154 @@ export const ContractManagement = () => {
         </Card>
       </div>
 
-      {/* Edit Contract Dialog */}
-      <Dialog open={showEditContractDialog} onOpenChange={setShowEditContractDialog}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh]">
+      {/* Add Template Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-heading">
-              Edit {editingContract?.type === 'appointment' ? 'Appointment' : 'Retreat'} Contract
-            </DialogTitle>
-            <DialogDescription>
-              Customize your booking agreement template
-            </DialogDescription>
+            <DialogTitle className="font-heading">Add Contract Template</DialogTitle>
+            <DialogDescription>Create a new contract template for your bookings</DialogDescription>
           </DialogHeader>
-          {editingContract && (
-            <div className="py-4">
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="templateName">Template Name *</Label>
+                <Input
+                  id="templateName"
+                  value={newTemplate.name}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                  placeholder="e.g., Wellness Session Agreement"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="templateType">Contract Type</Label>
+                <Select value={newTemplate.type} onValueChange={(value) => setNewTemplate({ ...newTemplate, type: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="appointment">Appointment</SelectItem>
+                    <SelectItem value="retreat">Retreat</SelectItem>
+                    <SelectItem value="class">Class</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="templateDesc">Description</Label>
+              <Input
+                id="templateDesc"
+                value={newTemplate.description}
+                onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
+                placeholder="Brief description of when to use this template"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="templateContent">Contract Content *</Label>
               <Textarea
-                value={editingContract.content}
-                onChange={(e) => setEditingContract({ ...editingContract, content: e.target.value })}
-                rows={20}
+                id="templateContent"
+                value={newTemplate.content}
+                onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
+                placeholder="Enter the full contract text..."
+                rows={15}
                 className="font-mono text-sm"
               />
             </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddTemplate} className="bg-primary hover:bg-primary-dark">Create Template</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Template Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Edit Contract Template</DialogTitle>
+            <DialogDescription>Update your contract template</DialogDescription>
+          </DialogHeader>
+          {editingTemplate && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editTemplateName">Template Name *</Label>
+                  <Input
+                    id="editTemplateName"
+                    value={editingTemplate.name}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editTemplateType">Contract Type</Label>
+                  <Select value={editingTemplate.type} onValueChange={(value) => setEditingTemplate({ ...editingTemplate, type: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="appointment">Appointment</SelectItem>
+                      <SelectItem value="retreat">Retreat</SelectItem>
+                      <SelectItem value="class">Class</SelectItem>
+                      <SelectItem value="custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editTemplateDesc">Description</Label>
+                <Input
+                  id="editTemplateDesc"
+                  value={editingTemplate.description || ''}
+                  onChange={(e) => setEditingTemplate({ ...editingTemplate, description: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editTemplateContent">Contract Content *</Label>
+                <Textarea
+                  id="editTemplateContent"
+                  value={editingTemplate.content}
+                  onChange={(e) => setEditingTemplate({ ...editingTemplate, content: e.target.value })}
+                  rows={15}
+                  className="font-mono text-sm"
+                />
+              </div>
+            </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditContractDialog(false)}>Cancel</Button>
-            <Button onClick={handleSaveContract} className="bg-primary hover:bg-primary-dark">Save Template</Button>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
+            <Button onClick={handleSaveTemplate} className="bg-primary hover:bg-primary-dark">Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Signed Contract Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Signed Contract</DialogTitle>
+            {viewingContract && (
+              <DialogDescription>
+                Signed by {viewingContract.customerName} on {viewingContract.signedAt ? new Date(viewingContract.signedAt).toLocaleString() : 'N/A'}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          {viewingContract && (
+            <div className="py-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <pre className="whitespace-pre-wrap text-sm font-mono">{viewingContract.content}</pre>
+              </div>
+              <div className="mt-4 p-4 border rounded-lg">
+                <p className="text-sm font-medium">Digital Signature</p>
+                <p className="text-lg italic mt-2">{viewingContract.signature || viewingContract.customerName}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  IP: {viewingContract.ipAddress || 'N/A'} | Email: {viewingContract.customerEmail || 'N/A'}
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowViewDialog(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
