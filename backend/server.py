@@ -1628,6 +1628,33 @@ async def create_community_post(post: CommunityPostModel):
     return {"success": True, "id": post_dict["id"], "post": {k: v for k, v in post_dict.items() if k != "_id"}}
 
 
+@api_router.post("/community/join")
+async def join_community(current_user: dict = Depends(get_current_active_user)):
+    """Join the community circle"""
+    await db.auth_users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"isCommunityMember": True}}
+    )
+    return {"success": True, "message": "Welcome to the Community Circle!"}
+
+
+@api_router.post("/community/leave")
+async def leave_community(current_user: dict = Depends(get_current_active_user)):
+    """Leave the community circle"""
+    await db.auth_users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"isCommunityMember": False}}
+    )
+    return {"success": True, "message": "You have left the Community Circle"}
+
+
+@api_router.get("/community/members/count")
+async def get_community_member_count():
+    """Get count of community members"""
+    count = await db.auth_users.count_documents({"isCommunityMember": True})
+    return {"count": count}
+
+
 @api_router.post("/community-posts/{post_id}/like")
 async def like_community_post(post_id: str):
     """Like a community post"""
