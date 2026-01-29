@@ -26,7 +26,7 @@ export const ProductManagement = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [newCategory, setNewCategory] = useState('');
   const [newProduct, setNewProduct] = useState({
-    name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '', stock: '', isHidden: false
+    name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '', stock: '', isHidden: false, lowStockThreshold: 5
   });
   // Size variant inputs (name + price)
   const [newSizeName, setNewSizeName] = useState('');
