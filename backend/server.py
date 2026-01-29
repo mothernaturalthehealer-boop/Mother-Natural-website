@@ -361,7 +361,8 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         "email": user["email"],
         "role": user.get("role", "user"),
         "membershipLevel": user.get("membershipLevel", "basic"),
-        "joinedDate": user.get("joinedDate", "")
+        "joinedDate": user.get("joinedDate", ""),
+        "isCommunityMember": user.get("isCommunityMember", False)
     }
     
     return TokenModel(access_token=access_token, user=user_response)
@@ -386,7 +387,8 @@ async def login_user(login_data: UserLoginModel):
         "role": user.get("role", "user"),
         "membershipLevel": user.get("membershipLevel", "basic"),
         "joinedDate": user.get("joinedDate", ""),
-        "profileImage": user.get("profileImage")
+        "profileImage": user.get("profileImage"),
+        "isCommunityMember": user.get("isCommunityMember", False)
     }
     
     return TokenModel(access_token=access_token, user=user_response)
@@ -402,7 +404,8 @@ async def get_current_user_info(current_user: dict = Depends(get_current_active_
         role=current_user.get("role", "user"),
         membershipLevel=current_user.get("membershipLevel", "basic"),
         joinedDate=current_user.get("joinedDate", ""),
-        profileImage=current_user.get("profileImage")
+        profileImage=current_user.get("profileImage"),
+        isCommunityMember=current_user.get("isCommunityMember", False)
     )
 
 
