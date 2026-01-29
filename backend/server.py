@@ -2235,6 +2235,565 @@ async def get_fundraiser_analytics():
     }
 
 
+# ============= LOYALTY & MEMBERSHIP SYSTEM =============
+
+# Default membership tiers
+DEFAULT_MEMBERSHIP_TIERS = [
+    {
+        "id": "seed",
+        "name": "Seed",
+        "title": "Sacred Initiate",
+        "description": "The beginning of the journey. Intention, awareness, gentle guidance, and foundational healing.",
+        "tagline": "Where your healing is planted.",
+        "pointsRequired": 0,
+        "order": 1
+    },
+    {
+        "id": "root",
+        "name": "Root",
+        "title": "Sacred Guardian",
+        "description": "Stability and grounding. Deepening self-trust, protection, and energetic balance.",
+        "tagline": "Where your healing becomes anchored.",
+        "pointsRequired": 100,
+        "order": 2
+    },
+    {
+        "id": "bloom",
+        "name": "Bloom",
+        "title": "Sovereign Healer",
+        "description": "Expansion into confidence and personal power. Leadership in self-care and spiritual alignment.",
+        "tagline": "Where your healing becomes embodied.",
+        "pointsRequired": 500,
+        "order": 3
+    },
+    {
+        "id": "divine",
+        "name": "Divine",
+        "title": "Celestial Embodiment",
+        "description": "Full alignment and higher consciousness. Mastery, intuition, and soul-led living.",
+        "tagline": "Where your healing becomes your nature.",
+        "pointsRequired": 1000,
+        "order": 4
+    }
+]
+
+class MembershipTierModel(BaseModel):
+    id: str
+    name: str
+    title: str
+    description: str
+    tagline: str
+    pointsRequired: int
+    order: int
+
+class LoyaltySettingsModel(BaseModel):
+    pointsPerDollar: float = 1.0
+    referralPoints: int = 100
+    signInPoints: int = 5
+    sharePoints: int = 10
+
+class PlantGameModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    userId: str
+    rewardType: str  # product, service, class
+    rewardId: str
+    rewardName: str
+    targetDays: int = 14
+    startDate: str
+    endDate: str
+    growthPercentage: float = 0.0
+    plantFood: int = 0  # From shares
+    waterCount: int = 0
+    lastWatered: Optional[str] = None
+    isComplete: bool = False
+    isExpired: bool = False
+
+@api_router.get("/loyalty/tiers")
+async def get_membership_tiers():
+    """Get all membership tiers"""
+    tiers = await db.membership_tiers.find({}, {"_id": 0}).sort("order", 1).to_list(10)
+    if not tiers:
+        # Initialize with defaults
+        for tier in DEFAULT_MEMBERSHIP_TIERS:
+            await db.membership_tiers.insert_one(tier)
+        return DEFAULT_MEMBERSHIP_TIERS
+    return tiers
+
+@api_router.put("/loyalty/tiers/{tier_id}")
+async def update_membership_tier(
+    tier_id: str,
+    tier: MembershipTierModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Update a membership tier (admin only)"""
+    tier_dict = tier.model_dump()
+    tier_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.membership_tiers.update_one(
+        {"id": tier_id},
+        {"$set": tier_dict},
+        upsert=True
+    )
+    return {"success": True, "message": "Tier updated"}
+
+@api_router.get("/loyalty/settings")
+async def get_loyalty_settings():
+    """Get loyalty program settings"""
+    settings = await db.settings.find_one({"type": "loyalty"}, {"_id": 0})
+    if not settings:
+        return {
+            "pointsPerDollar": 1.0,
+            "referralPoints": 100,
+            "signInPoints": 5,
+            "sharePoints": 10
+        }
+    return {
+        "pointsPerDollar": settings.get("pointsPerDollar", 1.0),
+        "referralPoints": settings.get("referralPoints", 100),
+        "signInPoints": settings.get("signInPoints", 5),
+        "sharePoints": settings.get("sharePoints", 10)
+    }
+
+@api_router.put("/loyalty/settings")
+async def update_loyalty_settings(
+    settings: LoyaltySettingsModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Update loyalty settings (admin only)"""
+    settings_dict = settings.model_dump()
+    settings_dict["type"] = "loyalty"
+    settings_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.settings.update_one(
+        {"type": "loyalty"},
+        {"$set": settings_dict},
+        upsert=True
+    )
+    return {"success": True, "message": "Loyalty settings updated"}
+
+@api_router.get("/loyalty/user-stats")
+async def get_user_loyalty_stats(current_user: dict = Depends(get_current_active_user)):
+    """Get user's loyalty stats"""
+    user = await db.auth_users.find_one({"id": current_user["id"]}, {"_id": 0})
+    
+    # Get membership tiers
+    tiers = await db.membership_tiers.find({}, {"_id": 0}).sort("order", 1).to_list(10)
+    if not tiers:
+        tiers = DEFAULT_MEMBERSHIP_TIERS
+    
+    # Calculate current tier based on total points earned
+    total_points = user.get("totalPointsEarned", 0)
+    current_tier = tiers[0]
+    next_tier = None
+    
+    for i, tier in enumerate(tiers):
+        if total_points >= tier["pointsRequired"]:
+            current_tier = tier
+            if i + 1 < len(tiers):
+                next_tier = tiers[i + 1]
+        else:
+            break
+    
+    # Get order count
+    order_count = await db.orders.count_documents({
+        "customer_email": user.get("email"),
+        "status": {"$in": ["completed", "paid"]}
+    })
+    
+    # Points to next tier
+    points_to_next = next_tier["pointsRequired"] - total_points if next_tier else 0
+    progress_to_next = 0
+    if next_tier and (next_tier["pointsRequired"] - current_tier["pointsRequired"]) > 0:
+        progress_to_next = ((total_points - current_tier["pointsRequired"]) / 
+                          (next_tier["pointsRequired"] - current_tier["pointsRequired"])) * 100
+    
+    return {
+        "loyaltyPoints": user.get("loyaltyPoints", 0),
+        "totalPointsEarned": total_points,
+        "currentTier": current_tier,
+        "nextTier": next_tier,
+        "pointsToNextTier": max(0, points_to_next),
+        "progressToNextTier": min(100, max(0, progress_to_next)),
+        "orderCount": order_count,
+        "referralCode": user.get("referralCode"),
+        "referralCount": user.get("referralCount", 0),
+        "allTiers": tiers
+    }
+
+@api_router.post("/loyalty/earn-points")
+async def earn_loyalty_points(
+    points: int = Body(..., embed=True),
+    reason: str = Body(..., embed=True),
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Add loyalty points to user"""
+    await db.auth_users.update_one(
+        {"id": current_user["id"]},
+        {
+            "$inc": {
+                "loyaltyPoints": points,
+                "totalPointsEarned": points
+            }
+        }
+    )
+    
+    # Log the points transaction
+    await db.loyalty_transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "userId": current_user["id"],
+        "points": points,
+        "reason": reason,
+        "date": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"success": True, "message": f"Earned {points} points for {reason}"}
+
+@api_router.get("/loyalty/generate-referral-code")
+async def generate_referral_code(current_user: dict = Depends(get_current_active_user)):
+    """Generate a referral code for user"""
+    user = await db.auth_users.find_one({"id": current_user["id"]})
+    
+    if user.get("referralCode"):
+        return {"referralCode": user["referralCode"]}
+    
+    # Generate unique code
+    import random
+    import string
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    
+    await db.auth_users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"referralCode": code}}
+    )
+    
+    return {"referralCode": code}
+
+@api_router.post("/loyalty/apply-referral")
+async def apply_referral_code(
+    referralCode: str = Body(..., embed=True),
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Apply a referral code (for new users)"""
+    # Check if user already used a referral
+    user = await db.auth_users.find_one({"id": current_user["id"]})
+    if user.get("referredBy"):
+        raise HTTPException(status_code=400, detail="You have already used a referral code")
+    
+    # Find referrer
+    referrer = await db.auth_users.find_one({"referralCode": referralCode})
+    if not referrer:
+        raise HTTPException(status_code=404, detail="Invalid referral code")
+    
+    if referrer["id"] == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot use your own referral code")
+    
+    # Get loyalty settings
+    settings = await db.settings.find_one({"type": "loyalty"}, {"_id": 0})
+    referral_points = settings.get("referralPoints", 100) if settings else 100
+    
+    # Update referrer - add points and increment count
+    await db.auth_users.update_one(
+        {"id": referrer["id"]},
+        {
+            "$inc": {
+                "loyaltyPoints": referral_points,
+                "totalPointsEarned": referral_points,
+                "referralCount": 1
+            }
+        }
+    )
+    
+    # Update current user
+    await db.auth_users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"referredBy": referrer["id"]}}
+    )
+    
+    # Log transactions
+    await db.loyalty_transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "userId": referrer["id"],
+        "points": referral_points,
+        "reason": f"Referral: {current_user.get('name', 'New user')} joined",
+        "date": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"success": True, "message": "Referral code applied successfully!"}
+
+
+# ============= PLANT WATERING GAME =============
+
+WATER_COOLDOWN_HOURS = 4
+WATER_GROWTH_PERCENT = 5.0
+PLANT_FOOD_GROWTH_PERCENT = 2.0
+
+@api_router.get("/game/plant")
+async def get_plant_game(current_user: dict = Depends(get_current_active_user)):
+    """Get user's active plant game"""
+    game = await db.plant_games.find_one(
+        {"userId": current_user["id"], "isComplete": False, "isExpired": False},
+        {"_id": 0}
+    )
+    
+    if game:
+        # Check if expired
+        end_date = datetime.fromisoformat(game["endDate"].replace("Z", "+00:00"))
+        if datetime.now(timezone.utc) > end_date:
+            await db.plant_games.update_one(
+                {"id": game["id"]},
+                {"$set": {"isExpired": True}}
+            )
+            game["isExpired"] = True
+        
+        # Check if can water
+        can_water = True
+        time_until_water = 0
+        if game.get("lastWatered"):
+            last_watered = datetime.fromisoformat(game["lastWatered"].replace("Z", "+00:00"))
+            next_water_time = last_watered + timedelta(hours=WATER_COOLDOWN_HOURS)
+            if datetime.now(timezone.utc) < next_water_time:
+                can_water = False
+                time_until_water = (next_water_time - datetime.now(timezone.utc)).total_seconds()
+        
+        game["canWater"] = can_water
+        game["timeUntilWater"] = max(0, int(time_until_water))
+    
+    return game
+
+@api_router.post("/game/plant/start")
+async def start_plant_game(
+    rewardType: str = Body(...),
+    rewardId: str = Body(...),
+    rewardName: str = Body(...),
+    targetDays: int = Body(14),
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Start a new plant growing game"""
+    # Check if user already has an active game
+    existing = await db.plant_games.find_one(
+        {"userId": current_user["id"], "isComplete": False, "isExpired": False}
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="You already have an active game. Complete or abandon it first.")
+    
+    now = datetime.now(timezone.utc)
+    game = {
+        "id": str(uuid.uuid4()),
+        "userId": current_user["id"],
+        "rewardType": rewardType,
+        "rewardId": rewardId,
+        "rewardName": rewardName,
+        "targetDays": targetDays,
+        "startDate": now.isoformat(),
+        "endDate": (now + timedelta(days=targetDays)).isoformat(),
+        "growthPercentage": 0.0,
+        "plantFood": 0,
+        "waterCount": 0,
+        "lastWatered": None,
+        "isComplete": False,
+        "isExpired": False
+    }
+    
+    await db.plant_games.insert_one(game)
+    game.pop("_id", None)
+    game["canWater"] = True
+    game["timeUntilWater"] = 0
+    
+    return {"success": True, "game": game}
+
+@api_router.post("/game/plant/water")
+async def water_plant(current_user: dict = Depends(get_current_active_user)):
+    """Water the plant to make it grow"""
+    game = await db.plant_games.find_one(
+        {"userId": current_user["id"], "isComplete": False, "isExpired": False}
+    )
+    
+    if not game:
+        raise HTTPException(status_code=404, detail="No active game found")
+    
+    # Check cooldown
+    if game.get("lastWatered"):
+        last_watered = datetime.fromisoformat(game["lastWatered"].replace("Z", "+00:00"))
+        next_water_time = last_watered + timedelta(hours=WATER_COOLDOWN_HOURS)
+        if datetime.now(timezone.utc) < next_water_time:
+            remaining = (next_water_time - datetime.now(timezone.utc)).total_seconds()
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Plant not thirsty yet. Wait {int(remaining // 60)} minutes."
+            )
+    
+    # Calculate growth
+    new_growth = min(100, game["growthPercentage"] + WATER_GROWTH_PERCENT)
+    is_complete = new_growth >= 100
+    
+    await db.plant_games.update_one(
+        {"id": game["id"]},
+        {
+            "$set": {
+                "growthPercentage": new_growth,
+                "lastWatered": datetime.now(timezone.utc).isoformat(),
+                "isComplete": is_complete
+            },
+            "$inc": {"waterCount": 1}
+        }
+    )
+    
+    result = {
+        "success": True,
+        "growthAdded": WATER_GROWTH_PERCENT,
+        "newGrowth": new_growth,
+        "isComplete": is_complete
+    }
+    
+    if is_complete:
+        result["message"] = f"Congratulations! Your plant has fully grown! You've won: {game['rewardName']}"
+        # Create reward record
+        await db.game_rewards.insert_one({
+            "id": str(uuid.uuid4()),
+            "userId": current_user["id"],
+            "gameId": game["id"],
+            "rewardType": game["rewardType"],
+            "rewardId": game["rewardId"],
+            "rewardName": game["rewardName"],
+            "claimedAt": None,
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        })
+    
+    return result
+
+@api_router.post("/game/plant/feed")
+async def add_plant_food(
+    amount: int = Body(..., embed=True),
+    source: str = Body(..., embed=True),
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Add plant food (from shares or purchases)"""
+    game = await db.plant_games.find_one(
+        {"userId": current_user["id"], "isComplete": False, "isExpired": False}
+    )
+    
+    if not game:
+        raise HTTPException(status_code=404, detail="No active game found")
+    
+    # Each plant food adds growth
+    growth_from_food = amount * PLANT_FOOD_GROWTH_PERCENT
+    new_growth = min(100, game["growthPercentage"] + growth_from_food)
+    is_complete = new_growth >= 100
+    
+    await db.plant_games.update_one(
+        {"id": game["id"]},
+        {
+            "$set": {
+                "growthPercentage": new_growth,
+                "isComplete": is_complete
+            },
+            "$inc": {"plantFood": amount}
+        }
+    )
+    
+    result = {
+        "success": True,
+        "foodAdded": amount,
+        "growthAdded": growth_from_food,
+        "newGrowth": new_growth,
+        "isComplete": is_complete
+    }
+    
+    if is_complete:
+        result["message"] = f"Congratulations! Your plant has fully grown! You've won: {game['rewardName']}"
+        await db.game_rewards.insert_one({
+            "id": str(uuid.uuid4()),
+            "userId": current_user["id"],
+            "gameId": game["id"],
+            "rewardType": game["rewardType"],
+            "rewardId": game["rewardId"],
+            "rewardName": game["rewardName"],
+            "claimedAt": None,
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        })
+    
+    return result
+
+@api_router.post("/game/plant/share-link-used")
+async def share_link_used(
+    sharedByUserId: str = Body(..., embed=True)
+):
+    """Called when someone uses a shared game link"""
+    # Find the sharer's active game
+    game = await db.plant_games.find_one(
+        {"userId": sharedByUserId, "isComplete": False, "isExpired": False}
+    )
+    
+    if not game:
+        return {"success": False, "message": "No active game for this user"}
+    
+    # Add plant food
+    growth_from_food = PLANT_FOOD_GROWTH_PERCENT
+    new_growth = min(100, game["growthPercentage"] + growth_from_food)
+    is_complete = new_growth >= 100
+    
+    await db.plant_games.update_one(
+        {"id": game["id"]},
+        {
+            "$set": {
+                "growthPercentage": new_growth,
+                "isComplete": is_complete
+            },
+            "$inc": {"plantFood": 1}
+        }
+    )
+    
+    if is_complete:
+        await db.game_rewards.insert_one({
+            "id": str(uuid.uuid4()),
+            "userId": sharedByUserId,
+            "gameId": game["id"],
+            "rewardType": game["rewardType"],
+            "rewardId": game["rewardId"],
+            "rewardName": game["rewardName"],
+            "claimedAt": None,
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        })
+    
+    return {"success": True, "message": "Plant food added!"}
+
+@api_router.post("/game/plant/abandon")
+async def abandon_plant_game(current_user: dict = Depends(get_current_active_user)):
+    """Abandon current plant game"""
+    result = await db.plant_games.update_one(
+        {"userId": current_user["id"], "isComplete": False, "isExpired": False},
+        {"$set": {"isExpired": True, "abandonedAt": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="No active game found")
+    
+    return {"success": True, "message": "Game abandoned"}
+
+@api_router.get("/game/rewards")
+async def get_game_rewards(current_user: dict = Depends(get_current_active_user)):
+    """Get user's unclaimed game rewards"""
+    rewards = await db.game_rewards.find(
+        {"userId": current_user["id"], "claimedAt": None},
+        {"_id": 0}
+    ).to_list(100)
+    return rewards
+
+@api_router.post("/game/rewards/{reward_id}/claim")
+async def claim_game_reward(reward_id: str, current_user: dict = Depends(get_current_active_user)):
+    """Claim a game reward"""
+    result = await db.game_rewards.update_one(
+        {"id": reward_id, "userId": current_user["id"], "claimedAt": None},
+        {"$set": {"claimedAt": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Reward not found or already claimed")
+    
+    return {"success": True, "message": "Reward claimed! Contact us to redeem."}
+
+
 # ============= CSV EXPORT ENDPOINTS =============
 
 def create_csv_response(data: List[dict], filename: str):
