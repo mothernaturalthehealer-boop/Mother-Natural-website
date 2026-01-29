@@ -68,7 +68,7 @@ class TestLowStockSettings:
     def test_update_low_stock_settings(self):
         """Test PUT /api/settings/low-stock (requires admin auth)"""
         # First login to get token
-        login_response = requests.post(f"{BASE_URL}/api/admin/login", json={
+        login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
             "email": ADMIN_EMAIL,
             "password": ADMIN_PASSWORD
         })
@@ -76,7 +76,7 @@ class TestLowStockSettings:
         if login_response.status_code != 200:
             pytest.skip("Admin login failed - skipping authenticated test")
         
-        token = login_response.json().get("token")
+        token = login_response.json().get("access_token")
         headers = {"Authorization": f"Bearer {token}"}
         
         # Update settings
@@ -126,7 +126,7 @@ class TestCSVExports:
     @pytest.fixture(autouse=True)
     def setup_auth(self):
         """Get admin token for authenticated requests"""
-        login_response = requests.post(f"{BASE_URL}/api/admin/login", json={
+        login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
             "email": ADMIN_EMAIL,
             "password": ADMIN_PASSWORD
         })
@@ -134,7 +134,7 @@ class TestCSVExports:
         if login_response.status_code != 200:
             pytest.skip("Admin login failed - skipping CSV export tests")
         
-        self.token = login_response.json().get("token")
+        self.token = login_response.json().get("access_token")
         self.headers = {"Authorization": f"Bearer {self.token}"}
     
     def test_export_revenue_csv(self):
