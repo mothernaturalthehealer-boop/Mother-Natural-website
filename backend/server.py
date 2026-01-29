@@ -2251,6 +2251,189 @@ async def get_fundraiser_analytics():
     }
 
 
+# ============= CSV EXPORT ENDPOINTS =============
+
+import csv
+from io import StringIO
+
+def create_csv_response(data: List[dict], filename: str):
+    """Helper function to create a CSV streaming response"""
+    if not data:
+        return StreamingResponse(
+            iter(["No data available"]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=data[0].keys())
+    writer.writeheader()
+    writer.writerows(data)
+    
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@api_router.get("/export/revenue")
+async def export_revenue_csv(current_admin: dict = Depends(get_current_admin_user)):
+    """Export revenue data as CSV"""
+    orders = await db.orders.find({"status": {"$in": ["completed", "paid"]}}, {"_id": 0}).to_list(length=None)
+    
+    export_data = []
+    for order in orders:
+        export_data.append({
+            "Order ID": order.get("id", ""),
+            "Date": order.get("created_at", "")[:10] if order.get("created_at") else "",
+            "Customer": order.get("customer_name", ""),
+            "Email": order.get("customer_email", ""),
+            "Type": order.get("payment_type", ""),
+            "Amount": f"${order.get('total_amount', 0) / 100:.2f}",
+            "Status": order.get("status", "")
+        })
+    
+    return create_csv_response(export_data, f"revenue_export_{datetime.now().strftime('%Y%m%d')}.csv")
+
+@api_router.get("/export/products")
+async def export_products_csv(current_admin: dict = Depends(get_current_admin_user)):
+    """Export products data as CSV"""
+    products = await db.products.find({}, {"_id": 0}).to_list(length=None)
+    
+    export_data = []
+    for p in products:
+        export_data.append({
+            "Name": p.get("name", ""),
+            "Category": p.get("category", ""),
+            "Base Price": f"${p.get('price', 0):.2f}",
+            "Stock": p.get("stock", 0),
+            "Low Stock Threshold": p.get("lowStockThreshold", 5),
+            "In Stock": "Yes" if p.get("inStock", True) else "No",
+            "Published": "Yes" if not p.get("isHidden", False) else "No"
+        })
+    
+    return create_csv_response(export_data, f"products_export_{datetime.now().strftime('%Y%m%d')}.csv")
+
+@api_router.get("/export/users")
+async def export_users_csv(current_admin: dict = Depends(get_current_admin_user)):
+    """Export users data as CSV"""
+    users = await db.auth_users.find({}, {"_id": 0, "password_hash": 0}).to_list(length=None)
+    
+    export_data = []
+    for u in users:
+        export_data.append({
+            "Name": u.get("name", ""),
+            "Email": u.get("email", ""),
+            "Role": u.get("role", "user"),
+            "Membership Level": u.get("membershipLevel", ""),
+            "Joined Date": u.get("joinedDate", "")[:10] if u.get("joinedDate") else ""
+        })
+    
+    return create_csv_response(export_data, f"users_export_{datetime.now().strftime('%Y%m%d')}.csv")
+
+@api_router.get("/export/appointments")
+async def export_appointments_csv(current_admin: dict = Depends(get_current_admin_user)):
+    """Export appointments data as CSV"""
+    appointments = await db.appointments.find({}, {"_id": 0}).to_list(length=None)
+    
+    export_data = []
+    for a in appointments:
+        export_data.append({
+            "Service": a.get("serviceName", ""),
+            "Customer": a.get("customerName", ""),
+            "Email": a.get("customerEmail", ""),
+            "Date": a.get("date", ""),
+            "Time": a.get("time", ""),
+            "Status": a.get("status", ""),
+            "Amount": f"${a.get('totalPrice', 0):.2f}" if a.get('totalPrice') else ""
+        })
+    
+    return create_csv_response(export_data, f"appointments_export_{datetime.now().strftime('%Y%m%d')}.csv")
+
+@api_router.get("/export/classes")
+async def export_classes_csv(current_admin: dict = Depends(get_current_admin_user)):
+    """Export classes data as CSV"""
+    classes = await db.classes.find({}, {"_id": 0}).to_list(length=None)
+    
+    export_data = []
+    for c in classes:
+        export_data.append({
+            "Name": c.get("name", ""),
+            "Instructor": c.get("instructor", ""),
+            "Price": f"${c.get('price', 0):.2f}",
+            "Sessions": c.get("sessions", 0),
+            "Spots": c.get("spots", 0),
+            "Level": c.get("level", ""),
+            "Start Date": c.get("startDate", ""),
+            "Class Days": ", ".join(c.get("classDays", [])),
+            "Published": "Yes" if not c.get("isHidden", False) else "No"
+        })
+    
+    return create_csv_response(export_data, f"classes_export_{datetime.now().strftime('%Y%m%d')}.csv")
+
+@api_router.get("/export/retreats")
+async def export_retreats_csv(current_admin: dict = Depends(get_current_admin_user)):
+    """Export retreats data as CSV"""
+    retreats = await db.retreats.find({}, {"_id": 0}).to_list(length=None)
+    
+    export_data = []
+    for r in retreats:
+        export_data.append({
+            "Name": r.get("name", ""),
+            "Location": r.get("location", ""),
+            "Dates": r.get("dates", ""),
+            "Duration": r.get("duration", ""),
+            "Price": f"${r.get('price', 0):.2f}",
+            "Capacity": r.get("capacity", 0),
+            "Spots Left": r.get("spotsLeft", 0),
+            "Published": "Yes" if not r.get("isHidden", False) else "No"
+        })
+    
+    return create_csv_response(export_data, f"retreats_export_{datetime.now().strftime('%Y%m%d')}.csv")
+
+@api_router.get("/export/fundraisers")
+async def export_fundraisers_csv(current_admin: dict = Depends(get_current_admin_user)):
+    """Export fundraisers data as CSV"""
+    fundraisers = await db.fundraisers.find({}, {"_id": 0}).to_list(length=None)
+    
+    export_data = []
+    for f in fundraisers:
+        export_data.append({
+            "Title": f.get("title", ""),
+            "Beneficiary": f.get("beneficiary", ""),
+            "Goal Amount": f"${f.get('goalAmount', 0):.2f}",
+            "Raised Amount": f"${f.get('raisedAmount', 0):.2f}",
+            "Status": f.get("status", ""),
+            "Contributors": f.get("contributors", 0),
+            "End Date": f.get("endDate", "")
+        })
+    
+    return create_csv_response(export_data, f"fundraisers_export_{datetime.now().strftime('%Y%m%d')}.csv")
+
+@api_router.get("/export/orders")
+async def export_orders_csv(current_admin: dict = Depends(get_current_admin_user)):
+    """Export all orders data as CSV"""
+    orders = await db.orders.find({}, {"_id": 0}).to_list(length=None)
+    
+    export_data = []
+    for order in orders:
+        items_str = "; ".join([f"{item.get('name')} x{item.get('quantity')}" for item in order.get("items", [])])
+        export_data.append({
+            "Order ID": order.get("id", ""),
+            "Date": order.get("created_at", "")[:10] if order.get("created_at") else "",
+            "Customer": order.get("customer_name", ""),
+            "Email": order.get("customer_email", ""),
+            "Items": items_str,
+            "Type": order.get("payment_type", ""),
+            "Amount": f"${order.get('total_amount', 0) / 100:.2f}",
+            "Status": order.get("status", ""),
+            "Payment Method": order.get("payment_method", "square")
+        })
+    
+    return create_csv_response(export_data, f"orders_export_{datetime.now().strftime('%Y%m%d')}.csv")
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
