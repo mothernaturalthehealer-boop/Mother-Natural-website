@@ -140,6 +140,7 @@ export const ProductManagement = () => {
           price: parseFloat(newProduct.price),
           stock: parseInt(newProduct.stock) || 0,
           inStock: parseInt(newProduct.stock) > 0,
+          lowStockThreshold: parseInt(newProduct.lowStockThreshold) || 5,
           category: newProduct.category || (categories[0]?.toLowerCase() || ''),
           image: newProduct.image || 'https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg'
         })
@@ -147,7 +148,7 @@ export const ProductManagement = () => {
       if (response.ok) {
         toast.success('Product added successfully!');
         setShowAddProductDialog(false);
-        setNewProduct({ name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '', stock: '' });
+        setNewProduct({ name: '', price: '', category: '', description: '', sizes: [], flavors: [], image: '', stock: '', lowStockThreshold: 5 });
         setNewSizeName('');
         setNewSizePrice('');
         loadData();
