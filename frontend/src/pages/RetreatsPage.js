@@ -179,7 +179,33 @@ export const RetreatsPage = () => {
                   <span className="text-muted-foreground">Duration:</span>
                   <span className="font-medium">{bookingData.duration}</span>
                 </div>
+                
+                {/* Show selected add-ons */}
+                {bookingData.addOns && bookingData.addOns.length > 0 && (
+                  <div className="border-t pt-3 mt-3">
+                    <span className="text-muted-foreground text-sm font-medium">Selected Add-ons:</span>
+                    <div className="mt-2 space-y-1">
+                      {bookingData.addOns.map((addon, index) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">• {addon.name}</span>
+                          <span className="font-medium">+${addon.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="border-t pt-3 mt-3">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Base Price:</span>
+                    <span>${selectedRetreat?.price || (bookingData.totalPrice - (bookingData.addOnsTotal || 0))}</span>
+                  </div>
+                  {bookingData.addOnsTotal > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Add-ons Total:</span>
+                      <span>+${bookingData.addOnsTotal}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-muted-foreground">
                     <span>Full Price:</span>
                     <span>${bookingData.totalPrice}</span>
