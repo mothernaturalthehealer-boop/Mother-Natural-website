@@ -268,7 +268,7 @@ export const ClassesPage = () => {
           <DialogHeader>
             <DialogTitle className="font-heading">Choose Your Option</DialogTitle>
             <DialogDescription>
-              Select how you'd like to enroll in {selectedClass?.name}
+              Select how you&apos;d like to enroll in {selectedClass?.name}
             </DialogDescription>
           </DialogHeader>
           

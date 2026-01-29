@@ -226,7 +226,7 @@ export const RetreatsPage = () => {
           <PaymentForm
             amount={bookingData.amount}
             items={[{
-              id: `retreat-${Date.now()}`,
+              id: `retreat-${bookingData.retreat.replace(/\s+/g, '-').toLowerCase()}`,
               name: bookingData.retreat,
               quantity: 1,
               price: bookingData.amount
@@ -249,7 +249,7 @@ export const RetreatsPage = () => {
         <div className="text-center mb-12">
           <h1 className="font-heading text-4xl sm:text-5xl font-bold mb-4">Healing Retreats</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Transformative experiences in nature's most sacred spaces
+            Transformative experiences in nature&apos;s most sacred spaces
           </p>
         </div>
 
