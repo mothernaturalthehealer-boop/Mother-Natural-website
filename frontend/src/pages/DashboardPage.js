@@ -171,22 +171,42 @@ export const DashboardPage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Membership Card */}
-        <Card className="mb-8 bg-gradient-primary border-0 text-white">
+        {/* Membership Card - Clickable */}
+        <Card 
+          className="mb-8 bg-gradient-primary border-0 text-white cursor-pointer hover:shadow-xl transition-all group"
+          onClick={() => navigate('/loyalty')}
+          data-testid="membership-card"
+        >
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="font-heading text-2xl mb-2">Membership Status</CardTitle>
+                <CardTitle className="font-heading text-2xl mb-2 flex items-center gap-2">
+                  Membership Status
+                  <Sparkles className="h-5 w-5 opacity-70" />
+                </CardTitle>
                 <CardDescription className="text-white/80">
                   Member since {user.joinedDate ? new Date(user.joinedDate).toLocaleDateString() : 'Recently'}
                 </CardDescription>
               </div>
-              <Badge className="bg-white text-primary text-lg px-4 py-2">
-                <Award className="h-5 w-5 mr-2" />
-                {user.membershipLevel || 'Basic'}
-              </Badge>
+              <div className="flex items-center gap-3">
+                <Badge className="bg-white text-primary text-lg px-4 py-2 group-hover:scale-105 transition-transform">
+                  <span className="mr-2">{tierDisplay[user.membershipLevel]?.icon || '🌱'}</span>
+                  {tierDisplay[user.membershipLevel]?.name || 'Seed'}
+                </Badge>
+                <ArrowRight className="h-6 w-6 text-white/70 group-hover:translate-x-1 transition-transform" />
+              </div>
             </div>
           </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center justify-between text-white/80">
+              <p className="text-sm">
+                {tierDisplay[user.membershipLevel]?.title || 'Sacred Initiate'} • {user.loyaltyPoints || 0} Points
+              </p>
+              <p className="text-sm flex items-center gap-1">
+                View Rewards & Plant Game <ArrowRight className="h-4 w-4" />
+              </p>
+            </div>
+          </CardContent>
         </Card>
 
         {/* Main Content */}
