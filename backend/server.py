@@ -398,10 +398,15 @@ async def login_user(login_data: UserLoginModel):
         "name": user["name"],
         "email": user["email"],
         "role": user.get("role", "user"),
-        "membershipLevel": user.get("membershipLevel", "basic"),
+        "membershipLevel": user.get("membershipLevel", "seed"),
+        "membershipTier": user.get("membershipTier", "seed"),
         "joinedDate": user.get("joinedDate", ""),
         "profileImage": user.get("profileImage"),
-        "isCommunityMember": user.get("isCommunityMember", False)
+        "isCommunityMember": user.get("isCommunityMember", False),
+        "loyaltyPoints": user.get("loyaltyPoints", 0),
+        "totalPointsEarned": user.get("totalPointsEarned", 0),
+        "referralCode": user.get("referralCode"),
+        "referralCount": user.get("referralCount", 0)
     }
     
     return TokenModel(access_token=access_token, user=user_response)
@@ -415,10 +420,15 @@ async def get_current_user_info(current_user: dict = Depends(get_current_active_
         name=current_user["name"],
         email=current_user["email"],
         role=current_user.get("role", "user"),
-        membershipLevel=current_user.get("membershipLevel", "basic"),
+        membershipLevel=current_user.get("membershipLevel", "seed"),
+        membershipTier=current_user.get("membershipTier", "seed"),
         joinedDate=current_user.get("joinedDate", ""),
         profileImage=current_user.get("profileImage"),
-        isCommunityMember=current_user.get("isCommunityMember", False)
+        isCommunityMember=current_user.get("isCommunityMember", False),
+        loyaltyPoints=current_user.get("loyaltyPoints", 0),
+        totalPointsEarned=current_user.get("totalPointsEarned", 0),
+        referralCode=current_user.get("referralCode"),
+        referralCount=current_user.get("referralCount", 0)
     )
 
 
