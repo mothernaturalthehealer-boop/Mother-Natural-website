@@ -171,12 +171,20 @@ class UserInDB(BaseModel):
     email: str
     hashed_password: str
     role: str = "user"  # "user" or "admin"
-    membershipLevel: str = "basic"
+    membershipLevel: str = "seed"  # seed, root, bloom, divine
+    membershipTier: str = "seed"
     joinedDate: str
     created_at: str
     is_active: bool = True
     profileImage: Optional[str] = None
     isCommunityMember: bool = False
+    # Loyalty points
+    loyaltyPoints: int = 0
+    totalPointsEarned: int = 0
+    # Referral
+    referralCode: Optional[str] = None
+    referredBy: Optional[str] = None
+    referralCount: int = 0
 
 class UserResponse(BaseModel):
     id: str
@@ -184,16 +192,21 @@ class UserResponse(BaseModel):
     email: str
     role: str
     membershipLevel: str
+    membershipTier: str = "seed"
     joinedDate: str
     profileImage: Optional[str] = None
     isCommunityMember: bool = False
+    loyaltyPoints: int = 0
+    totalPointsEarned: int = 0
+    referralCode: Optional[str] = None
+    referralCount: int = 0
 
 class AdminCreateUserModel(BaseModel):
     name: str
     email: EmailStr
     password: str
     role: str = "user"
-    membershipLevel: str = "basic"
+    membershipLevel: str = "seed"
     isCommunityMember: bool = False
 
 
