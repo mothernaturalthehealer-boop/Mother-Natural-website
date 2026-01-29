@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ export const NotificationSettings = () => {
     email: 'admin@mothernatural.com'
   });
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/settings/low-stock`);
@@ -35,11 +35,11 @@ export const NotificationSettings = () => {
       console.error('Failed to load notification settings:', error);
     }
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     loadSettings();
-  }, []);
+  }, [loadSettings]);
 
   const handleSave = async () => {
     setSaving(true);
