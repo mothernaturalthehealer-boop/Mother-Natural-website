@@ -176,6 +176,7 @@ class UserInDB(BaseModel):
     created_at: str
     is_active: bool = True
     profileImage: Optional[str] = None
+    isCommunityMember: bool = False
 
 class UserResponse(BaseModel):
     id: str
@@ -185,6 +186,7 @@ class UserResponse(BaseModel):
     membershipLevel: str
     joinedDate: str
     profileImage: Optional[str] = None
+    isCommunityMember: bool = False
 
 class AdminCreateUserModel(BaseModel):
     name: str
@@ -192,6 +194,7 @@ class AdminCreateUserModel(BaseModel):
     password: str
     role: str = "user"
     membershipLevel: str = "basic"
+    isCommunityMember: bool = False
 
 
 # ===============================
