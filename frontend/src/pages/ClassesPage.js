@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Clock, Users, Calendar, BookOpen, DollarSign, Package } from 'lucide-react';
+import { Clock, Users, Calendar, BookOpen, DollarSign, Package, Gift } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
