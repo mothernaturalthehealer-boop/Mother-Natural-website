@@ -53,7 +53,22 @@ export const RetreatsPage = () => {
 
     setSelectedRetreat(retreat);
     setPaymentOption('');
+    setSelectedAddOns([]);
     setShowPaymentDialog(true);
+  };
+
+  const toggleAddOn = (addon) => {
+    setSelectedAddOns(prev => {
+      const exists = prev.find(a => a.name === addon.name);
+      if (exists) {
+        return prev.filter(a => a.name !== addon.name);
+      }
+      return [...prev, addon];
+    });
+  };
+
+  const getAddOnsTotal = () => {
+    return selectedAddOns.reduce((sum, addon) => sum + addon.price, 0);
   };
 
   const handlePayment = () => {
@@ -63,6 +78,7 @@ export const RetreatsPage = () => {
     }
 
     const option = selectedRetreat.paymentOptions.find(o => o.id === paymentOption);
+    const addOnsTotal = getAddOnsTotal();
     
     // Prepare booking data for contract
     const booking = {
@@ -73,8 +89,10 @@ export const RetreatsPage = () => {
       duration: selectedRetreat.duration,
       paymentPlan: option.label,
       paymentPlanId: option.id,
-      amount: option.amount,
-      totalPrice: selectedRetreat.price
+      amount: option.amount + addOnsTotal,
+      totalPrice: selectedRetreat.price + addOnsTotal,
+      addOns: selectedAddOns.length > 0 ? selectedAddOns : undefined,
+      addOnsTotal: addOnsTotal
     };
     
     setBookingData(booking);
