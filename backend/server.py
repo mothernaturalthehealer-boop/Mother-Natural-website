@@ -1903,6 +1903,42 @@ async def update_tax_settings(
     return {"success": True, "message": "Tax settings updated", "settings": settings_dict}
 
 
+# Low Stock Notification Settings
+class LowStockSettingsModel(BaseModel):
+    enabled: bool = True
+    email: str = "admin@mothernatural.com"
+
+@api_router.get("/settings/low-stock")
+async def get_low_stock_settings():
+    """Get low stock notification settings"""
+    settings = await db.settings.find_one({"type": "lowStockNotification"}, {"_id": 0})
+    if not settings:
+        return {
+            "enabled": True,
+            "email": "admin@mothernatural.com"
+        }
+    return {"enabled": settings.get("enabled", True), "email": settings.get("email", "admin@mothernatural.com")}
+
+@api_router.put("/settings/low-stock")
+async def update_low_stock_settings(
+    settings: LowStockSettingsModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Update low stock notification settings (admin only)"""
+    settings_dict = settings.model_dump()
+    settings_dict["type"] = "lowStockNotification"
+    settings_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    settings_dict["updated_by"] = current_admin["id"]
+    
+    await db.settings.update_one(
+        {"type": "lowStockNotification"},
+        {"$set": settings_dict},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Low stock notification settings updated", "settings": settings_dict}
+
+
 # ============= ANALYTICS API =============
 
 @api_router.get("/analytics/dashboard")
