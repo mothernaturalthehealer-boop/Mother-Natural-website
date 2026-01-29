@@ -1660,6 +1660,73 @@ This agreement is between Mother Natural: The Healing Lab and the client for ret
 By signing below, you acknowledge that you have read, understood, and agree to these terms."""
 
 
+# ============= CONTRACT TEMPLATES API =============
+
+class ContractTemplateModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: Optional[str] = None
+    name: str
+    type: str = "custom"  # appointment, retreat, class, custom
+    description: str = ""
+    content: str
+    isDefault: bool = False
+
+@api_router.get("/contract-templates")
+async def get_contract_templates():
+    """Get all contract templates"""
+    templates = await db.contract_templates.find({}, {"_id": 0}).to_list(1000)
+    return templates
+
+@api_router.post("/contract-templates")
+async def create_contract_template(
+    template: ContractTemplateModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Create a new contract template (admin only)"""
+    template_dict = template.model_dump()
+    template_dict["id"] = template_dict.get("id") or str(uuid.uuid4())
+    template_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    template_dict["created_by"] = current_admin["id"]
+    template_dict["isDefault"] = False  # User-created templates are never default
+    await db.contract_templates.insert_one(template_dict)
+    return {"success": True, "id": template_dict["id"], "template": {k: v for k, v in template_dict.items() if k != "_id"}}
+
+@api_router.put("/contract-templates/{template_id}")
+async def update_contract_template(
+    template_id: str,
+    template: ContractTemplateModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Update a contract template (admin only)"""
+    template_dict = template.model_dump()
+    template_dict.pop("id", None)
+    template_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    template_dict["updated_by"] = current_admin["id"]
+    
+    result = await db.contract_templates.update_one(
+        {"id": template_id},
+        {"$set": template_dict},
+        upsert=True  # Create if doesn't exist (for default templates being edited)
+    )
+    return {"success": True, "message": "Contract template updated"}
+
+@api_router.delete("/contract-templates/{template_id}")
+async def delete_contract_template(
+    template_id: str,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Delete a contract template (admin only, cannot delete defaults)"""
+    # Check if it's a default template
+    template = await db.contract_templates.find_one({"id": template_id})
+    if template and template.get("isDefault"):
+        raise HTTPException(status_code=400, detail="Cannot delete default templates")
+    
+    result = await db.contract_templates.delete_one({"id": template_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Contract template not found")
+    return {"success": True, "message": "Contract template deleted"}
+
+
 # ============= SIGNED CONTRACTS API =============
 
 class SignedContractModel(BaseModel):
