@@ -969,6 +969,7 @@ class ProductModel(BaseModel):
     inStock: bool = True
     rating: float = 4.5
     isHidden: bool = False  # Hidden from customers until ready
+    lowStockThreshold: int = 5  # Threshold for low stock notifications
 
 # Service Models
 class ServiceModel(BaseModel):
