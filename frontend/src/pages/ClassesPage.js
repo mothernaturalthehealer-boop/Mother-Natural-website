@@ -263,8 +263,8 @@ export const ClassesPage = () => {
       </div>
 
       {/* Package Selection Dialog */}
-      <Dialog open={showPackageDialog} onOpenChange={setShowPackageDialog}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={showPackageDialog} onOpenChange={(open) => { setShowPackageDialog(open); if (!open) setSelectedAddOns([]); }}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading">Choose Your Option</DialogTitle>
             <DialogDescription>
@@ -278,6 +278,7 @@ export const ClassesPage = () => {
               <div 
                 className="p-4 border rounded-lg cursor-pointer hover:border-primary transition-colors"
                 onClick={() => handleEnroll(selectedClass)}
+                data-testid="full-course-option"
               >
                 <div className="flex justify-between items-center">
                   <div>
@@ -286,7 +287,7 @@ export const ClassesPage = () => {
                       {selectedClass.sessions} sessions • Complete program
                     </p>
                   </div>
-                  <span className="text-xl font-bold text-primary">${selectedClass.price}</span>
+                  <span className="text-xl font-bold text-primary">${calculateTotal(selectedClass.price).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -296,6 +297,7 @@ export const ClassesPage = () => {
                   key={index}
                   className="p-4 border rounded-lg cursor-pointer hover:border-primary transition-colors"
                   onClick={() => handleEnroll(selectedClass, deal)}
+                  data-testid={`package-deal-${index}`}
                 >
                   <div className="flex justify-between items-center">
                     <div>
@@ -304,7 +306,7 @@ export const ClassesPage = () => {
                         {deal.sessions} sessions
                       </p>
                     </div>
-                    <span className="text-xl font-bold text-primary">${deal.price}</span>
+                    <span className="text-xl font-bold text-primary">${calculateTotal(deal.price).toFixed(2)}</span>
                   </div>
                 </div>
               ))}
@@ -314,6 +316,7 @@ export const ClassesPage = () => {
                 <div 
                   className="p-4 border rounded-lg cursor-pointer hover:border-primary transition-colors"
                   onClick={() => handleEnroll(selectedClass, { name: 'Single Drop-in', sessions: 1, price: selectedClass.dropInPrice })}
+                  data-testid="drop-in-option"
                 >
                   <div className="flex justify-between items-center">
                     <div>
@@ -322,15 +325,64 @@ export const ClassesPage = () => {
                         One class session
                       </p>
                     </div>
-                    <span className="text-xl font-bold text-primary">${selectedClass.dropInPrice}</span>
+                    <span className="text-xl font-bold text-primary">${calculateTotal(selectedClass.dropInPrice).toFixed(2)}</span>
                   </div>
+                </div>
+              )}
+
+              {/* Add-ons Section */}
+              {selectedClass.addOns && selectedClass.addOns.length > 0 && (
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3">
+                    <Gift className="h-4 w-4 text-primary" />
+                    Optional Add-ons
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedClass.addOns.map((addon, index) => {
+                      const isSelected = selectedAddOns.find(a => a.name === addon.name);
+                      return (
+                        <div 
+                          key={index}
+                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'hover:border-muted-foreground/50'}`}
+                          onClick={() => toggleAddOn(addon)}
+                          data-testid={`addon-${index}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Checkbox 
+                              checked={!!isSelected}
+                              onCheckedChange={() => toggleAddOn(addon)}
+                            />
+                            <div className="flex-1">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">{addon.name}</span>
+                                <span className="text-primary font-semibold">+${addon.price}</span>
+                              </div>
+                              {addon.description && (
+                                <p className="text-xs text-muted-foreground mt-1">{addon.description}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Add-ons Summary */}
+                  {selectedAddOns.length > 0 && (
+                    <div className="mt-3 p-3 bg-muted rounded-lg">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Selected add-ons ({selectedAddOns.length}):</span>
+                        <span className="font-semibold text-primary">+${selectedAddOns.reduce((sum, a) => sum + a.price, 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPackageDialog(false)}>
+            <Button variant="outline" onClick={() => { setShowPackageDialog(false); setSelectedAddOns([]); }}>
               Cancel
             </Button>
           </DialogFooter>
