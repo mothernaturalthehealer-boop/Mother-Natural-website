@@ -20,6 +20,7 @@ import { CartPage } from '@/pages/CartPage';
 import { LoginPage, SignupPage } from '@/pages/AuthPages';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { AdminPage } from '@/pages/AdminPage';
+import { LoyaltyPage } from '@/pages/LoyaltyPage';
 
 function App() {
   return (
