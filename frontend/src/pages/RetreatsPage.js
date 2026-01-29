@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ContractSigningDialog } from '@/components/ContractSigningDialog';
 import { PaymentForm } from '@/components/PaymentForm';
 import { toast } from 'sonner';
-import { Mountain, Calendar, Users, MapPin, DollarSign, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Mountain, Calendar, Users, MapPin, DollarSign, CheckCircle2, ArrowLeft, Gift } from 'lucide-react';
 
 export const RetreatsPage = () => {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ export const RetreatsPage = () => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [retreats, setRetreats] = useState([]);
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
   const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   // Load retreats from API
