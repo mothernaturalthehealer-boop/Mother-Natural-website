@@ -235,8 +235,40 @@ All requested features have been implemented and tested:
 
 ## Pending Items / Notes
 
-### Resend Email API Key
-- The current Resend API key may be invalid (returns "API key is invalid" error)
-- Domain verification is complete (DKIM & SPF verified on user's Resend dashboard)
-- User may need to generate a fresh API key from Resend dashboard
-- Update `RESEND_API_KEY` in `/app/backend/.env` with new key
+### Resend Email API Key (PENDING - Domain Verification)
+- Domain `mothernaturalhealinglab.com` verification is PENDING in Resend
+- Once domain verification completes (DNS propagation), emails will work
+- API key is valid and properly configured in `/app/backend/.env`
+
+---
+
+## Recent Updates (Jan 29, 2026)
+
+### Add-ons Checkout Integration ✅ COMPLETED
+- **Classes Page**: Enrollment dialog now shows "Optional Add-ons" section with checkboxes
+  - Customers can select multiple add-ons during enrollment
+  - Prices update dynamically showing base + add-ons total
+  - Selected add-ons included in cart data
+- **Retreats Page**: Booking dialog now shows "Optional Add-ons" section
+  - Add-ons work with all payment options (Full, Deposit, 50/50 Split)
+  - Payment amounts update to include add-on costs
+  - Booking summary shows selected add-ons breakdown
+- **Files Modified**: 
+  - `frontend/src/pages/ClassesPage.js` - Added toggleAddOn, calculateTotal functions
+  - `frontend/src/pages/RetreatsPage.js` - Added toggleAddOn, getAddOnsTotal functions
+
+### Code Cleanup ✅ COMPLETED  
+- Deleted unused `frontend/src/components/ImageUpload.js` (replaced by ImageCropUploader.js)
+
+### UI Verification ✅ CONFIRMED WORKING
+- Image cropping works on all admin forms (Products, Classes, Retreats, Services, Fundraisers)
+- Customer profile picture upload works on Dashboard
+- Hidden/Published toggle works for Products, Classes, Retreats, Fundraisers
+- Stock count displays correctly on Shop page with out-of-stock handling
+- Add-ons badges display in admin tables ("+N add-ons")
+
+---
+
+## Test Data Available
+- **Class with Add-ons**: "Morning Yoga Flow" - Yoga Mat ($35), Props Kit ($25)
+- **Retreat with Add-ons**: "Mountain Serenity Retreat" - Private Massage ($95), Sound Bath ($45), Airport Shuttle ($60)
