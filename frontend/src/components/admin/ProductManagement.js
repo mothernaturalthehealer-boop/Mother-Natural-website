@@ -214,7 +214,8 @@ export const ProductManagement = () => {
           ...editingProduct, 
           price: parseFloat(editingProduct.price),
           stock: parseInt(editingProduct.stock) || 0,
-          inStock: parseInt(editingProduct.stock) > 0
+          inStock: parseInt(editingProduct.stock) > 0,
+          lowStockThreshold: parseInt(editingProduct.lowStockThreshold) || 5
         })
       });
       if (response.ok) {
