@@ -547,6 +547,11 @@ export const ProductManagement = () => {
                 <p className="text-xs text-muted-foreground">Number of items available. Customers will see stock availability.</p>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="editLowStockThreshold">Low Stock Alert Threshold</Label>
+                <Input id="editLowStockThreshold" type="number" min="1" value={editingProduct.lowStockThreshold || 5} onChange={(e) => setEditingProduct({ ...editingProduct, lowStockThreshold: e.target.value })} placeholder="5" />
+                <p className="text-xs text-muted-foreground">Get notified when stock falls below this number.</p>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="editProductCategory">Category</Label>
                 <select id="editProductCategory" value={editingProduct.category} onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })} className="w-full px-3 py-2 border border-input rounded-md bg-background">
                   {categories.map((cat) => (<option key={cat} value={cat.toLowerCase()}>{cat}</option>))}
