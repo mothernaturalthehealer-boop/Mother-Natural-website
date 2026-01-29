@@ -339,6 +339,11 @@ export const ProductManagement = () => {
                     <p className="text-xs text-muted-foreground">Number of items available. Customers will see stock availability.</p>
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="lowStockThreshold">Low Stock Alert Threshold</Label>
+                    <Input id="lowStockThreshold" type="number" min="1" value={newProduct.lowStockThreshold} onChange={(e) => setNewProduct({ ...newProduct, lowStockThreshold: e.target.value })} placeholder="5" />
+                    <p className="text-xs text-muted-foreground">Get notified when stock falls below this number.</p>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
                     {categories.length === 0 ? (
                       <p className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">No categories yet. Please add categories first.</p>
