@@ -826,6 +826,101 @@ async def send_payment_receipt(customer_email: str, customer_name: str, order_id
     await asyncio.to_thread(resend.Emails.send, params)
 
 
+async def send_low_stock_notification(product_name: str, current_stock: int, threshold: int, notification_email: str):
+    """Send a low stock notification email to the admin"""
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff5f5;">
+        <div style="background: linear-gradient(135deg, #ef4444 0%, #f97316 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">⚠️ Low Stock Alert</h1>
+            <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">{BUSINESS_NAME}</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <p style="color: #333; font-size: 16px;">A product is running low on stock:</p>
+            
+            <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+                <h2 style="margin: 0 0 10px 0; color: #333;">{product_name}</h2>
+                <p style="margin: 5px 0; color: #666;"><strong>Current Stock:</strong> <span style="color: #ef4444; font-size: 20px; font-weight: bold;">{current_stock}</span> units</p>
+                <p style="margin: 5px 0; color: #666;"><strong>Low Stock Threshold:</strong> {threshold} units</p>
+            </div>
+            
+            <p style="color: #666;">Please restock this product soon to avoid running out of inventory.</p>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <p style="color: #999; font-size: 12px;">
+                    This is an automated notification from {BUSINESS_NAME}.<br>
+                    You can adjust low stock thresholds in the Admin Panel.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    params = {
+        "from": SENDER_EMAIL,
+        "to": [notification_email],
+        "subject": f"⚠️ Low Stock Alert: {product_name} - {BUSINESS_NAME}",
+        "html": html_content
+    }
+    
+    try:
+        await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Low stock notification sent for {product_name}")
+    except Exception as e:
+        logger.error(f"Failed to send low stock notification: {str(e)}")
+
+
+async def reduce_stock_and_check_notifications(items: List[PaymentItem]):
+    """Reduce stock for purchased products and send low stock notifications if needed"""
+    
+    # Get low stock notification settings
+    settings = await db.settings.find_one({"type": "lowStockNotification"}, {"_id": 0})
+    notification_email = settings.get("email", "admin@mothernatural.com") if settings else "admin@mothernatural.com"
+    notifications_enabled = settings.get("enabled", True) if settings else True
+    
+    for item in items:
+        if item.type != "product":
+            continue
+            
+        # Find the product - handle both regular ID and variant IDs
+        product_id = item.id.split("-variant-")[0] if "-variant-" in item.id else item.id
+        
+        product = await db.products.find_one({"id": product_id})
+        if not product:
+            continue
+            
+        # Reduce stock
+        new_stock = max(0, product.get("stock", 0) - item.quantity)
+        in_stock = new_stock > 0
+        
+        await db.products.update_one(
+            {"id": product_id},
+            {"$set": {"stock": new_stock, "inStock": in_stock}}
+        )
+        
+        logger.info(f"Stock reduced for {product.get('name')}: {product.get('stock')} -> {new_stock}")
+        
+        # Check if low stock notification is needed
+        threshold = product.get("lowStockThreshold", 5)
+        if notifications_enabled and new_stock <= threshold and new_stock > 0:
+            try:
+                await send_low_stock_notification(
+                    product_name=product.get("name", "Unknown Product"),
+                    current_stock=new_stock,
+                    threshold=threshold,
+                    notification_email=notification_email
+                )
+            except Exception as e:
+                logger.error(f"Failed to send low stock notification: {str(e)}")
+
+
 # Email API Endpoints
 @api_router.post("/email/send")
 async def send_single_email(request: EmailRequest):
