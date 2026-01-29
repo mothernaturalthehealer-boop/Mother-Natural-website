@@ -1735,8 +1735,11 @@ class SignedContractModel(BaseModel):
     contractType: str
     customerName: str
     customerEmail: str
-    signatureData: str  # Base64 signature image
+    signatureData: str = ""  # Base64 signature image
+    signature: str = ""  # Text signature
+    content: str = ""  # The contract content that was signed
     bookingId: str = ""
+    ipAddress: str = ""
     signedAt: Optional[str] = None
 
 
