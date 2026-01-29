@@ -63,30 +63,63 @@ export const ClassesPage = () => {
       return;
     }
 
+    // Calculate add-ons total
+    const addOnsTotal = selectedAddOns.reduce((sum, addon) => sum + addon.price, 0);
+    const basePrice = packageDeal ? packageDeal.price : classItem.price;
+    const totalPrice = basePrice + addOnsTotal;
+
     const enrollmentData = {
       id: packageDeal ? `${classItem.id}-pkg-${packageDeal.sessions}` : classItem.id,
       name: packageDeal ? `${classItem.name} - ${packageDeal.name}` : classItem.name,
-      price: packageDeal ? packageDeal.price : classItem.price,
+      price: totalPrice,
       image: classItem.image,
       type: 'class',
-      sessions: packageDeal ? packageDeal.sessions : classItem.sessions
+      sessions: packageDeal ? packageDeal.sessions : classItem.sessions,
+      addOns: selectedAddOns.length > 0 ? selectedAddOns : undefined
     };
 
     addToCart(enrollmentData);
-    toast.success(`${enrollmentData.name} added to cart!`);
+    
+    // Build success message
+    let successMessage = `${classItem.name} added to cart!`;
+    if (selectedAddOns.length > 0) {
+      successMessage = `${classItem.name} with ${selectedAddOns.length} add-on${selectedAddOns.length > 1 ? 's' : ''} added to cart!`;
+    }
+    toast.success(successMessage);
+    
     setShowPackageDialog(false);
+    setSelectedAddOns([]);
   };
 
   const handleEnrollClick = (classItem) => {
     const hasPackages = classItem.packageDeals && classItem.packageDeals.length > 0;
     const hasDropIn = classItem.dropInPrice && classItem.dropInPrice > 0;
+    const hasAddOns = classItem.addOns && classItem.addOns.length > 0;
     
-    if (hasPackages || hasDropIn) {
+    // Always show dialog if there are packages, drop-in options, or add-ons
+    if (hasPackages || hasDropIn || hasAddOns) {
       setSelectedClass(classItem);
+      setSelectedAddOns([]);
       setShowPackageDialog(true);
     } else {
+      setSelectedAddOns([]);
       handleEnroll(classItem);
     }
+  };
+
+  const toggleAddOn = (addon) => {
+    setSelectedAddOns(prev => {
+      const exists = prev.find(a => a.name === addon.name);
+      if (exists) {
+        return prev.filter(a => a.name !== addon.name);
+      }
+      return [...prev, addon];
+    });
+  };
+
+  const calculateTotal = (basePrice) => {
+    const addOnsTotal = selectedAddOns.reduce((sum, addon) => sum + addon.price, 0);
+    return basePrice + addOnsTotal;
   };
 
   return (
