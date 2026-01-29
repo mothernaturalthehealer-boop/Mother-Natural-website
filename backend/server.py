@@ -2439,6 +2439,323 @@ async def export_orders_csv(current_admin: dict = Depends(get_current_admin_user
     return create_csv_response(export_data, f"orders_export_{datetime.now().strftime('%Y%m%d')}.csv")
 
 
+# ============= STRIPE PAYMENT ENDPOINTS =============
+
+class StripeCheckoutRequest(BaseModel):
+    amount: float  # in dollars
+    items: List[PaymentItem]
+    paymentType: str
+    customerEmail: Optional[str] = None
+    customerName: Optional[str] = None
+    originUrl: str
+
+@api_router.post("/payments/stripe/create-session")
+async def create_stripe_checkout_session(request: StripeCheckoutRequest, http_request: Request):
+    """Create a Stripe checkout session"""
+    try:
+        stripe_api_key = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
+        
+        # Build webhook URL
+        host_url = str(http_request.base_url).rstrip('/')
+        webhook_url = f"{host_url}/api/webhook/stripe"
+        
+        stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
+        
+        # Create order in database first
+        order_id = str(uuid.uuid4())
+        order_doc = {
+            "id": order_id,
+            "items": [item.model_dump() for item in request.items],
+            "total_amount": int(request.amount * 100),  # Store in cents
+            "currency": "USD",
+            "payment_type": request.paymentType,
+            "customer_email": request.customerEmail,
+            "customer_name": request.customerName,
+            "payment_method": "stripe",
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.orders.insert_one(order_doc)
+        
+        # Build success and cancel URLs from frontend origin
+        success_url = f"{request.originUrl}/payment-success?session_id={{CHECKOUT_SESSION_ID}}&order_id={order_id}"
+        cancel_url = f"{request.originUrl}/cart"
+        
+        # Build item description for metadata
+        items_desc = ", ".join([f"{item.name} x{item.quantity}" for item in request.items])
+        
+        # Create Stripe checkout session
+        checkout_request = CheckoutSessionRequest(
+            amount=request.amount,
+            currency="usd",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "order_id": order_id,
+                "payment_type": request.paymentType,
+                "customer_email": request.customerEmail or "",
+                "items": items_desc[:500]  # Stripe metadata limit
+            }
+        )
+        
+        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Store session ID in order
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": {"stripe_session_id": session.session_id}}
+        )
+        
+        # Create payment transaction record
+        payment_doc = {
+            "id": str(uuid.uuid4()),
+            "order_id": order_id,
+            "stripe_session_id": session.session_id,
+            "amount": int(request.amount * 100),
+            "currency": "USD",
+            "payment_method": "stripe",
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.payment_transactions.insert_one(payment_doc)
+        
+        return {
+            "success": True,
+            "url": session.url,
+            "sessionId": session.session_id,
+            "orderId": order_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create Stripe checkout: {str(e)}")
+
+@api_router.get("/payments/stripe/status/{session_id}")
+async def get_stripe_payment_status(session_id: str):
+    """Check Stripe payment status and update order"""
+    try:
+        stripe_api_key = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
+        stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url="")
+        
+        status_response: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
+        
+        # Find the order by session ID
+        order = await db.orders.find_one({"stripe_session_id": session_id})
+        
+        if order and status_response.payment_status == "paid":
+            # Only process if not already completed
+            if order.get("status") != "completed":
+                # Update order status
+                await db.orders.update_one(
+                    {"stripe_session_id": session_id},
+                    {"$set": {
+                        "status": "completed",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                # Update payment transaction
+                await db.payment_transactions.update_one(
+                    {"stripe_session_id": session_id},
+                    {"$set": {
+                        "status": "completed",
+                        "payment_status": status_response.payment_status,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                # Reduce stock for products
+                items = [PaymentItem(**item) for item in order.get("items", [])]
+                await reduce_stock_and_check_notifications(items)
+                
+                # Send receipt email
+                if order.get("customer_email"):
+                    try:
+                        await send_payment_receipt(
+                            customer_email=order["customer_email"],
+                            customer_name=order.get("customer_name", "Valued Customer"),
+                            order_id=order["id"],
+                            amount=order["total_amount"] / 100,
+                            items=items,
+                            payment_type=order.get("payment_type", "product")
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to send receipt: {str(e)}")
+        
+        return {
+            "status": status_response.status,
+            "paymentStatus": status_response.payment_status,
+            "orderId": order["id"] if order else None
+        }
+        
+    except Exception as e:
+        logger.error(f"Stripe status check error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to check payment status: {str(e)}")
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks"""
+    try:
+        body = await request.body()
+        stripe_api_key = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
+        stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url="")
+        
+        signature = request.headers.get("Stripe-Signature", "")
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        if webhook_response.event_type == "checkout.session.completed":
+            session_id = webhook_response.session_id
+            
+            # Update order and payment transaction
+            await db.orders.update_one(
+                {"stripe_session_id": session_id},
+                {"$set": {"status": "completed", "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            await db.payment_transactions.update_one(
+                {"stripe_session_id": session_id},
+                {"$set": {"status": "completed", "payment_status": "paid"}}
+            )
+        
+        return {"status": "processed"}
+    except Exception as e:
+        logger.error(f"Stripe webhook error: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+# ============= PAYPAL PAYMENT ENDPOINTS =============
+
+class PayPalCheckoutRequest(BaseModel):
+    amount: float  # in dollars
+    items: List[PaymentItem]
+    paymentType: str
+    customerEmail: Optional[str] = None
+    customerName: Optional[str] = None
+    originUrl: str
+
+@api_router.post("/payments/paypal/create-order")
+async def create_paypal_order(request: PayPalCheckoutRequest):
+    """Create a PayPal order"""
+    try:
+        # Create order in database first
+        order_id = str(uuid.uuid4())
+        order_doc = {
+            "id": order_id,
+            "items": [item.model_dump() for item in request.items],
+            "total_amount": int(request.amount * 100),  # Store in cents
+            "currency": "USD",
+            "payment_type": request.paymentType,
+            "customer_email": request.customerEmail,
+            "customer_name": request.customerName,
+            "payment_method": "paypal",
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.orders.insert_one(order_doc)
+        
+        # Create payment transaction record
+        payment_doc = {
+            "id": str(uuid.uuid4()),
+            "order_id": order_id,
+            "amount": int(request.amount * 100),
+            "currency": "USD",
+            "payment_method": "paypal",
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.payment_transactions.insert_one(payment_doc)
+        
+        # Return order details for PayPal SDK to create order on frontend
+        return {
+            "success": True,
+            "orderId": order_id,
+            "amount": request.amount,
+            "currency": "USD"
+        }
+        
+    except Exception as e:
+        logger.error(f"PayPal order creation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create PayPal order: {str(e)}")
+
+@api_router.post("/payments/paypal/capture/{order_id}")
+async def capture_paypal_payment(order_id: str, paypal_order_id: str = Body(..., embed=True)):
+    """Capture PayPal payment after approval"""
+    try:
+        # Find our order
+        order = await db.orders.find_one({"id": order_id})
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Update order with PayPal order ID and mark as completed
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": {
+                "paypal_order_id": paypal_order_id,
+                "status": "completed",
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Update payment transaction
+        await db.payment_transactions.update_one(
+            {"order_id": order_id},
+            {"$set": {
+                "paypal_order_id": paypal_order_id,
+                "status": "completed",
+                "payment_status": "paid",
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Reduce stock for products
+        items = [PaymentItem(**item) for item in order.get("items", [])]
+        await reduce_stock_and_check_notifications(items)
+        
+        # Send receipt email
+        if order.get("customer_email"):
+            try:
+                await send_payment_receipt(
+                    customer_email=order["customer_email"],
+                    customer_name=order.get("customer_name", "Valued Customer"),
+                    order_id=order_id,
+                    amount=order["total_amount"] / 100,
+                    items=items,
+                    payment_type=order.get("payment_type", "product")
+                )
+            except Exception as e:
+                logger.error(f"Failed to send receipt: {str(e)}")
+        
+        return {
+            "success": True,
+            "orderId": order_id,
+            "message": "Payment captured successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"PayPal capture error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to capture PayPal payment: {str(e)}")
+
+@api_router.get("/payments/config/all")
+async def get_all_payment_configs():
+    """Get configuration for all payment methods"""
+    return {
+        "square": {
+            "enabled": True,
+            "applicationId": os.environ.get('SQUARE_APPLICATION_ID', ''),
+            "locationId": os.environ.get('SQUARE_LOCATION_ID', '')
+        },
+        "stripe": {
+            "enabled": True,
+            "publicKey": "pk_test_placeholder"  # Frontend uses redirect, doesn't need real key
+        },
+        "paypal": {
+            "enabled": True,
+            "clientId": os.environ.get('PAYPAL_CLIENT_ID', 'test_client_id')
+        }
+    }
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
