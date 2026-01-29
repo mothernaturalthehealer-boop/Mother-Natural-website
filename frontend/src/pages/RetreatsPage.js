@@ -319,16 +319,17 @@ export const RetreatsPage = () => {
       </div>
 
       {/* Payment Options Dialog */}
-      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={showPaymentDialog} onOpenChange={(open) => { setShowPaymentDialog(open); if (!open) setSelectedAddOns([]); }}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading text-2xl">Choose Payment Option</DialogTitle>
             <DialogDescription>
               {selectedRetreat?.name} - ${selectedRetreat?.price}
+              {getAddOnsTotal() > 0 && ` + $${getAddOnsTotal()} add-ons`}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
+          <div className="py-4 space-y-4">
             <RadioGroup value={paymentOption} onValueChange={setPaymentOption}>
               {selectedRetreat?.paymentOptions?.map((option) => (
                 <div
@@ -342,16 +343,72 @@ export const RetreatsPage = () => {
                     <Label htmlFor={option.id} className="cursor-pointer">
                       <div className="font-semibold">{option.label}</div>
                       <div className="text-sm text-muted-foreground">{option.description}</div>
-                      <div className="text-lg font-bold text-primary mt-1">${option.amount}</div>
+                      <div className="text-lg font-bold text-primary mt-1">
+                        ${(option.amount + getAddOnsTotal()).toFixed(2)}
+                        {getAddOnsTotal() > 0 && (
+                          <span className="text-sm font-normal text-muted-foreground ml-2">
+                            (${option.amount} + ${getAddOnsTotal()} add-ons)
+                          </span>
+                        )}
+                      </div>
                     </Label>
                   </div>
                 </div>
               ))}
             </RadioGroup>
+
+            {/* Add-ons Section */}
+            {selectedRetreat?.addOns && selectedRetreat.addOns.length > 0 && (
+              <div className="border-t pt-4">
+                <h4 className="font-semibold flex items-center gap-2 mb-3">
+                  <Gift className="h-4 w-4 text-primary" />
+                  Optional Add-ons
+                </h4>
+                <div className="space-y-2">
+                  {selectedRetreat.addOns.map((addon, index) => {
+                    const isSelected = selectedAddOns.find(a => a.name === addon.name);
+                    return (
+                      <div 
+                        key={index}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'hover:border-muted-foreground/50'}`}
+                        onClick={() => toggleAddOn(addon)}
+                        data-testid={`retreat-addon-${index}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox 
+                            checked={!!isSelected}
+                            onCheckedChange={() => toggleAddOn(addon)}
+                          />
+                          <div className="flex-1">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">{addon.name}</span>
+                              <span className="text-primary font-semibold">+${addon.price}</span>
+                            </div>
+                            {addon.description && (
+                              <p className="text-xs text-muted-foreground mt-1">{addon.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Add-ons Summary */}
+                {selectedAddOns.length > 0 && (
+                  <div className="mt-3 p-3 bg-muted rounded-lg">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Selected add-ons ({selectedAddOns.length}):</span>
+                      <span className="font-semibold text-primary">+${getAddOnsTotal().toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
+            <Button variant="outline" onClick={() => { setShowPaymentDialog(false); setSelectedAddOns([]); }}>
               Cancel
             </Button>
             <Button 
