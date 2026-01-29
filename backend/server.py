@@ -2326,7 +2326,9 @@ async def get_membership_tiers():
     if not tiers:
         # Initialize with defaults
         for tier in DEFAULT_MEMBERSHIP_TIERS:
-            await db.membership_tiers.insert_one(tier)
+            tier_copy = tier.copy()
+            await db.membership_tiers.insert_one(tier_copy)
+        # Return fresh copy without _id
         return DEFAULT_MEMBERSHIP_TIERS
     return tiers
 
