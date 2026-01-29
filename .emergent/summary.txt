@@ -2,152 +2,178 @@
 
 **PRODUCT REQUIREMENTS:**
 -   **Core Features:**
-    -   E-commerce shop for products with variants (sizes, flavors).
+    -   E-commerce shop for products with variants, stock count, and automatic population on the home page.
     -   Appointment booking system.
-    -   Enrollment for wellness classes.
-    -   A booking system for retreats.
+    -   Enrollment for wellness classes with enhanced options (instructor, date, package deals, add-ons, multiple days).
+    -   A booking system for retreats with add-ons.
     -   A private social platform/community for clients.
     -   A fundraiser section with an admin approval workflow.
     -   A contract signing system with editable templates.
     -   An emergency Crisis Support feature.
-    -   Image upload/display capabilities for all content types (products, services, classes, etc.).
--   **Admin Panel:** A comprehensive dashboard to manage all aspects of the app.
--   **Payments:** Integration with Square to process payments.
--   **Email:** Integration with an email service (Resend) for payment receipts and user communication.
--   **Authentication:** Secure user and admin authentication.
--   **Data Persistence:** A persistent database for all application data.
--   **Design:** A calming and beautiful UI using a color palette of light lavender, pink, and turquoise.
+    -   File-based image uploads with cropping for all content types.
+    -   User dashboard with profile picture uploads.
+    -   Ability to hide content (products, classes, etc.) from public view (draft/published mode).
+-   **Admin Panel:** A comprehensive dashboard to manage all app aspects, including analytics, user management, and tax settings.
+-   **Payments:** Integration with Square, including configurable tax calculation.
+-   **Email:** Integration with an email service (Resend) for communication.
+-   **Design:** A calming UI that preserves text formatting. The app icon and name should reflect the brand on mobile home screens.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack application with a React frontend and a FastAPI backend.
--   **Frontend:** Built with React, Tailwind CSS, and shadcn/ui. The monolithic  has been successfully refactored into 11 smaller, modular components located in .
--   **Backend:** FastAPI backend connected to a MongoDB database. It serves CRUD APIs for products, services, classes, retreats, and fundraisers. It also handles Square payments and Resend emails.
--   **Data Persistence:** The migration from  to MongoDB has begun.
-    -   **Migrated:**  and  now fetch and manage data via the backend API.
-    -   **Partially Migrated:** The code for , , , and  has been updated to use API calls, but this is untested.
-    -   **Not Migrated:** Other components (, , , etc.) still rely on .
--   **Integrations:**
-    -   **Square:** Production payment integration is working.
-    -   **Resend:** Email sending is functional and tested via the API.
--   **Features:** Product variants (sizes/flavors), image URL fields for content, and a fundraiser approval workflow have been implemented.
+A full-stack application with a React frontend and FastAPI backend using MongoDB. All major features from the product requirements have been implemented.
+-   **Backend:** Supports JWT auth, file uploads, and CRUD operations for all models, including new features like stock count, hidden/published status, add-ons for classes/retreats, configurable tax settings, and contract template management.
+-   **Frontend:** The UI has been enhanced across the board. The admin panel now includes management for new features like stock, hidden status, class add-ons, tax settings, and contract templates. The public-facing pages (Shop, Classes, Home) have been updated to display this new information (e.g., stock levels, new class details, products from API). Image uploads now use a cropper. The customer dashboard supports profile picture uploads.
 
 **Last working item**:
--   **Last item agent was working:** The agent was about to implement JWT-based authentication on the backend, following a user request to add security and complete the remaining tasks. The necessary Python libraries (, ) have been installed.
--   **Status:** IN PROGRESS
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** backend testing agent
+-   **Last item agent was working:** The user requested to add a feature for creating, editing, and deleting contract templates in the admin panel. The agent implemented this by creating backend CRUD endpoints for contract templates and overwriting the existing  component with a new version that supports full template management.
+-   **Status:** COMPLETED
+-   **Agent Testing Done:** Y
+-   **Which testing method agent to use?** The agent verified the new UI via a screenshot, which confirmed the template list, Add button, and signed contracts list were all displaying correctly. The API was also tested. The Add dialog was not shown in the final screenshot due to a session timeout.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   There are no outstanding critical issues. The primary payment blocker was resolved.
+-   **Issue 1: Resend API Key is Invalid (P1)**
+    -   **Attempted fixes:** The agent confirmed the backend code is correct but received an API key is invalid error when making a test call.
+    -   **Next debug checklist:**
+        1.  Inform the user that the  in  is invalid.
+        2.  Ask the user to provide a new, valid API key from their Resend account.
+        3.  Update the  file with the new key and re-run the test.
+    -   **Why fix this issue and what will be achieved with the fix?** Enables the application to send emails (e.g., receipts, notifications) from the user's branded domain, which is crucial for business operations.
+    -   **Status:** BLOCKED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** backend
+    -   **Blocked on other issue:** Awaiting a valid API key from the user.
+-   **Issue 2: User Confusion on Stock Count in Edit Form (P2)**
+    -   **Attempted fixes:** The user stated the stock count field was missing from the Edit Product dialog. The agent investigated, confirmed the field exists in the code (, lines 513-517), and provided a screenshot showing it. The issue seems to be user-side confusion or a UI rendering bug under specific conditions not reproduced by the agent.
+    -   **Next debug checklist:**
+        1.  Engage the user to confirm if they can now see the Stock Count field in the Edit Product dialog.
+        2.  If they still can't see it, ask for a screenshot from their end.
+        3.  Offer to move the field to a different location in the form (e.g., after size variants) if it improves visibility.
+    -   **Why fix this issue and what will be achieved with the fix?** Resolves user friction and ensures they can fully manage product stock.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   **Task 1: Complete Frontend Database Migration (P1)**
-    -   **Where to resume:** The agent has overwritten the files for , , , and . These components need to be tested to ensure they correctly interact with the backend API. The remaining admin components (, , , , , ) and public-facing pages still need to be migrated from  to use the backend API.
-    -   **What will be achieved with this?** A fully persistent and scalable data layer, removing reliance on browser .
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on something:** JWT Authentication should ideally be completed first so that API calls from the frontend can be secured.
+-   There are no tasks currently in progress.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0: Implement JWT Authentication:**
-        -   **Backend:** Create endpoints for token generation () and user registration. Secure all data-related API endpoints to require a valid JWT.
-        -   **Frontend:** Update the login/authentication flow to store the JWT and include it in the  header for all subsequent API requests.
-    -   **P1: Implement Email Payment Receipts:** The email sending API works. Now, trigger an email notification upon successful payment completion. This involves calling the  endpoint after a successful Square transaction.
-    -   **P1: Update From Email Address:** Change the sender email address in  for all Resend API calls to  as requested by the user.
+    -   **P1: Integrate Add-Ons into Checkout Flow:** The backend and admin UI support creating add-ons for classes and retreats, but the public-facing enrollment/booking process does not yet allow users to select and pay for them. This needs to be added to the  and  payment dialogs.
+    -   **P1: Full UI Verification of Recent Features:** Due to persistent session timeouts in the preview environment, several newly implemented features were only verified via backend API calls or partial screenshots. A full end-to-end UI verification is needed for:
+        -   Image cropping on all admin forms (Products, Classes, Retreats, Fundraisers, Services).
+        -   Customer profile picture upload and display on the .
+        -   The Add/Edit dialogs for Add-ons and Hidden status on  and .
 -   **Future Tasks:**
-    -   **P2: Verify Custom Domain on Resend:** Guide the user through the DNS verification process for their domain.
-    -   **P2: Native Mobile App:** A long-term goal to create a native version of the application.
+    -   **P2: Auto-reduce stock on purchase:** The stock count is currently manual. It should decrement automatically when an order is successfully placed.
+    -   **P2: Low stock email notifications:** Send an automated email to the admin when a product's stock drops below a certain threshold.
+    -   **P2: Native Mobile App / Push Notifications:** A long-term goal for deeper user engagement.
+    -   **P2: Advanced Reporting Exports:** Enhance the analytics dashboard with data export functionality (e.g., to CSV).
 
 **Completed work in this session**
--   **Payment Flow Bug Fixed:** Resolved a critical issue in the  that was preventing the payment form from appearing. The entire payment flow is now verified and functional.
--   **AdminPage.js Refactoring:** Successfully broke down the monolithic 3181-line  into a 300-line orchestrator and 11 modular, reusable components, drastically reducing technical debt.
--   **Product Variants Implemented:** Added functionality for creating products with multiple sizes and flavors, with conditional dropdowns appearing on the shop page.
--   **Image & Fundraiser Features:**
-    -   Added Image URL fields to Products, Services, Classes, and Fundraisers.
-    -   Implemented a full fundraiser approval workflow: users can apply, and admins can approve or reject pending applications.
--   **Database Migration Initiated:**
-    -   Built and tested backend CRUD API endpoints for Products, Services, Classes, Retreats, and Fundraisers using FastAPI and MongoDB.
-    -   Successfully connected the public  and the  admin component to the new database API.
--   **Email Functionality Verified:** Confirmed that the backend can successfully send emails via the Resend API.
+-   **Bug Fixes:**
+    -   Services are now displayed on the public-facing Appointments page (fixed loading from API instead of ).
+    -   Corrected the mobile home screen app icon and name by creating  and updating .
+    -   Updated the home screen icon again with a new user-provided image.
+    -   Fixed a bug where a service had a  id, causing rendering errors.
+    -   Preserved whitespace/formatting in descriptions across all relevant pages (, , , ).
+-   **Feature Enhancements:**
+    -   **Stock Management:** Implemented a stock count for products, visible in the admin panel and to customers. Add to Cart is disabled for out-of-stock items.
+    -   **Class Management:** Added fields for start/end dates, multiple class days, package deals, and add-ons. The public  was updated to display this new information.
+    -   **Products on Home Page:** The home page now dynamically fetches and displays products from the API.
+    -   **Configurable Taxes:** Replaced hardcoded tax with a dynamic system configurable via a new Tax tab in the admin panel.
+    -   **Image Cropping:** Replaced all image upload fields with a new  component to allow cropping for products, classes, retreats, fundraisers, and services.
+    -   **Customer Profile Pictures:** Users can now upload a profile picture from their dashboard.
+    -   **Hidden/Draft Mode:** Added an Is Published toggle to Products, Classes, Retreats, and Fundraisers, allowing admins to hide content from public view. Public-facing APIs now filter out hidden items.
+    -   **Contract Templates:** Enhanced the Contract Management system to allow admins to create, edit, and delete their own contract templates.
+-   **Code Refactoring:**
+    -   Deleted the unused  file.
+    -   Migrated  from using  to fetching data from the API.
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+-   The **Resend API Key is Invalid** and is a recurring blocker. This is documented in the All Pending/In progress Issue list.
 
 **Known issue recurrence from previous fork**
--   None. The admin login blank page issue did not recur after the refactoring.
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React, Tailwind CSS, shadcn/ui, React Router.
+-   **Frontend:** React, Tailwind CSS, shadcn/ui, React Router, .
 -   **Backend:** Python FastAPI, MongoDB (via ), Pydantic.
--   **Authentication:** In progress of implementing JWT (, ).
--   **Data Persistence:** Hybrid model. Migrating from  to MongoDB.
--   **Payments:** Square API (production).
--   **Email:** Resend API.
+-   **Authentication:** JWT (, ).
+-   **Payments:** Square API.
 
 **key DB schema**
--   Pydantic models are defined in  for: , , , , . These models include fields like , , , , and . All use a  string for uid=0(root) gid=0(root) groups=0(root).
+-   **ProductModel:** Added , .
+-   **ClassModel:** Added , , , , , , , , .
+-   **RetreatModel:** Added , .
+-   **FundraiserModel:** Added .
+-   **UserModel:** Added .
+-   **New Collection:**  (stores ).
+-   **New Collection:**  (stores ).
+-   **SignedContractModel:** Added .
 
 **changes in tech stack**
--    added for asynchronous MongoDB access.
--    and  added for JWT authentication.
+-   Added  and its dependencies (, ) to the frontend.
 
 **All files of reference**
--   : The newly refactored, lean orchestrator for the admin panel.
--   : The directory containing all the new modular admin components.
--   : Contains all backend logic, including database models, CRUD endpoints, and integrations.
--   , , , : These files have been updated but require testing.
+-   : Heavily modified to add all new models, endpoints, and logic for recent features.
+-   : All components within this directory were modified to add new features (stock, hidden toggle, add-ons, image cropper).
+-   : , , , , , , , ,  were all updated.
+-   : New component for handling image uploads with cropping.
+-   : New context for managing application-wide settings like taxes.
+-   : New component for the tax management UI.
+-   : New file to control mobile home screen appearance.
 
 **Areas that need refactoring**:
--   The main refactoring of  is complete. The next focus is to finish the data layer migration in all remaining frontend components that still use .
+-   The  component is now unused and should be deleted to avoid confusion.
 
 **key api endpoints**
--   , , , ,  (GET, POST, PUT, DELETE for each)
--    (POST)
--    (POST)
--   **Planned:**  (POST)
+-    (GET, PUT): Manages tax rate and label.
+-    (GET, POST, PUT, DELETE): Full CRUD for contract templates.
+-   : Updated to handle  uploads.
+-   , , ,  (GET): Updated to accept an  query parameter for fetching unpublished content in the admin panel.
 
 **Critical Info for New Agent**
--   The highest priority is to implement JWT authentication as requested by the user. This is a prerequisite for securing the new database API endpoints.
--   The application is in a transitional state. Some parts use the MongoDB backend, while others still use . The migration needs to be completed across all components to ensure data consistency.
--   The user wants the from email address for notifications changed to .
+-   **Session Timeouts:** The preview environment is very aggressive with session timeouts. This makes multi-step UI testing via the screenshot tool extremely difficult. You will likely get logged out between steps. Prioritize API-level testing with  to verify backend logic, and be prepared for UI verification to be challenging. Do not get stuck in a login-screenshot loop.
+-   **Resend API Key:** The user's Resend key is invalid. This is a hard blocker for any email-related features. You must get a new key from the user to proceed with email testing.
+-   **Verify Before Building:** Before adding new features, it's critical to perform a quick UI verification of the last set of features (Image Cropping, Profile Pictures, Add-ons UI) as the previous agent was hampered by session timeouts. The code is there, but a visual check is needed.
 
 **documents and test reports created in this job**
--    (Payment flow fix verification)
--    (Updated with completed tasks)
+-   
+-    (updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks to finish the last steps to redeploy. (Status: IN PROGRESS)
-2.  **User:** Asks the agent to complete the next three steps from the summary and to refactor . (Status: PARTIALLY COMPLETED - Refactoring done, other tasks in progress)
-3.  **User:** Provides email  and confirms to start refactoring first. (Status: COMPLETED)
-4.  **User:** Asks for image upload functionality for all content types and a fundraiser approval workflow. (Status: COMPLETED)
-5.  **User:** Expresses inability to see the newly added fields. (Implicit request to fix/verify) (Status: COMPLETED)
-6.  **User:** Asks to continue where the agent left off. (Status: COMPLETED)
-7.  **User:** Requests product variants (sizes/flavors) with conditional dropdowns on the shop page. (Status: COMPLETED)
-8.  **User:** Asks to remove example testimonials/products from the homepage. (From previous fork, addressed in this session by migrating to DB) (Status: COMPLETED)
-9.  **User:** Reports the payment flow is stuck. (From previous fork, resolved in this session) (Status: RESOLVED)
-10. **Agent:** Proposes a plan to refactor, migrate the database, and test emails. (Status: ACKNOWLEDGED by user)
+1.  **User:** Requested a feature to add/delete contracts with templates. (Status: **RESOLVED**)
+2.  **User:** Requested a feature to charge taxes on purchases. (Status: **RESOLVED**)
+3.  **User:** Requested hidden/draft mode for content and add-ons for classes/retreats. (Status: **PARTIALLY RESOLVED** - UI for add-on selection in checkout is pending).
+4.  **User:** Requested image cropping for all uploads and customer profile pictures. (Status: **RESOLVED**, but needs full UI verification).
+5.  **User:** Clarified they couldn't see the stock count field in the *edit* product form. (Status: **USER VERIFICATION PENDING** - Agent confirmed it exists).
+6.  **User:** Requested a stock count feature for products. (Status: **RESOLVED**)
+7.  **User:** Requested that product/class/etc. descriptions preserve their formatting (line breaks) and that products automatically show up on the main page. (Status: **RESOLVED**)
+8.  **User:** Requested enhancements for adding classes (instructor, price, description, date, package deals, multiple days). (Status: **RESOLVED**)
+9.  **User:** Requested to change the home screen icon image. (Status: **RESOLVED**)
+10. **Agent:** Finished fixing the initial three bugs (services not showing, wrong app icon/name). (Status: **RESOLVED**)
 
 **Project Health Check:**
--   **Broken:** Nothing is critically broken.
--   **Mocked/Partial:** The data layer is in a hybrid state. Some components use the database, while many still rely on . This is the most significant risk to data integrity.
+-   **Broken:** The Resend email integration is non-functional due to an invalid API key.
+-   **Mocked:** None. All data is live.
 
 **3rd Party Integrations**
--   **Square (Payments):** v33.0.0 (Production keys)
--   **Resend (Email):** v2.19.0
+-   **Square (Payments):** Integrated.
+-   **Resend (Email):** Integrated but **BLOCKED** due to an invalid API key.
+-   **react-image-crop:** New frontend library for image cropping.
 -   **passlib[bcrypt]:** For password hashing.
--   **python-jose:** For JWT creation and validation.
+-   **python-jose:** For JWT management.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES, successfully verified the payment flow fix.
+-   **Testing agent used after significant changes:** YES, for the initial batch of bug fixes.
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** A backend test file was created by the testing agent at .
+-   **Test files created:** None in this session.
 -   **Known regressions:** None.
 
 **Credentials to test flow:**
@@ -156,4 +182,6 @@ A full-stack application with a React frontend and a FastAPI backend.
     -   **Password:** 
 
 **What agent forgot to execute**
--   The agent correctly prioritized user requests. The current task (JWT implementation) was interrupted by the user's message to finish the last steps. The agent needs to resume this implementation.</analysis>
+-   **Implement Add-on Selection in Checkout:** The agent created the backend and admin UI for add-ons for classes and retreats but did not implement the corresponding frontend logic for customers to select and pay for these add-ons during the enrollment or booking process.
+-   **Delete Unused Component:** The old  component was replaced by  but was not deleted, leaving dead code in the repository.
+-   **Full UI Verification:** Due to session timeout issues, the agent was unable to perform a complete, end-to-end visual verification of several new features (image cropping, profile picture upload, add-ons UI). The backend is confirmed working, but the frontend requires a final check.</analysis>
