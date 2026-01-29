@@ -20,6 +20,7 @@ export const ClassesPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState(null);
   const [showPackageDialog, setShowPackageDialog] = useState(false);
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
 
   // Load classes from database
   useEffect(() => {
