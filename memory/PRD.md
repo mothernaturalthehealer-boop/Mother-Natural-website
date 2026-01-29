@@ -15,7 +15,7 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 - **Frontend**: React 19, Tailwind CSS, shadcn/ui
 - **Backend**: Python FastAPI, MongoDB (via motor)
 - **File Storage**: MongoDB GridFS for image uploads
-- **Payments**: Square API (Production)
+- **Payments**: Square API (Production), Stripe (Test), PayPal (Demo)
 - **Email**: Resend API (sender: contact@mothernaturalhealinglab.com)
 - **Authentication**: JWT (python-jose, passlib[bcrypt])
 
@@ -27,7 +27,38 @@ Build a comprehensive web application for a wellness business "Mother Natural: T
 
 ## ✅ ALL FEATURES COMPLETE - READY FOR DEPLOYMENT
 
-### Recent Fixes (Jan 15, 2026)
+### Recent Updates (Jan 29, 2026)
+
+#### Feature 1: Auto-Reduce Stock on Purchase ✅ COMPLETE
+- Stock automatically decrements when payment is successful
+- Works with Square, Stripe, and PayPal payments
+- Updates inStock status when stock reaches 0
+- **Files**: `backend/server.py` (reduce_stock_and_check_notifications function)
+
+#### Feature 2: Low Stock Email Notifications ✅ COMPLETE
+- Configurable threshold per product (lowStockThreshold field)
+- Global enable/disable toggle in Admin → Notifications
+- Configurable notification email address
+- Email sent when stock falls below threshold after purchase
+- **Note**: Requires Resend domain verification (currently PENDING)
+- **Files**: `backend/server.py`, `frontend/src/components/admin/NotificationSettings.js`
+
+#### Feature 3: CSV Export for All Reports ✅ COMPLETE
+- Export buttons in Admin → Notifications tab
+- Available exports: Revenue, Orders, Products, Users, Appointments, Classes, Retreats, Fundraisers
+- All exports include relevant data columns (e.g., Products export includes Low Stock Threshold)
+- **Files**: `backend/server.py` (/api/export/* endpoints)
+
+#### Feature 4: Multiple Payment Options ✅ COMPLETE (PARTIALLY MOCKED)
+- Square: Full production integration (existing)
+- Stripe: Test mode - creates checkout session and redirects (**MOCKED**)
+- PayPal: Demo mode - order creation and capture (**MOCKED**)
+- Customer chooses payment method at checkout via radio buttons
+- **Files**: `frontend/src/components/PaymentForm.js`, `backend/server.py`
+
+---
+
+### Previous Fixes (Jan 15, 2026)
 
 #### Issue 1: Services Not Showing for Customers ✅ FIXED
 - **Problem**: Services created in admin panel weren't appearing on the public Appointments page
