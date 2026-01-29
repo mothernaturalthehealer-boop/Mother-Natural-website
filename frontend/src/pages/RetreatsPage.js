@@ -301,7 +301,7 @@ export const RetreatsPage = () => {
                     </div>
 
                     <div>
-                      <h4 className="font-semibold text-sm mb-2">What's Included:</h4>
+                      <h4 className="font-semibold text-sm mb-2">What&apos;s Included:</h4>
                       <div className="flex flex-wrap gap-2">
                         {retreat.includes && retreat.includes.map((item, idx) => (
                           <Badge key={idx} variant="outline" className="border-primary/30">
