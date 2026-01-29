@@ -201,6 +201,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Refresh user data from server
+  const refreshUser = async () => {
+    if (!token) return null;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        return userData;
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
+    return null;
+  };
+
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
 
@@ -216,6 +239,7 @@ export const AuthProvider = ({ children }) => {
       updateUser,
       changePassword,
       getAuthHeaders,
+      refreshUser,
       isAdmin
     }}>
       {children}
