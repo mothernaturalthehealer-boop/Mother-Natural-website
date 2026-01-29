@@ -104,7 +104,8 @@ export const CommunityPage = () => {
           ...getAuthHeaders()
         },
         body: JSON.stringify({
-          author: user.name,
+          authorId: user.id,
+          authorName: user.name,
           content: newPost,
           membershipLevel: user.membershipLevel || 'Basic'
         })
