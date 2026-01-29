@@ -23,8 +23,6 @@ const tierDisplay = {
   platinum: { name: 'Divine', title: 'Celestial Embodiment', icon: '✨', color: 'text-purple-600' }
 };
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
-
 export const DashboardPage = () => {
   const { user, getAuthHeaders, updateUser } = useAuth();
   const navigate = useNavigate();
