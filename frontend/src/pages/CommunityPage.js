@@ -353,11 +353,11 @@ export const CommunityPage = () => {
                     <div className="flex items-center space-x-3">
                       <Avatar>
                         <AvatarImage src={post.avatar} />
-                        <AvatarFallback>{post.author?.charAt(0) || 'U'}</AvatarFallback>
+                        <AvatarFallback>{(post.authorName || post.author)?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <CardTitle className="text-base">{post.author}</CardTitle>
+                          <CardTitle className="text-base">{post.authorName || post.author}</CardTitle>
                           <Badge
                             variant="outline"
                             className={`text-xs ${
