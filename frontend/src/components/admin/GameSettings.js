@@ -236,12 +236,18 @@ export const GameSettings = () => {
       {/* Reward Types Section */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
-            <div>
-              <CardTitle>Reward Types & Target Days</CardTitle>
-              <CardDescription>Set how many days users have to grow their plant for each reward type</CardDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle>Reward Types & Target Days</CardTitle>
+                <CardDescription>Set how many days users have to grow their plant for each reward type</CardDescription>
+              </div>
             </div>
+            <Button onClick={() => setShowRewardTypeDialog(true)} size="sm" data-testid="add-reward-type-btn">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Reward Type
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -249,6 +255,7 @@ export const GameSettings = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Reward Type</TableHead>
+                <TableHead>ID</TableHead>
                 <TableHead>Target Days</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -257,6 +264,7 @@ export const GameSettings = () => {
               {rewardTypes.map((rt) => (
                 <TableRow key={rt.id}>
                   <TableCell className="font-medium">{rt.name}</TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-sm">{rt.id}</TableCell>
                   <TableCell>
                     {editingRewardType === rt.id ? (
                       <Input
@@ -277,17 +285,35 @@ export const GameSettings = () => {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingRewardType(rt.id)}
-                      data-testid={`edit-reward-${rt.id}`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingRewardType(rt.id)}
+                        data-testid={`edit-reward-${rt.id}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteRewardType(rt.id)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        data-testid={`delete-reward-${rt.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
+              {rewardTypes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    No reward types configured. Add one to get started.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
