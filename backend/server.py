@@ -2696,8 +2696,12 @@ async def delete_manifestation(
 # ============= PLANT WATERING GAME =============
 
 WATER_COOLDOWN_HOURS = 4
-WATER_GROWTH_PERCENT = 5.0
-PLANT_FOOD_GROWTH_PERCENT = 2.0
+WATER_GROWTH_PERCENT = 1.0  # Reduced from 5% - makes game harder, encourages referrals/purchases
+PLANT_FOOD_GROWTH_PERCENT = 2.0  # For friend link visits
+REFERRAL_GROWTH_PERCENT = 5.0  # When someone signs up with user's referral code
+PURCHASE_GROWTH_SMALL = 5.0  # For orders under $50
+PURCHASE_GROWTH_LARGE = 10.0  # For orders $50 or more
+PURCHASE_THRESHOLD = 50.0  # Dollar amount threshold for larger bonus
 
 @api_router.get("/game/plant")
 async def get_plant_game(current_user: dict = Depends(get_current_active_user)):
