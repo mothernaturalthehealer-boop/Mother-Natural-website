@@ -363,6 +363,9 @@ export const PaymentForm = ({
       }
 
       if (result) {
+        // Mark discount code as used
+        await markDiscountUsed();
+        
         setPaymentComplete(true);
         toast.success('Payment successful!');
         if (onSuccess) {
