@@ -2607,6 +2607,92 @@ async def apply_referral_code(
     return {"success": True, "message": "Referral code applied successfully!"}
 
 
+# ============= GAME SETTINGS API =============
+
+@api_router.get("/game/reward-types")
+async def get_reward_types():
+    """Get all reward types with target days"""
+    types = await db.game_reward_types.find({}, {"_id": 0}).sort("order", 1).to_list(10)
+    if not types:
+        # Initialize with defaults
+        for rt in DEFAULT_REWARD_TYPES:
+            rt_copy = rt.copy()
+            await db.game_reward_types.insert_one(rt_copy)
+        return DEFAULT_REWARD_TYPES
+    return types
+
+@api_router.put("/game/reward-types/{type_id}")
+async def update_reward_type(
+    type_id: str,
+    reward_type: RewardTypeModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Update a reward type (admin only)"""
+    rt_dict = reward_type.model_dump()
+    rt_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.game_reward_types.update_one(
+        {"id": type_id},
+        {"$set": rt_dict},
+        upsert=True
+    )
+    return {"success": True, "message": "Reward type updated"}
+
+@api_router.get("/game/manifestations")
+async def get_manifestations():
+    """Get all manifestations with plant types"""
+    manifestations = await db.game_manifestations.find({}, {"_id": 0}).sort("order", 1).to_list(20)
+    if not manifestations:
+        # Initialize with defaults
+        for m in DEFAULT_MANIFESTATIONS:
+            m_copy = m.copy()
+            await db.game_manifestations.insert_one(m_copy)
+        return DEFAULT_MANIFESTATIONS
+    return manifestations
+
+@api_router.post("/game/manifestations")
+async def create_manifestation(
+    manifestation: ManifestationModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Create a new manifestation (admin only)"""
+    m_dict = manifestation.model_dump()
+    m_dict["id"] = m_dict.get("id") or str(uuid.uuid4())
+    m_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.game_manifestations.insert_one(m_dict)
+    return {"success": True, "id": m_dict["id"], "manifestation": {k: v for k, v in m_dict.items() if k != "_id"}}
+
+@api_router.put("/game/manifestations/{manifestation_id}")
+async def update_manifestation(
+    manifestation_id: str,
+    manifestation: ManifestationModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Update a manifestation (admin only)"""
+    m_dict = manifestation.model_dump()
+    m_dict.pop("id", None)
+    m_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.game_manifestations.update_one(
+        {"id": manifestation_id},
+        {"$set": m_dict},
+        upsert=True
+    )
+    return {"success": True, "message": "Manifestation updated"}
+
+@api_router.delete("/game/manifestations/{manifestation_id}")
+async def delete_manifestation(
+    manifestation_id: str,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Delete a manifestation (admin only)"""
+    result = await db.game_manifestations.delete_one({"id": manifestation_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Manifestation not found")
+    return {"success": True, "message": "Manifestation deleted"}
+
+
 # ============= PLANT WATERING GAME =============
 
 WATER_COOLDOWN_HOURS = 4
