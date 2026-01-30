@@ -918,8 +918,8 @@ async def send_low_stock_notification(product_name: str, current_stock: int, thr
         logger.error(f"Failed to send low stock notification: {str(e)}")
 
 
-async def reduce_stock_and_check_notifications(items: List[PaymentItem]):
-    """Reduce stock for purchased products and send low stock notifications if needed"""
+async def reduce_stock_and_check_notifications(items: List[PaymentItem], customer_email: str = None, total_amount: float = 0):
+    """Reduce stock for purchased products, send low stock notifications, and add plant growth"""
     
     # Get low stock notification settings
     settings = await db.settings.find_one({"type": "lowStockNotification"}, {"_id": 0})
@@ -960,6 +960,56 @@ async def reduce_stock_and_check_notifications(items: List[PaymentItem]):
                 )
             except Exception as e:
                 logger.error(f"Failed to send low stock notification: {str(e)}")
+    
+    # Add plant growth bonus for purchases
+    if customer_email and total_amount > 0:
+        try:
+            await add_purchase_plant_growth(customer_email, total_amount)
+        except Exception as e:
+            logger.error(f"Failed to add plant growth for purchase: {str(e)}")
+
+
+async def add_purchase_plant_growth(customer_email: str, total_amount: float):
+    """Add plant growth when user makes a purchase"""
+    # Find user by email
+    user = await db.auth_users.find_one({"email": customer_email})
+    if not user:
+        return
+    
+    # Check if user has an active plant game
+    game = await db.plant_games.find_one(
+        {"userId": user["id"], "isComplete": False, "isExpired": False}
+    )
+    if not game:
+        return
+    
+    # Determine growth amount based on purchase amount
+    if total_amount >= PURCHASE_THRESHOLD:
+        growth_amount = PURCHASE_GROWTH_LARGE  # 10% for orders $50+
+    else:
+        growth_amount = PURCHASE_GROWTH_SMALL  # 5% for orders under $50
+    
+    new_growth = min(100, game["growthPercentage"] + growth_amount)
+    is_complete = new_growth >= 100
+    
+    await db.plant_games.update_one(
+        {"id": game["id"]},
+        {"$set": {"growthPercentage": new_growth, "isComplete": is_complete}}
+    )
+    
+    logger.info(f"Plant growth added for {customer_email}: +{growth_amount}% (${total_amount} purchase)")
+    
+    if is_complete:
+        await db.game_rewards.insert_one({
+            "id": str(uuid.uuid4()),
+            "userId": user["id"],
+            "gameId": game["id"],
+            "rewardType": game["rewardType"],
+            "rewardId": game["rewardId"],
+            "rewardName": game["rewardName"],
+            "claimedAt": None,
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        })
 
 
 # Email API Endpoints
