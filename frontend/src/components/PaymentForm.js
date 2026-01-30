@@ -283,7 +283,7 @@ export const PaymentForm = ({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        amount: amount,
+        amount: finalAmount,
         items: items.map(item => ({
           id: item.id || String(Date.now()),
           name: item.name,
@@ -294,6 +294,8 @@ export const PaymentForm = ({
         paymentType,
         customerEmail,
         customerName,
+        discountCode: appliedDiscount?.code || null,
+        discountAmount: discountAmount,
         originUrl: window.location.origin
       }),
     });
@@ -320,6 +322,21 @@ export const PaymentForm = ({
     }
 
     return captureData;
+  };
+
+  // Mark discount code as used after successful payment
+  const markDiscountUsed = async () => {
+    if (appliedDiscount?.code) {
+      try {
+        await fetch(`${API_URL}/api/discount-codes/use`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: appliedDiscount.code })
+        });
+      } catch (error) {
+        console.error('Failed to mark discount as used:', error);
+      }
+    }
   };
 
   const handlePaymentSubmit = async (e) => {
