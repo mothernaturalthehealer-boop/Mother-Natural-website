@@ -209,7 +209,7 @@ class TestStripePayment:
             "paymentType": "product",
             "customerEmail": "test@example.com",
             "customerName": "Test User",
-            "originUrl": "https://holistic-health-88.preview.emergentagent.com"
+            "originUrl": "https://healing-lab-2.preview.emergentagent.com"
         })
         
         # Should return 200 with session URL or 500 if Stripe key is test mode
@@ -234,7 +234,7 @@ class TestPayPalPayment:
             "paymentType": "product",
             "customerEmail": "test@example.com",
             "customerName": "Test User",
-            "originUrl": "https://holistic-health-88.preview.emergentagent.com"
+            "originUrl": "https://healing-lab-2.preview.emergentagent.com"
         })
         
         assert response.status_code == 200, f"PayPal order creation failed: {response.status_code}"
@@ -254,7 +254,7 @@ class TestPayPalPayment:
             "paymentType": "product",
             "customerEmail": "test@example.com",
             "customerName": "Test User",
-            "originUrl": "https://holistic-health-88.preview.emergentagent.com"
+            "originUrl": "https://healing-lab-2.preview.emergentagent.com"
         })
         
         if create_response.status_code != 200:
