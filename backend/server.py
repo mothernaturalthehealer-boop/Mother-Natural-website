@@ -1728,12 +1728,20 @@ async def create_community_post(post: CommunityPostModel):
 
 @api_router.post("/community/join")
 async def join_community(current_user: dict = Depends(get_current_active_user)):
-    """Join the community circle"""
+    """Request to join the community circle - requires admin approval"""
+    user = await db.auth_users.find_one({"id": current_user["id"]})
+    
+    if user.get("isCommunityMember"):
+        raise HTTPException(status_code=400, detail="You are already a community member")
+    
+    if user.get("communityPendingApproval"):
+        raise HTTPException(status_code=400, detail="Your membership request is pending approval")
+    
     await db.auth_users.update_one(
         {"id": current_user["id"]},
-        {"$set": {"isCommunityMember": True}}
+        {"$set": {"communityPendingApproval": True}}
     )
-    return {"success": True, "message": "Welcome to the Community Circle!"}
+    return {"success": True, "message": "Your request has been submitted! An admin will review it shortly."}
 
 
 @api_router.post("/community/leave")
@@ -1741,9 +1749,53 @@ async def leave_community(current_user: dict = Depends(get_current_active_user))
     """Leave the community circle"""
     await db.auth_users.update_one(
         {"id": current_user["id"]},
-        {"$set": {"isCommunityMember": False}}
+        {"$set": {"isCommunityMember": False, "communityPendingApproval": False}}
     )
     return {"success": True, "message": "You have left the Community Circle"}
+
+
+@api_router.get("/admin/community/pending")
+async def get_pending_community_requests(current_admin: dict = Depends(get_current_admin_user)):
+    """Get all users pending community approval (admin only)"""
+    pending_users = await db.auth_users.find(
+        {"communityPendingApproval": True},
+        {"_id": 0, "hashed_password": 0}
+    ).to_list(100)
+    return pending_users
+
+
+@api_router.post("/admin/community/approve/{user_id}")
+async def approve_community_request(
+    user_id: str,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Approve a community membership request (admin only)"""
+    result = await db.auth_users.update_one(
+        {"id": user_id},
+        {"$set": {"isCommunityMember": True, "communityPendingApproval": False}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"success": True, "message": "User approved for community membership"}
+
+
+@api_router.post("/admin/community/reject/{user_id}")
+async def reject_community_request(
+    user_id: str,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Reject a community membership request (admin only)"""
+    result = await db.auth_users.update_one(
+        {"id": user_id},
+        {"$set": {"communityPendingApproval": False}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"success": True, "message": "Community membership request rejected"}
 
 
 @api_router.get("/community/members/count")
