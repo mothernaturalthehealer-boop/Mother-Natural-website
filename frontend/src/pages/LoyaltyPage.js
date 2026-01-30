@@ -585,18 +585,21 @@ export const LoyaltyPage = () => {
                       </p>
                     </div>
                     
-                    <Progress value={game.growthPercentage} className="h-4" />
-                    
-                    <div className="grid grid-cols-2 gap-4 text-center">
+                    <div className="grid grid-cols-3 gap-3 text-center">
                       <div className="p-3 bg-muted rounded-lg">
                         <Droplets className="h-5 w-5 mx-auto text-blue-500 mb-1" />
                         <p className="text-lg font-bold">{game.waterCount}</p>
-                        <p className="text-xs text-muted-foreground">Times Watered</p>
+                        <p className="text-xs text-muted-foreground">Watered</p>
                       </div>
                       <div className="p-3 bg-muted rounded-lg">
                         <Leaf className="h-5 w-5 mx-auto text-green-500 mb-1" />
                         <p className="text-lg font-bold">{game.plantFood}</p>
-                        <p className="text-xs text-muted-foreground">Plant Food</p>
+                        <p className="text-xs text-muted-foreground">Food</p>
+                      </div>
+                      <div className="p-3 bg-muted rounded-lg">
+                        <Clock className="h-5 w-5 mx-auto text-amber-500 mb-1" />
+                        <p className="text-lg font-bold">{Math.max(0, Math.ceil((new Date(game.endDate) - new Date()) / (1000 * 60 * 60 * 24)))}</p>
+                        <p className="text-xs text-muted-foreground">Days Left</p>
                       </div>
                     </div>
                     
@@ -615,19 +618,15 @@ export const LoyaltyPage = () => {
                         ) : (
                           <>
                             <Droplets className="h-4 w-4 mr-2" />
-                            Water Plant
+                            Water (+1%)
                           </>
                         )}
                       </Button>
                       <Button variant="outline" onClick={shareGameLink}>
                         <Share2 className="h-4 w-4 mr-2" />
-                        Share for Food
+                        Share
                       </Button>
                     </div>
-                    
-                    <p className="text-xs text-muted-foreground text-center">
-                      Days remaining: {Math.max(0, Math.ceil((new Date(game.endDate) - new Date()) / (1000 * 60 * 60 * 24)))}
-                    </p>
                   </div>
                 ) : game?.isComplete ? (
                   <div className="text-center space-y-4">
