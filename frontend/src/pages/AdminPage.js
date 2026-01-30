@@ -284,6 +284,12 @@ export const AdminPage = () => {
             <TabsTrigger value="game" className="bg-purple-500/10">
               <Gamepad2 className="h-4 w-4 mr-1" />Game
             </TabsTrigger>
+            <TabsTrigger value="discounts" className="bg-pink-500/10">
+              <Ticket className="h-4 w-4 mr-1" />Discounts
+            </TabsTrigger>
+            <TabsTrigger value="community-approval" className="bg-orange-500/10">
+              <UserPlus className="h-4 w-4 mr-1" />Approvals
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="bg-primary/10">
               <BarChart3 className="h-4 w-4 mr-1" />Analytics
             </TabsTrigger>
@@ -343,6 +349,14 @@ export const AdminPage = () => {
 
           <TabsContent value="game" className="space-y-4">
             <GameSettings />
+          </TabsContent>
+
+          <TabsContent value="discounts" className="space-y-4">
+            <DiscountCodes />
+          </TabsContent>
+
+          <TabsContent value="community-approval" className="space-y-4">
+            <CommunityApproval />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4">
