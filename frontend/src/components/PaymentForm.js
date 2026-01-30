@@ -419,12 +419,65 @@ export const PaymentForm = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-6 p-4 bg-muted rounded-lg">
+        {/* Order Summary with Discount */}
+        <div className="mb-6 p-4 bg-muted rounded-lg space-y-3">
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Total Amount</span>
-            <span className="text-2xl font-bold text-primary">${amount.toFixed(2)}</span>
+            <span className="text-muted-foreground">Subtotal</span>
+            <span className="font-medium">${amount.toFixed(2)}</span>
+          </div>
+          
+          {appliedDiscount && (
+            <div className="flex justify-between items-center text-green-600">
+              <span className="flex items-center gap-2">
+                <Ticket className="h-4 w-4" />
+                {appliedDiscount.code}
+                <button 
+                  onClick={handleRemoveDiscount}
+                  className="text-red-500 hover:text-red-700"
+                  aria-label="Remove discount"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </span>
+              <span>-${discountAmount.toFixed(2)}</span>
+            </div>
+          )}
+          
+          <div className="border-t pt-3 flex justify-between items-center">
+            <span className="font-medium">Total</span>
+            <span className="text-2xl font-bold text-primary">${finalAmount.toFixed(2)}</span>
           </div>
         </div>
+
+        {/* Discount Code Input */}
+        {!appliedDiscount && (
+          <div className="mb-6">
+            <Label className="mb-2 block text-sm">Have a discount code?</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter code"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                className="font-mono"
+                disabled={isValidatingCode}
+                data-testid="discount-code-input"
+              />
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={handleApplyDiscount}
+                disabled={isValidatingCode || !discountCode.trim()}
+                data-testid="apply-discount-btn"
+              >
+                {isValidatingCode ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Apply'
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {errorMessage && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
