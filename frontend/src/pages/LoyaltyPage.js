@@ -429,22 +429,46 @@ export const LoyaltyPage = () => {
                 <div className="flex flex-col items-center justify-end h-full">
                   {game && !game.isComplete && !game.isExpired ? (
                     <>
-                      {/* Growing plant */}
+                      {/* Growing plant with actual plant image */}
                       <div className="relative">
-                        <div 
-                          className="text-center transition-all duration-500"
-                          style={{ 
-                            transform: `scale(${0.5 + (game.growthPercentage / 100) * 1.5})`,
-                            opacity: 0.5 + (game.growthPercentage / 100) * 0.5
-                          }}
-                        >
-                          {game.growthPercentage < 25 && <span className="text-6xl">🌱</span>}
-                          {game.growthPercentage >= 25 && game.growthPercentage < 50 && <span className="text-6xl">🌿</span>}
-                          {game.growthPercentage >= 50 && game.growthPercentage < 75 && <span className="text-6xl">🪴</span>}
-                          {game.growthPercentage >= 75 && game.growthPercentage < 100 && <span className="text-6xl">🌳</span>}
-                          {game.growthPercentage >= 100 && <span className="text-6xl">🌸</span>}
-                        </div>
+                        {game.plantImage ? (
+                          <div 
+                            className="transition-all duration-500"
+                            style={{ 
+                              transform: `scale(${0.6 + (game.growthPercentage / 100) * 0.6})`,
+                              opacity: 0.6 + (game.growthPercentage / 100) * 0.4
+                            }}
+                          >
+                            <img 
+                              src={game.plantImage} 
+                              alt={game.plantType || 'Your plant'} 
+                              className="w-32 h-32 object-cover rounded-full border-4 border-green-300 shadow-lg"
+                            />
+                          </div>
+                        ) : (
+                          <div 
+                            className="text-center transition-all duration-500"
+                            style={{ 
+                              transform: `scale(${0.5 + (game.growthPercentage / 100) * 1.5})`,
+                              opacity: 0.5 + (game.growthPercentage / 100) * 0.5
+                            }}
+                          >
+                            {game.growthPercentage < 25 && <span className="text-6xl">🌱</span>}
+                            {game.growthPercentage >= 25 && game.growthPercentage < 50 && <span className="text-6xl">🌿</span>}
+                            {game.growthPercentage >= 50 && game.growthPercentage < 75 && <span className="text-6xl">🪴</span>}
+                            {game.growthPercentage >= 75 && game.growthPercentage < 100 && <span className="text-6xl">🌳</span>}
+                            {game.growthPercentage >= 100 && <span className="text-6xl">🌸</span>}
+                          </div>
+                        )}
                       </div>
+                      
+                      {/* Plant name and manifestation */}
+                      {game.plantType && (
+                        <p className="text-sm text-green-700 mt-2 font-medium">{game.plantType}</p>
+                      )}
+                      {game.manifestationName && (
+                        <p className="text-xs text-green-600">✨ {game.manifestationName}</p>
+                      )}
                       
                       {/* Soil */}
                       <div className="w-32 h-8 bg-amber-800 rounded-t-full mt-2" />
@@ -457,7 +481,15 @@ export const LoyaltyPage = () => {
                     </>
                   ) : game?.isComplete ? (
                     <div className="text-center">
-                      <span className="text-8xl">🌸</span>
+                      {game.plantImage ? (
+                        <img 
+                          src={game.plantImage} 
+                          alt={game.plantType || 'Your plant'} 
+                          className="w-32 h-32 object-cover rounded-full border-4 border-yellow-400 shadow-lg mx-auto"
+                        />
+                      ) : (
+                        <span className="text-8xl">🌸</span>
+                      )}
                       <Trophy className="h-12 w-12 text-yellow-500 mx-auto mt-4" />
                       <p className="text-xl font-bold text-green-800 mt-2">Fully Grown!</p>
                       <p className="text-green-600">You won: {game.rewardName}</p>
