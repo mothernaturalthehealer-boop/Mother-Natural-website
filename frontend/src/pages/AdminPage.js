@@ -27,6 +27,7 @@ import {
 } from '@/components/admin';
 import { TaxSettings } from '@/components/admin/TaxSettings';
 import { NotificationSettings } from '@/components/admin/NotificationSettings';
+import { GameSettings } from '@/components/admin/GameSettings';
 
 export const AdminPage = () => {
   const { user, loading } = useAuth();
