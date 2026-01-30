@@ -424,6 +424,7 @@ async def login_user(login_data: UserLoginModel):
         "joinedDate": user.get("joinedDate", ""),
         "profileImage": user.get("profileImage"),
         "isCommunityMember": user.get("isCommunityMember", False),
+        "communityPendingApproval": user.get("communityPendingApproval", False),
         "loyaltyPoints": user.get("loyaltyPoints", 0),
         "totalPointsEarned": user.get("totalPointsEarned", 0),
         "referralCode": user.get("referralCode"),
