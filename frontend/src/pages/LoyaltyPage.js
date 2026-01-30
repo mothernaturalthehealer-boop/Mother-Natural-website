@@ -595,7 +595,7 @@ export const LoyaltyPage = () => {
                   <Droplets className="h-5 w-5 text-blue-500 mt-0.5" />
                   <div>
                     <p className="font-medium">Water Your Plant</p>
-                    <p className="text-sm text-muted-foreground">Log in and water every 4 hours (+5% growth)</p>
+                    <p className="text-sm text-muted-foreground">Log in and water every 4 hours (+1% growth)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
@@ -609,7 +609,14 @@ export const LoyaltyPage = () => {
                   <ShoppingBag className="h-5 w-5 text-amber-500 mt-0.5" />
                   <div>
                     <p className="font-medium">Make Purchases</p>
-                    <p className="text-sm text-muted-foreground">Purchases boost your plant with extra food!</p>
+                    <p className="text-sm text-muted-foreground">+5% for orders under $50, +10% for $50+</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-pink-50 rounded-lg">
+                  <Users className="h-5 w-5 text-pink-500 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Refer Friends</p>
+                    <p className="text-sm text-muted-foreground">When someone signs up with your code (+5% growth)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
