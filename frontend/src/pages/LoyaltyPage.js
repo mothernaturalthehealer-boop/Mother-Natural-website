@@ -617,57 +617,6 @@ export const LoyaltyPage = () => {
                   <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-amber-900 via-amber-800 to-transparent" />
                 )}
               </div>
-                  ) : game?.isComplete ? (
-                    <div className="text-center">
-                      {/* Celebration particles */}
-                      <div className="absolute inset-0 pointer-events-none">
-                        {[...Array(20)].map((_, i) => (
-                          <div
-                            key={i}
-                            className="absolute w-3 h-3 rounded-full animate-ping"
-                            style={{
-                              left: `${Math.random() * 100}%`,
-                              top: `${Math.random() * 100}%`,
-                              backgroundColor: ['#fbbf24', '#34d399', '#f472b6', '#60a5fa'][i % 4],
-                              animationDuration: `${1 + Math.random() * 2}s`,
-                              animationDelay: `${Math.random() * 2}s`
-                            }}
-                          />
-                        ))}
-                      </div>
-                      {game.plantImage ? (
-                        <img 
-                          src={game.plantImage} 
-                          alt={game.plantType || 'Your plant'} 
-                          className="w-40 h-40 object-cover rounded-full border-4 border-yellow-400 shadow-2xl mx-auto animate-bounce"
-                          style={{ animationDuration: '2s' }}
-                        />
-                      ) : (
-                        <span className="text-8xl">🌸</span>
-                      )}
-                      <Trophy className="h-14 w-14 text-yellow-500 mx-auto mt-4 animate-bounce" />
-                      <p className="text-2xl font-bold text-green-800 mt-2 drop-shadow">Fully Grown!</p>
-                      <p className="text-lg text-green-600 font-medium">You won: {game.rewardName}</p>
-                    </div>
-                  ) : (
-                    /* No Active Game - Animated Start Screen */
-                    <div className="text-center relative">
-                      {/* Floating seed animation */}
-                      <div className="relative inline-block mb-4">
-                        <div className="absolute inset-0 bg-green-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '2s' }} />
-                        <div className="animate-bounce" style={{ animationDuration: '3s' }}>
-                          <Leaf className="h-24 w-24 text-green-500 drop-shadow-lg" />
-                        </div>
-                      </div>
-                      <p className="text-lg text-green-800 font-medium mb-2">Your garden awaits!</p>
-                      <p className="text-sm text-green-600">Choose a reward and start growing</p>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Ground/Soil at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-amber-800 via-amber-700 to-transparent" />
-              </div>
               
               <CardContent className="pt-6">
                 <CardTitle className="flex items-center gap-2 mb-4">
