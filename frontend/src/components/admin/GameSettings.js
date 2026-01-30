@@ -269,6 +269,126 @@ export const GameSettings = () => {
         </div>
       </div>
 
+      {/* Active Games Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-green-600" />
+              <div>
+                <CardTitle>Active Plant Games</CardTitle>
+                <CardDescription>View and manage users' current plant games</CardDescription>
+              </div>
+            </div>
+            {activeGames.length > 0 && (
+              <Badge variant="secondary">{activeGames.length} active</Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {activeGames.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Leaf className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No active plant games at the moment</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Plant</TableHead>
+                  <TableHead>Reward</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Days Left</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeGames.map((game) => {
+                  const daysLeft = Math.max(0, Math.ceil((new Date(game.endDate) - new Date()) / (1000 * 60 * 60 * 24)));
+                  return (
+                    <TableRow key={game.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {game.userProfileImage ? (
+                            <img 
+                              src={game.userProfileImage} 
+                              alt={game.userName} 
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-sm font-medium text-primary">
+                                {game.userName?.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium text-sm">{game.userName}</p>
+                            <p className="text-xs text-muted-foreground">{game.userEmail}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {game.plantImage && (
+                            <img 
+                              src={game.plantImage} 
+                              alt={game.plantType} 
+                              className="w-8 h-8 rounded-full object-cover border"
+                            />
+                          )}
+                          <div>
+                            <p className="text-sm font-medium">{game.plantType || 'Unknown'}</p>
+                            <p className="text-xs text-muted-foreground">{game.manifestationName}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-sm">{game.rewardName}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{game.rewardType}</p>
+                      </TableCell>
+                      <TableCell>
+                        <div className="w-24">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium">{Math.round(game.growthPercentage)}%</span>
+                          </div>
+                          <Progress value={game.growthPercentage} className="h-2" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={daysLeft <= 7 ? "destructive" : "secondary"}>
+                          {daysLeft} days
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleResetGame(game.id, game.userName)}
+                          disabled={resettingGame === game.id}
+                          className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                          data-testid={`reset-game-${game.id}`}
+                        >
+                          {resettingGame === game.id ? (
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <RotateCcw className="h-4 w-4 mr-1" />
+                              Reset
+                            </>
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Reward Types Section */}
       <Card>
         <CardHeader>
