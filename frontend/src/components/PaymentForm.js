@@ -218,7 +218,7 @@ export const PaymentForm = ({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sourceId: tokenResult.token,
-        amount: Math.round(amount * 100),
+        amount: Math.round(finalAmount * 100),
         currency: 'USD',
         paymentType,
         items: items.map(item => ({
@@ -229,7 +229,9 @@ export const PaymentForm = ({
           type: paymentType
         })),
         customerEmail,
-        customerName
+        customerName,
+        discountCode: appliedDiscount?.code || null,
+        discountAmount: discountAmount
       }),
     });
 
@@ -247,7 +249,7 @@ export const PaymentForm = ({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        amount: amount,
+        amount: finalAmount,
         items: items.map(item => ({
           id: item.id || String(Date.now()),
           name: item.name,
@@ -258,6 +260,8 @@ export const PaymentForm = ({
         paymentType,
         customerEmail,
         customerName,
+        discountCode: appliedDiscount?.code || null,
+        discountAmount: discountAmount,
         originUrl: window.location.origin
       }),
     });
