@@ -419,88 +419,155 @@ export const LoyaltyPage = () => {
           {/* Right Column - Plant Game */}
           <div className="space-y-6">
             <Card className="overflow-hidden border-2 border-green-200">
-              <div className="bg-gradient-to-b from-sky-200 via-sky-100 to-green-100 p-8 min-h-[300px] relative">
-                {/* Sun */}
+              {/* Animated Garden Background */}
+              <div className="relative min-h-[380px] overflow-hidden">
+                {/* Animated Sky Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-b from-sky-300 via-sky-200 to-emerald-100 animate-pulse" style={{ animationDuration: '8s' }} />
+                
+                {/* Floating Clouds */}
+                <div className="absolute top-6 left-4 w-16 h-8 bg-white/70 rounded-full blur-sm animate-bounce" style={{ animationDuration: '6s' }} />
+                <div className="absolute top-10 left-20 w-12 h-6 bg-white/60 rounded-full blur-sm animate-bounce" style={{ animationDuration: '8s', animationDelay: '1s' }} />
+                <div className="absolute top-4 right-24 w-14 h-7 bg-white/50 rounded-full blur-sm animate-bounce" style={{ animationDuration: '7s', animationDelay: '2s' }} />
+                
+                {/* Animated Sun with Glow */}
                 <div className="absolute top-4 right-4">
-                  <Sun className="h-12 w-12 text-yellow-400 drop-shadow-lg" />
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-yellow-300 rounded-full blur-xl animate-pulse opacity-60" style={{ width: '60px', height: '60px', animationDuration: '2s' }} />
+                    <Sun className="h-14 w-14 text-yellow-400 drop-shadow-lg relative z-10 animate-spin" style={{ animationDuration: '60s' }} />
+                  </div>
+                </div>
+                
+                {/* Floating Sparkles/Particles */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(12)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-2 h-2 bg-yellow-300/60 rounded-full animate-ping"
+                      style={{
+                        left: `${10 + (i * 7) % 80}%`,
+                        top: `${15 + (i * 11) % 60}%`,
+                        animationDuration: `${2 + (i % 3)}s`,
+                        animationDelay: `${i * 0.3}s`
+                      }}
+                    />
+                  ))}
                 </div>
                 
                 {/* Plant visualization */}
-                <div className="flex flex-col items-center justify-end h-full">
+                <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 pb-4">
                   {game && !game.isComplete && !game.isExpired ? (
                     <>
-                      {/* Growing plant with actual plant image */}
-                      <div className="relative">
+                      {/* Large Plant Image */}
+                      <div className="relative mb-4">
                         {game.plantImage ? (
                           <div 
-                            className="transition-all duration-500"
+                            className="transition-all duration-700 ease-out"
                             style={{ 
-                              transform: `scale(${0.6 + (game.growthPercentage / 100) * 0.6})`,
-                              opacity: 0.6 + (game.growthPercentage / 100) * 0.4
+                              transform: `scale(${0.8 + (game.growthPercentage / 100) * 0.4})`,
                             }}
                           >
+                            {/* Glow effect behind plant */}
+                            <div className="absolute inset-0 bg-green-400/30 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '3s' }} />
                             <img 
                               src={game.plantImage} 
                               alt={game.plantType || 'Your plant'} 
-                              className="w-32 h-32 object-cover rounded-full border-4 border-green-300 shadow-lg"
+                              className="w-44 h-44 object-cover rounded-full border-4 border-green-400 shadow-2xl relative z-10"
                             />
                           </div>
                         ) : (
                           <div 
                             className="text-center transition-all duration-500"
                             style={{ 
-                              transform: `scale(${0.5 + (game.growthPercentage / 100) * 1.5})`,
-                              opacity: 0.5 + (game.growthPercentage / 100) * 0.5
+                              transform: `scale(${0.8 + (game.growthPercentage / 100) * 0.5})`,
                             }}
                           >
-                            {game.growthPercentage < 25 && <span className="text-6xl">🌱</span>}
-                            {game.growthPercentage >= 25 && game.growthPercentage < 50 && <span className="text-6xl">🌿</span>}
-                            {game.growthPercentage >= 50 && game.growthPercentage < 75 && <span className="text-6xl">🪴</span>}
-                            {game.growthPercentage >= 75 && game.growthPercentage < 100 && <span className="text-6xl">🌳</span>}
-                            {game.growthPercentage >= 100 && <span className="text-6xl">🌸</span>}
+                            {game.growthPercentage < 25 && <span className="text-8xl">🌱</span>}
+                            {game.growthPercentage >= 25 && game.growthPercentage < 50 && <span className="text-8xl">🌿</span>}
+                            {game.growthPercentage >= 50 && game.growthPercentage < 75 && <span className="text-8xl">🪴</span>}
+                            {game.growthPercentage >= 75 && game.growthPercentage < 100 && <span className="text-8xl">🌳</span>}
+                            {game.growthPercentage >= 100 && <span className="text-8xl">🌸</span>}
                           </div>
                         )}
                       </div>
                       
                       {/* Plant name and manifestation */}
-                      {game.plantType && (
-                        <p className="text-sm text-green-700 mt-2 font-medium">{game.plantType}</p>
-                      )}
-                      {game.manifestationName && (
-                        <p className="text-xs text-green-600">✨ {game.manifestationName}</p>
-                      )}
+                      <div className="text-center mb-3">
+                        {game.plantType && (
+                          <p className="text-lg font-bold text-green-800 drop-shadow">{game.plantType}</p>
+                        )}
+                        {game.manifestationName && (
+                          <p className="text-sm text-green-700 font-medium">✨ {game.manifestationName}</p>
+                        )}
+                      </div>
                       
-                      {/* Soil */}
-                      <div className="w-32 h-8 bg-amber-800 rounded-t-full mt-2" />
+                      {/* Growth Percentage - Large Display */}
+                      <div className="text-center mb-3">
+                        <p className="text-4xl font-bold text-green-800 drop-shadow-sm">{Math.round(game.growthPercentage)}%</p>
+                      </div>
                       
-                      {/* Growth progress */}
-                      <div className="mt-4 text-center">
-                        <p className="text-2xl font-bold text-green-800">{Math.round(game.growthPercentage)}%</p>
-                        <p className="text-sm text-green-700">Growth</p>
+                      {/* Progress Bar at Bottom */}
+                      <div className="w-full max-w-xs px-4">
+                        <div className="relative h-6 bg-green-900/30 rounded-full overflow-hidden backdrop-blur-sm border border-green-400/50">
+                          <div 
+                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 via-emerald-400 to-green-300 rounded-full transition-all duration-700 ease-out"
+                            style={{ width: `${game.growthPercentage}%` }}
+                          >
+                            {/* Shimmer effect */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" style={{ animationDuration: '2s' }} />
+                          </div>
+                        </div>
                       </div>
                     </>
                   ) : game?.isComplete ? (
                     <div className="text-center">
+                      {/* Celebration particles */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        {[...Array(20)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="absolute w-3 h-3 rounded-full animate-ping"
+                            style={{
+                              left: `${Math.random() * 100}%`,
+                              top: `${Math.random() * 100}%`,
+                              backgroundColor: ['#fbbf24', '#34d399', '#f472b6', '#60a5fa'][i % 4],
+                              animationDuration: `${1 + Math.random() * 2}s`,
+                              animationDelay: `${Math.random() * 2}s`
+                            }}
+                          />
+                        ))}
+                      </div>
                       {game.plantImage ? (
                         <img 
                           src={game.plantImage} 
                           alt={game.plantType || 'Your plant'} 
-                          className="w-32 h-32 object-cover rounded-full border-4 border-yellow-400 shadow-lg mx-auto"
+                          className="w-40 h-40 object-cover rounded-full border-4 border-yellow-400 shadow-2xl mx-auto animate-bounce"
+                          style={{ animationDuration: '2s' }}
                         />
                       ) : (
                         <span className="text-8xl">🌸</span>
                       )}
-                      <Trophy className="h-12 w-12 text-yellow-500 mx-auto mt-4" />
-                      <p className="text-xl font-bold text-green-800 mt-2">Fully Grown!</p>
-                      <p className="text-green-600">You won: {game.rewardName}</p>
+                      <Trophy className="h-14 w-14 text-yellow-500 mx-auto mt-4 animate-bounce" />
+                      <p className="text-2xl font-bold text-green-800 mt-2 drop-shadow">Fully Grown!</p>
+                      <p className="text-lg text-green-600 font-medium">You won: {game.rewardName}</p>
                     </div>
                   ) : (
-                    <div className="text-center">
-                      <Leaf className="h-16 w-16 text-green-400 mx-auto opacity-50" />
-                      <p className="text-muted-foreground mt-4">Start growing your plant!</p>
+                    /* No Active Game - Animated Start Screen */
+                    <div className="text-center relative">
+                      {/* Floating seed animation */}
+                      <div className="relative inline-block mb-4">
+                        <div className="absolute inset-0 bg-green-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '2s' }} />
+                        <div className="animate-bounce" style={{ animationDuration: '3s' }}>
+                          <Leaf className="h-24 w-24 text-green-500 drop-shadow-lg" />
+                        </div>
+                      </div>
+                      <p className="text-lg text-green-800 font-medium mb-2">Your garden awaits!</p>
+                      <p className="text-sm text-green-600">Choose a reward and start growing</p>
                     </div>
                   )}
                 </div>
+                
+                {/* Ground/Soil at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-amber-800 via-amber-700 to-transparent" />
               </div>
               
               <CardContent className="pt-6">
