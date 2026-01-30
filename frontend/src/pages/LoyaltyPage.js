@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { 
   Sparkles, Gift, Users, ShoppingBag, Share2, Copy, Check, 
-  Droplets, Leaf, Sun, Trophy, Clock, ArrowRight, Star
+  Droplets, Leaf, Sun, Trophy, Clock, Star
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
