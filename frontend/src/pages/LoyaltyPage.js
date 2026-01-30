@@ -517,11 +517,11 @@ export const LoyaltyPage = () => {
                             key={i}
                             className="absolute w-3 h-3 rounded-full animate-ping"
                             style={{
-                              left: `${10 + Math.random() * 80}%`,
-                              top: `${10 + Math.random() * 80}%`,
+                              left: `${10 + ((i * 17) % 80)}%`,
+                              top: `${10 + ((i * 23) % 70)}%`,
                               backgroundColor: ['#fbbf24', '#34d399', '#f472b6', '#60a5fa', '#a78bfa'][i % 5],
-                              animationDuration: `${1.5 + Math.random() * 1.5}s`,
-                              animationDelay: `${Math.random() * 2}s`
+                              animationDuration: `${1.5 + (i % 3) * 0.5}s`,
+                              animationDelay: `${(i % 5) * 0.4}s`
                             }}
                           />
                         ))}
