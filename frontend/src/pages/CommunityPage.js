@@ -23,6 +23,13 @@ export const CommunityPage = () => {
   const isMember = user?.isCommunityMember === true;
   const isPending = user?.communityPendingApproval === true;
 
+  // Refresh user data when page loads to check for approval status changes
+  useEffect(() => {
+    if (user && refreshUser) {
+      refreshUser();
+    }
+  }, []); // Only run once on mount
+
   // Load posts from API
   const loadPosts = useCallback(async () => {
     try {
