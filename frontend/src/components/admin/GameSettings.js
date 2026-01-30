@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Gamepad2, Target, Sparkles, Leaf, Plus, Pencil, Trash2, RefreshCw } from 'lucide-react';
+import { Gamepad2, Target, Sparkles, Leaf, Plus, Pencil, Trash2, RefreshCw, Users, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -40,12 +42,17 @@ export const GameSettings = () => {
     order: 1
   });
 
+  // Active Games
+  const [activeGames, setActiveGames] = useState([]);
+  const [resettingGame, setResettingGame] = useState(null);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [rewardRes, manifestRes] = await Promise.all([
+      const [rewardRes, manifestRes, gamesRes] = await Promise.all([
         fetch(`${API_URL}/api/game/reward-types`),
-        fetch(`${API_URL}/api/game/manifestations`)
+        fetch(`${API_URL}/api/game/manifestations`),
+        fetch(`${API_URL}/api/admin/games/active`, { headers: getAuthHeaders() })
       ]);
       
       if (rewardRes.ok) {
