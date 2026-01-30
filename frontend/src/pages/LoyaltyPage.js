@@ -147,6 +147,10 @@ export const LoyaltyPage = () => {
       toast.error('Please select a reward');
       return;
     }
+    if (!selectedManifestation) {
+      toast.error('Please select a manifestation');
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/api/game/plant/start`, {
@@ -156,7 +160,7 @@ export const LoyaltyPage = () => {
           rewardType: selectedReward.type,
           rewardId: selectedReward.id,
           rewardName: selectedReward.name,
-          targetDays: targetDays
+          manifestationId: selectedManifestation
         })
       });
 
@@ -164,6 +168,8 @@ export const LoyaltyPage = () => {
         const data = await res.json();
         setGame(data.game);
         setShowStartGame(false);
+        setSelectedReward({ type: '', id: '', name: '' });
+        setSelectedManifestation('');
         toast.success('Your plant journey has begun! 🌱');
       } else {
         const err = await res.json();
@@ -596,28 +602,33 @@ export const LoyaltyPage = () => {
               Start Your Healing Garden
             </DialogTitle>
             <DialogDescription>
-              Choose the reward you want to grow towards
+              Choose your reward and manifestation to begin growing
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {/* Reward Type Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Reward Type</label>
               <Select 
                 value={selectedReward.type} 
                 onValueChange={(type) => setSelectedReward({ type, id: '', name: '' })}
+                data-testid="reward-type-select"
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select reward type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="product">Product</SelectItem>
-                  <SelectItem value="service">Service</SelectItem>
-                  <SelectItem value="class">Class</SelectItem>
+                  {rewardTypes.map((rt) => (
+                    <SelectItem key={rt.id} value={rt.id}>
+                      {rt.name} ({rt.targetDays} days)
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Specific Reward Selection */}
             {selectedReward.type && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Choose Your Reward</label>
@@ -628,6 +639,7 @@ export const LoyaltyPage = () => {
                     const item = items.find(i => i.id === id);
                     setSelectedReward(prev => ({ ...prev, id, name: item?.name || item?.title || '' }));
                   }}
+                  data-testid="reward-select"
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select your reward" />
@@ -643,27 +655,74 @@ export const LoyaltyPage = () => {
               </div>
             )}
 
+            {/* Manifestation Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Target Days</label>
-              <Select value={String(targetDays)} onValueChange={(v) => setTargetDays(Number(v))}>
+              <label className="text-sm font-medium">Choose Your Manifestation</label>
+              <Select 
+                value={selectedManifestation}
+                onValueChange={setSelectedManifestation}
+                data-testid="manifestation-select"
+              >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select a manifestation" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="7">7 days</SelectItem>
-                  <SelectItem value="14">14 days</SelectItem>
-                  <SelectItem value="21">21 days</SelectItem>
-                  <SelectItem value="30">30 days</SelectItem>
+                  {manifestations.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{m.name}</span>
+                        <span className="text-xs text-muted-foreground">({m.plantType})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {selectedManifestation && (
+                <p className="text-xs text-muted-foreground italic">
+                  {manifestations.find(m => m.id === selectedManifestation)?.description}
+                </p>
+              )}
             </div>
+
+            {/* Selected manifestation plant preview */}
+            {selectedManifestation && (
+              <div className="flex justify-center py-2">
+                <div className="text-center">
+                  <img 
+                    src={manifestations.find(m => m.id === selectedManifestation)?.plantImage}
+                    alt="Your plant"
+                    className="w-20 h-20 object-cover rounded-full border-2 border-green-200 mx-auto"
+                  />
+                  <p className="text-sm text-green-700 mt-2 font-medium">
+                    {manifestations.find(m => m.id === selectedManifestation)?.plantType}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Target days info */}
+            {selectedReward.type && (
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <p className="text-sm text-amber-800">
+                  <strong>Time to grow:</strong> {rewardTypes.find(rt => rt.id === selectedReward.type)?.targetDays || 28} days
+                </p>
+                <p className="text-xs text-amber-600 mt-1">
+                  Water your plant daily and share with friends to reach 100% growth before time runs out!
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowStartGame(false)}>
               Cancel
             </Button>
-            <Button onClick={startGame} className="bg-green-600" disabled={!selectedReward.id}>
+            <Button 
+              onClick={startGame} 
+              className="bg-green-600 hover:bg-green-700" 
+              disabled={!selectedReward.id || !selectedManifestation}
+              data-testid="plant-seed-btn"
+            >
               <Leaf className="h-4 w-4 mr-2" />
               Plant My Seed
             </Button>
