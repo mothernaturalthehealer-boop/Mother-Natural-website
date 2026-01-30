@@ -178,6 +178,7 @@ class UserInDB(BaseModel):
     is_active: bool = True
     profileImage: Optional[str] = None
     isCommunityMember: bool = False
+    communityPendingApproval: bool = False  # NEW: Pending admin approval
     # Loyalty points
     loyaltyPoints: int = 0
     totalPointsEarned: int = 0
@@ -196,6 +197,7 @@ class UserResponse(BaseModel):
     joinedDate: str
     profileImage: Optional[str] = None
     isCommunityMember: bool = False
+    communityPendingApproval: bool = False  # NEW
     loyaltyPoints: int = 0
     totalPointsEarned: int = 0
     referralCode: Optional[str] = None
@@ -208,6 +210,7 @@ class AdminCreateUserModel(BaseModel):
     role: str = "user"
     membershipLevel: str = "seed"
     isCommunityMember: bool = False
+    communityPendingApproval: bool = False  # NEW
 
 
 # ===============================
