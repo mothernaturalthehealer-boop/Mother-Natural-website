@@ -733,9 +733,13 @@ async def process_payment(payment_request: PaymentRequest):
                     logger.error(f"Failed to send receipt email: {str(email_error)}")
                     # Don't fail the payment if email fails
             
-            # Reduce stock for purchased products and check for low stock notifications
+            # Reduce stock for purchased products, check for low stock notifications, and add plant growth
             try:
-                await reduce_stock_and_check_notifications(payment_request.items)
+                await reduce_stock_and_check_notifications(
+                    payment_request.items,
+                    customer_email=payment_request.customerEmail,
+                    total_amount=payment_request.amount / 100  # Convert cents to dollars
+                )
             except Exception as stock_error:
                 logger.error(f"Failed to reduce stock: {str(stock_error)}")
                 # Don't fail the payment if stock reduction fails
