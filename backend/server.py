@@ -3680,6 +3680,140 @@ async def get_all_payment_configs():
     }
 
 
+# ===============================
+# DISCOUNT CODES ENDPOINTS
+# ===============================
+
+@api_router.get("/discount-codes")
+async def get_discount_codes(current_admin: dict = Depends(get_current_admin_user)):
+    """Get all discount codes (admin only)"""
+    codes = await db.discount_codes.find({}, {"_id": 0}).sort("code", 1).to_list(100)
+    return codes
+
+
+@api_router.post("/discount-codes")
+async def create_discount_code(
+    code: DiscountCodeModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Create a new discount code (admin only)"""
+    # Check if code already exists
+    existing = await db.discount_codes.find_one({"code": code.code.upper()})
+    if existing:
+        raise HTTPException(status_code=400, detail="Discount code already exists")
+    
+    code_dict = code.model_dump()
+    code_dict["id"] = str(uuid.uuid4())
+    code_dict["code"] = code_dict["code"].upper()  # Store codes in uppercase
+    code_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.discount_codes.insert_one(code_dict)
+    return {"success": True, "id": code_dict["id"], "message": "Discount code created"}
+
+
+@api_router.put("/discount-codes/{code_id}")
+async def update_discount_code(
+    code_id: str,
+    code: DiscountCodeModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Update a discount code (admin only)"""
+    code_dict = code.model_dump()
+    code_dict["code"] = code_dict["code"].upper()
+    code_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.discount_codes.update_one(
+        {"id": code_id},
+        {"$set": code_dict}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Discount code not found")
+    
+    return {"success": True, "message": "Discount code updated"}
+
+
+@api_router.delete("/discount-codes/{code_id}")
+async def delete_discount_code(
+    code_id: str,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Delete a discount code (admin only)"""
+    result = await db.discount_codes.delete_one({"id": code_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Discount code not found")
+    
+    return {"success": True, "message": "Discount code deleted"}
+
+
+@api_router.post("/discount-codes/validate")
+async def validate_discount_code(
+    code: str = Body(..., embed=True),
+    orderAmount: float = Body(0),
+    orderType: str = Body("all")  # "products", "classes", etc.
+):
+    """Validate a discount code and return discount details"""
+    discount = await db.discount_codes.find_one(
+        {"code": code.upper(), "isActive": True},
+        {"_id": 0}
+    )
+    
+    if not discount:
+        raise HTTPException(status_code=404, detail="Invalid discount code")
+    
+    # Check if code has reached max uses
+    if discount.get("maxUses") and discount.get("usedCount", 0) >= discount["maxUses"]:
+        raise HTTPException(status_code=400, detail="Discount code has reached maximum uses")
+    
+    # Check validity dates
+    now = datetime.now(timezone.utc).isoformat()
+    if discount.get("validFrom") and now < discount["validFrom"]:
+        raise HTTPException(status_code=400, detail="Discount code is not yet valid")
+    if discount.get("validUntil") and now > discount["validUntil"]:
+        raise HTTPException(status_code=400, detail="Discount code has expired")
+    
+    # Check minimum order amount
+    if orderAmount < discount.get("minOrderAmount", 0):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Minimum order amount of ${discount['minOrderAmount']:.2f} required"
+        )
+    
+    # Check if code applies to order type
+    applies_to = discount.get("appliesTo", "all")
+    if applies_to != "all" and applies_to != orderType:
+        raise HTTPException(status_code=400, detail=f"Discount code only applies to {applies_to}")
+    
+    # Calculate discount amount
+    if discount["discountType"] == "percentage":
+        discount_amount = orderAmount * (discount["discountValue"] / 100)
+    else:
+        discount_amount = min(discount["discountValue"], orderAmount)
+    
+    return {
+        "valid": True,
+        "code": discount["code"],
+        "discountType": discount["discountType"],
+        "discountValue": discount["discountValue"],
+        "discountAmount": round(discount_amount, 2),
+        "description": discount.get("description", "")
+    }
+
+
+@api_router.post("/discount-codes/use")
+async def use_discount_code(
+    code: str = Body(..., embed=True)
+):
+    """Increment the used count of a discount code (called after successful payment)"""
+    result = await db.discount_codes.update_one(
+        {"code": code.upper()},
+        {"$inc": {"usedCount": 1}}
+    )
+    
+    return {"success": True}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
