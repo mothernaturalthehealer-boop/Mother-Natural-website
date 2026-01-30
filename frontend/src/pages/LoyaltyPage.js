@@ -32,9 +32,11 @@ export const LoyaltyPage = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showStartGame, setShowStartGame] = useState(false);
-  const [rewards, setRewards] = useState({ products: [], services: [], classes: [] });
+  const [rewards, setRewards] = useState({ products: [], services: [], classes: [], retreats: [] });
   const [selectedReward, setSelectedReward] = useState({ type: '', id: '', name: '' });
-  const [targetDays, setTargetDays] = useState(14);
+  const [rewardTypes, setRewardTypes] = useState([]);
+  const [manifestations, setManifestations] = useState([]);
+  const [selectedManifestation, setSelectedManifestation] = useState('');
   const [waterCooldown, setWaterCooldown] = useState(0);
   const [isWatering, setIsWatering] = useState(false);
 
@@ -63,18 +65,33 @@ export const LoyaltyPage = () => {
         }
       }
 
+      // Load reward types and manifestations
+      const [rewardTypesRes, manifestationsRes] = await Promise.all([
+        fetch(`${API_URL}/api/game/reward-types`),
+        fetch(`${API_URL}/api/game/manifestations`)
+      ]);
+      
+      if (rewardTypesRes.ok) {
+        setRewardTypes(await rewardTypesRes.json());
+      }
+      if (manifestationsRes.ok) {
+        setManifestations(await manifestationsRes.json());
+      }
+
       // Load available rewards
-      const [productsRes, servicesRes, classesRes] = await Promise.all([
+      const [productsRes, servicesRes, classesRes, retreatsRes] = await Promise.all([
         fetch(`${API_URL}/api/products`),
         fetch(`${API_URL}/api/services`),
-        fetch(`${API_URL}/api/classes`)
+        fetch(`${API_URL}/api/classes`),
+        fetch(`${API_URL}/api/retreats`)
       ]);
       
       const products = productsRes.ok ? await productsRes.json() : [];
       const services = servicesRes.ok ? await servicesRes.json() : [];
       const classes = classesRes.ok ? await classesRes.json() : [];
+      const retreats = retreatsRes.ok ? await retreatsRes.json() : [];
       
-      setRewards({ products, services, classes });
+      setRewards({ products, services, classes, retreats });
     } catch (error) {
       console.error('Error loading data:', error);
     }
