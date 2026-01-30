@@ -3372,9 +3372,13 @@ async def get_stripe_payment_status(session_id: str):
                     }}
                 )
                 
-                # Reduce stock for products
+                # Reduce stock for products and add plant growth
                 items = [PaymentItem(**item) for item in order.get("items", [])]
-                await reduce_stock_and_check_notifications(items)
+                await reduce_stock_and_check_notifications(
+                    items,
+                    customer_email=order.get("customer_email"),
+                    total_amount=order.get("amount", 0) / 100  # Convert cents to dollars
+                )
                 
                 # Send receipt email
                 if order.get("customer_email"):
