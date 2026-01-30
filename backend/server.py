@@ -2604,6 +2604,29 @@ async def apply_referral_code(
         "date": datetime.now(timezone.utc).isoformat()
     })
     
+    # BONUS: Add plant growth for referrer if they have an active game
+    referrer_game = await db.plant_games.find_one(
+        {"userId": referrer["id"], "isComplete": False, "isExpired": False}
+    )
+    if referrer_game:
+        new_growth = min(100, referrer_game["growthPercentage"] + REFERRAL_GROWTH_PERCENT)
+        is_complete = new_growth >= 100
+        await db.plant_games.update_one(
+            {"id": referrer_game["id"]},
+            {"$set": {"growthPercentage": new_growth, "isComplete": is_complete}}
+        )
+        if is_complete:
+            await db.game_rewards.insert_one({
+                "id": str(uuid.uuid4()),
+                "userId": referrer["id"],
+                "gameId": referrer_game["id"],
+                "rewardType": referrer_game["rewardType"],
+                "rewardId": referrer_game["rewardId"],
+                "rewardName": referrer_game["rewardName"],
+                "claimedAt": None,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            })
+    
     return {"success": True, "message": "Referral code applied successfully!"}
 
 
