@@ -2306,9 +2306,13 @@ class PlantGameModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: Optional[str] = None
     userId: str
-    rewardType: str  # product, service, class
+    rewardType: str  # product, service, class, retreat
     rewardId: str
     rewardName: str
+    manifestationId: str  # Links to manifestation/plant type
+    manifestationName: str
+    plantType: str
+    plantImage: str
     targetDays: int = 14
     startDate: str
     endDate: str
@@ -2318,6 +2322,75 @@ class PlantGameModel(BaseModel):
     lastWatered: Optional[str] = None
     isComplete: bool = False
     isExpired: bool = False
+
+
+# Default Game Settings - Reward Types with Target Days
+DEFAULT_REWARD_TYPES = [
+    {"id": "class", "name": "Class", "targetDays": 60, "order": 1},
+    {"id": "retreat", "name": "Retreat", "targetDays": 90, "order": 2},
+    {"id": "product", "name": "Product", "targetDays": 28, "order": 3},
+    {"id": "service", "name": "Service", "targetDays": 28, "order": 4}
+]
+
+# Default Manifestations with Plant Types
+DEFAULT_MANIFESTATIONS = [
+    {
+        "id": "abundance",
+        "name": "Abundance",
+        "description": "Attract prosperity and wealth into your life",
+        "plantType": "Money Tree",
+        "plantImage": "https://static.prod-images.emergentagent.com/jobs/e37c8cfa-bf63-4c26-a631-8495ca8c3863/images/6b939a2ee22e6be2adcaca716a8546901d19457be91f45aa9ac2740a25f088d7.png",
+        "order": 1
+    },
+    {
+        "id": "healing",
+        "name": "Healing",
+        "description": "Restore balance and wellness to body and spirit",
+        "plantType": "Aloe Plant",
+        "plantImage": "https://static.prod-images.emergentagent.com/jobs/e37c8cfa-bf63-4c26-a631-8495ca8c3863/images/4656fc85c0d54430a2da4a8c41d438c3952cfb47c799ce0f9f0796a04ba7d451.png",
+        "order": 2
+    },
+    {
+        "id": "love",
+        "name": "Love",
+        "description": "Open your heart to love and deep connections",
+        "plantType": "Rose Bush",
+        "plantImage": "https://static.prod-images.emergentagent.com/jobs/e37c8cfa-bf63-4c26-a631-8495ca8c3863/images/3e4e184ea722c4e4d7b14d4552f45a020b1a523fbffe6a0898f639bafb6a24aa.png",
+        "order": 3
+    },
+    {
+        "id": "peace",
+        "name": "Peace",
+        "description": "Find inner calm and serenity in your journey",
+        "plantType": "Lavender",
+        "plantImage": "https://static.prod-images.emergentagent.com/jobs/e37c8cfa-bf63-4c26-a631-8495ca8c3863/images/d081c292798b7f876c8210394260f6fb24c0dd74cc2a943e072c0ea5d17983d9.png",
+        "order": 4
+    },
+    {
+        "id": "growth",
+        "name": "Growth",
+        "description": "Embrace transformation and personal evolution",
+        "plantType": "Bamboo",
+        "plantImage": "https://static.prod-images.emergentagent.com/jobs/e37c8cfa-bf63-4c26-a631-8495ca8c3863/images/b53892199b61f579e68b5246cd5c4fcf5cad9eaa37558df7541fc86066c55103.png",
+        "order": 5
+    }
+]
+
+
+class RewardTypeModel(BaseModel):
+    id: str
+    name: str
+    targetDays: int
+    order: int
+
+class ManifestationModel(BaseModel):
+    id: Optional[str] = None
+    name: str
+    description: str
+    plantType: str
+    plantImage: str
+    order: int
+
 
 @api_router.get("/loyalty/tiers")
 async def get_membership_tiers():
