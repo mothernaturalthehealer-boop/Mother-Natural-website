@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Heart, MessageCircle, Share2, Send, Users, Lock, Sparkles, UserPlus, LogIn } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Send, Users, Lock, Sparkles, UserPlus, LogIn, Clock } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -21,6 +21,7 @@ export const CommunityPage = () => {
   const [loading, setLoading] = useState(true);
 
   const isMember = user?.isCommunityMember === true;
+  const isPending = user?.communityPendingApproval === true;
 
   // Load posts from API
   const loadPosts = useCallback(async () => {
@@ -68,15 +69,17 @@ export const CommunityPage = () => {
         headers: getAuthHeaders()
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
-        toast.success('Welcome to the Community Circle! 🎉');
-        // Refresh user data to get updated isCommunityMember status
+        toast.success(data.message || 'Your request has been submitted!');
+        // Refresh user data to get updated status
         if (refreshUser) {
           await refreshUser();
         }
         loadMemberCount();
       } else {
-        toast.error('Failed to join community');
+        toast.error(data.detail || 'Failed to join community');
       }
     } catch (error) {
       console.error('Error joining community:', error);
