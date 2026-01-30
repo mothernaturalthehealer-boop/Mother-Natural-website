@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Package, Users, Calendar, Mountain, Settings, Check, BarChart3, Receipt, Bell, Gamepad2 } from 'lucide-react';
+import { Package, Users, Calendar, Mountain, Settings, Check, BarChart3, Receipt, Bell, Gamepad2, Ticket, UserPlus } from 'lucide-react';
 
 // Import admin management components
 import {
@@ -28,6 +28,8 @@ import {
 import { TaxSettings } from '@/components/admin/TaxSettings';
 import { NotificationSettings } from '@/components/admin/NotificationSettings';
 import { GameSettings } from '@/components/admin/GameSettings';
+import { DiscountCodes } from '@/components/admin/DiscountCodes';
+import { CommunityApproval } from '@/components/admin/CommunityApproval';
 
 export const AdminPage = () => {
   const { user, loading } = useAuth();
