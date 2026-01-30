@@ -3518,9 +3518,13 @@ async def capture_paypal_payment(order_id: str, paypal_order_id: str = Body(...,
             }}
         )
         
-        # Reduce stock for products
+        # Reduce stock for products and add plant growth
         items = [PaymentItem(**item) for item in order.get("items", [])]
-        await reduce_stock_and_check_notifications(items)
+        await reduce_stock_and_check_notifications(
+            items,
+            customer_email=order.get("customer_email"),
+            total_amount=order.get("total_amount", 0) / 100  # Convert cents to dollars
+        )
         
         # Send receipt email
         if order.get("customer_email"):
