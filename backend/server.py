@@ -3154,6 +3154,66 @@ async def abandon_plant_game(current_user: dict = Depends(get_current_active_use
     
     return {"success": True, "message": "Game abandoned"}
 
+
+# ============= ADMIN GAME MANAGEMENT =============
+
+@api_router.get("/admin/games/active")
+async def get_active_games(current_admin: dict = Depends(get_current_admin_user)):
+    """Get all active plant games (admin only)"""
+    games = await db.plant_games.find(
+        {"isComplete": False, "isExpired": False},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Enrich with user info
+    enriched_games = []
+    for game in games:
+        user = await db.auth_users.find_one(
+            {"id": game["userId"]},
+            {"_id": 0, "name": 1, "email": 1, "profileImage": 1}
+        )
+        enriched_games.append({
+            **game,
+            "userName": user.get("name", "Unknown") if user else "Unknown",
+            "userEmail": user.get("email", "") if user else "",
+            "userProfileImage": user.get("profileImage") if user else None
+        })
+    
+    return enriched_games
+
+
+@api_router.post("/admin/games/{game_id}/reset")
+async def reset_user_game(
+    game_id: str,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Reset a user's plant game to allow them to start fresh (admin only)"""
+    # Find and delete the game
+    game = await db.plant_games.find_one({"id": game_id})
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    # Delete the game entirely so user can start a new one
+    await db.plant_games.delete_one({"id": game_id})
+    
+    # Log the reset action
+    await db.admin_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "action": "game_reset",
+        "adminId": current_admin["id"],
+        "targetUserId": game["userId"],
+        "gameId": game_id,
+        "previousProgress": game.get("growthPercentage", 0),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "success": True, 
+        "message": f"Game reset for user. They can now start a new game.",
+        "userId": game["userId"]
+    }
+
+
 @api_router.get("/game/rewards")
 async def get_game_rewards(current_user: dict = Depends(get_current_active_user)):
     """Get user's unclaimed game rewards"""
