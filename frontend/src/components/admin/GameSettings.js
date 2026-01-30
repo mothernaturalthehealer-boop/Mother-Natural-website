@@ -392,6 +392,65 @@ export const GameSettings = () => {
         </CardContent>
       </Card>
 
+      {/* Add Reward Type Dialog */}
+      <Dialog open={showRewardTypeDialog} onOpenChange={setShowRewardTypeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Add Reward Type
+            </DialogTitle>
+            <DialogDescription>
+              Create a new reward type for the plant growing game
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rewardName">Name *</Label>
+              <Input
+                id="rewardName"
+                placeholder="e.g., Workshop"
+                value={newRewardType.name}
+                onChange={(e) => setNewRewardType({ ...newRewardType, name: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="rewardId">ID (optional)</Label>
+              <Input
+                id="rewardId"
+                placeholder="Auto-generated from name if empty"
+                value={newRewardType.id}
+                onChange={(e) => setNewRewardType({ ...newRewardType, id: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
+              />
+              <p className="text-xs text-muted-foreground">Used internally to identify this reward type</p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="rewardDays">Target Days *</Label>
+              <Input
+                id="rewardDays"
+                type="number"
+                min="1"
+                placeholder="30"
+                value={newRewardType.targetDays}
+                onChange={(e) => setNewRewardType({ ...newRewardType, targetDays: parseInt(e.target.value) || 30 })}
+              />
+              <p className="text-xs text-muted-foreground">How many days users have to reach 100% growth</p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRewardTypeDialog(false)}>Cancel</Button>
+            <Button onClick={handleCreateRewardType} disabled={saving || !newRewardType.name.trim()}>
+              {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+              Add Reward Type
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Manifestation Dialog */}
       <Dialog open={showManifestationDialog} onOpenChange={setShowManifestationDialog}>
         <DialogContent className="sm:max-w-lg">
