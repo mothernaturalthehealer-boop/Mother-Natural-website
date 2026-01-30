@@ -2737,7 +2737,7 @@ async def start_plant_game(
     rewardType: str = Body(...),
     rewardId: str = Body(...),
     rewardName: str = Body(...),
-    targetDays: int = Body(14),
+    manifestationId: str = Body(...),
     current_user: dict = Depends(get_current_active_user)
 ):
     """Start a new plant growing game"""
@@ -2748,6 +2748,23 @@ async def start_plant_game(
     if existing:
         raise HTTPException(status_code=400, detail="You already have an active game. Complete or abandon it first.")
     
+    # Get reward type to get target days
+    reward_types = await db.game_reward_types.find({}, {"_id": 0}).to_list(10)
+    if not reward_types:
+        reward_types = DEFAULT_REWARD_TYPES
+    
+    reward_type_data = next((rt for rt in reward_types if rt["id"] == rewardType), None)
+    target_days = reward_type_data["targetDays"] if reward_type_data else 28
+    
+    # Get manifestation to get plant type and image
+    manifestations = await db.game_manifestations.find({}, {"_id": 0}).to_list(20)
+    if not manifestations:
+        manifestations = DEFAULT_MANIFESTATIONS
+    
+    manifestation = next((m for m in manifestations if m["id"] == manifestationId), None)
+    if not manifestation:
+        raise HTTPException(status_code=400, detail="Invalid manifestation selected")
+    
     now = datetime.now(timezone.utc)
     game = {
         "id": str(uuid.uuid4()),
@@ -2755,9 +2772,13 @@ async def start_plant_game(
         "rewardType": rewardType,
         "rewardId": rewardId,
         "rewardName": rewardName,
-        "targetDays": targetDays,
+        "manifestationId": manifestationId,
+        "manifestationName": manifestation["name"],
+        "plantType": manifestation["plantType"],
+        "plantImage": manifestation["plantImage"],
+        "targetDays": target_days,
         "startDate": now.isoformat(),
-        "endDate": (now + timedelta(days=targetDays)).isoformat(),
+        "endDate": (now + timedelta(days=target_days)).isoformat(),
         "growthPercentage": 0.0,
         "plantFood": 0,
         "waterCount": 0,
