@@ -279,6 +279,9 @@ export const AdminPage = () => {
             <TabsTrigger value="notifications" className="bg-amber-500/10">
               <Bell className="h-4 w-4 mr-1" />Notifications
             </TabsTrigger>
+            <TabsTrigger value="game" className="bg-purple-500/10">
+              <Gamepad2 className="h-4 w-4 mr-1" />Game
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="bg-primary/10">
               <BarChart3 className="h-4 w-4 mr-1" />Analytics
             </TabsTrigger>
