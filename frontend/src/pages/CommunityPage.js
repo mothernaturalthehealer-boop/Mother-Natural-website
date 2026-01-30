@@ -292,6 +292,7 @@ export const CommunityPage = () => {
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Preview - blurred posts */}
           <div className="mt-12">
