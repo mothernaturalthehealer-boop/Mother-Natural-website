@@ -214,6 +214,24 @@ class AdminCreateUserModel(BaseModel):
 
 
 # ===============================
+# DISCOUNT CODES MODEL
+# ===============================
+
+class DiscountCodeModel(BaseModel):
+    id: Optional[str] = None
+    code: str  # The actual discount code (e.g., "WELCOME10")
+    discountType: str = "percentage"  # "percentage" or "fixed"
+    discountValue: float  # 10 for 10% or 10 for $10 off
+    minOrderAmount: float = 0  # Minimum order to apply discount
+    maxUses: Optional[int] = None  # None = unlimited
+    usedCount: int = 0
+    validFrom: Optional[str] = None
+    validUntil: Optional[str] = None
+    isActive: bool = True
+    appliesTo: str = "all"  # "all", "products", "classes", "services", "retreats"
+    description: Optional[str] = None
+
+# ===============================
 # AUTHENTICATION HELPER FUNCTIONS
 # ===============================
 
