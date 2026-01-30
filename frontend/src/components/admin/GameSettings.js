@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Gamepad2, Target, Sparkles, Leaf, Plus, Pencil, Trash2, RefreshCw, Image } from 'lucide-react';
+import { Gamepad2, Target, Sparkles, Leaf, Plus, Pencil, Trash2, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -20,6 +20,13 @@ export const GameSettings = () => {
   // Reward Types
   const [rewardTypes, setRewardTypes] = useState([]);
   const [editingRewardType, setEditingRewardType] = useState(null);
+  const [showRewardTypeDialog, setShowRewardTypeDialog] = useState(false);
+  const [newRewardType, setNewRewardType] = useState({
+    id: '',
+    name: '',
+    targetDays: 30,
+    order: 1
+  });
   
   // Manifestations
   const [manifestations, setManifestations] = useState([]);
@@ -80,6 +87,62 @@ export const GameSettings = () => {
       toast.error('Failed to update');
     }
     setSaving(false);
+  };
+
+  const handleCreateRewardType = async () => {
+    if (!newRewardType.name.trim()) {
+      toast.error('Please enter a name');
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/api/game/reward-types`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({
+          ...newRewardType,
+          id: newRewardType.id || newRewardType.name.toLowerCase().replace(/\s+/g, '_'),
+          order: rewardTypes.length + 1
+        })
+      });
+      
+      if (response.ok) {
+        toast.success('Reward type created!');
+        setShowRewardTypeDialog(false);
+        setNewRewardType({ id: '', name: '', targetDays: 30, order: 1 });
+        loadData();
+      } else {
+        const err = await response.json();
+        toast.error(err.detail || 'Failed to create');
+      }
+    } catch (error) {
+      toast.error('Failed to create');
+    }
+    setSaving(false);
+  };
+
+  const handleDeleteRewardType = async (typeId) => {
+    if (!confirm('Are you sure you want to delete this reward type?\n\nNote: Users who already have a plant growing with this reward will still receive it. They just won\'t be able to select it for new games.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${API_URL}/api/game/reward-types/${typeId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      
+      if (response.ok) {
+        toast.success('Reward type deleted');
+        loadData();
+      } else {
+        const err = await response.json();
+        toast.error(err.detail || 'Failed to delete');
+      }
+    } catch (error) {
+      toast.error('Failed to delete');
+    }
   };
 
   // Manifestation handlers
