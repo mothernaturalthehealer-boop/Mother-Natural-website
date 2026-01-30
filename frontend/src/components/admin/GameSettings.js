@@ -61,16 +61,45 @@ export const GameSettings = () => {
       if (manifestRes.ok) {
         setManifestations(await manifestRes.json());
       }
+      if (gamesRes.ok) {
+        setActiveGames(await gamesRes.json());
+      }
     } catch (error) {
       console.error('Failed to load game settings:', error);
       toast.error('Failed to load game settings');
     }
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Reset game handler
+  const handleResetGame = async (gameId, userName) => {
+    if (!confirm(`Are you sure you want to reset ${userName}'s game?\n\nThis will delete their current progress and allow them to start a new game from scratch.`)) {
+      return;
+    }
+    
+    setResettingGame(gameId);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/games/${gameId}/reset`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      
+      if (response.ok) {
+        toast.success(`${userName}'s game has been reset. They can now start fresh!`);
+        loadData();
+      } else {
+        const err = await response.json();
+        toast.error(err.detail || 'Failed to reset game');
+      }
+    } catch (error) {
+      toast.error('Failed to reset game');
+    }
+    setResettingGame(null);
+  };
 
   // Reward Type handlers
   const handleUpdateRewardType = async (typeId, targetDays) => {
