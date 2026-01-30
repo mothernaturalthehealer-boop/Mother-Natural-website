@@ -165,7 +165,7 @@ export const CommunityPage = () => {
     return date.toLocaleDateString();
   };
 
-  // Non-member view - Show join prompt
+  // Non-member view - Show join prompt or pending status
   if (!isMember) {
     return (
       <div className="min-h-screen py-12">
@@ -189,15 +189,40 @@ export const CommunityPage = () => {
             </Badge>
           </div>
 
-          {/* Private Community Card */}
-          <Card className="max-w-lg mx-auto border-2 border-primary/20 shadow-lg">
-            <CardHeader className="text-center pb-2">
-              <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
-                <Lock className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle className="font-heading text-2xl">Members Only</CardTitle>
-              <CardDescription className="text-base">
-                This community is private and exclusive to members
+          {/* Pending Approval Card */}
+          {isPending ? (
+            <Card className="max-w-lg mx-auto border-2 border-amber-300 shadow-lg bg-amber-50">
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-amber-200 to-amber-100 flex items-center justify-center mb-4">
+                  <Clock className="h-8 w-8 text-amber-600" />
+                </div>
+                <CardTitle className="font-heading text-2xl text-amber-800">Request Pending</CardTitle>
+                <CardDescription className="text-base text-amber-700">
+                  Your membership request is being reviewed
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="space-y-6 text-center">
+                <p className="text-amber-700">
+                  Thank you for your interest in joining our community! An admin will review your request shortly.
+                </p>
+                <div className="p-4 bg-white/50 rounded-lg border border-amber-200">
+                  <p className="text-sm text-amber-600">
+                    You&apos;ll receive access once your request is approved. This usually takes 1-2 business days.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            /* Private Community Card */
+            <Card className="max-w-lg mx-auto border-2 border-primary/20 shadow-lg">
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
+                  <Lock className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="font-heading text-2xl">Members Only</CardTitle>
+                <CardDescription className="text-base">
+                  This community is private and exclusive to members
               </CardDescription>
             </CardHeader>
             
