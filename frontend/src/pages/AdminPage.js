@@ -339,6 +339,10 @@ export const AdminPage = () => {
             <NotificationSettings />
           </TabsContent>
 
+          <TabsContent value="game" className="space-y-4">
+            <GameSettings />
+          </TabsContent>
+
           <TabsContent value="analytics" className="space-y-4">
             <AnalyticsDashboard />
           </TabsContent>
