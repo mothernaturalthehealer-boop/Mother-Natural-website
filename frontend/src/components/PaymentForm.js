@@ -47,6 +47,55 @@ export const PaymentForm = ({
   const [card, setCard] = useState(null);
   const [payments, setPayments] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('square');
+  
+  // Discount code state
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
+  
+  // Calculate final amount
+  const discountAmount = appliedDiscount?.discountAmount || 0;
+  const finalAmount = Math.max(0, amount - discountAmount);
+
+  // Validate discount code
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      toast.error('Please enter a discount code');
+      return;
+    }
+    
+    setIsValidatingCode(true);
+    try {
+      const response = await fetch(`${API_URL}/api/discount-codes/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: discountCode.trim(),
+          orderAmount: amount,
+          orderType: paymentType
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAppliedDiscount(data);
+        toast.success(`Discount applied: ${data.discountType === 'percentage' ? `${data.discountValue}% off` : `$${data.discountValue} off`}`);
+      } else {
+        const err = await response.json();
+        toast.error(err.detail || 'Invalid discount code');
+        setAppliedDiscount(null);
+      }
+    } catch (error) {
+      toast.error('Failed to validate discount code');
+      setAppliedDiscount(null);
+    }
+    setIsValidatingCode(false);
+  };
+  
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode('');
+  };
 
   useEffect(() => {
     fetchPaymentConfig();
