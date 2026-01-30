@@ -2698,6 +2698,28 @@ async def get_reward_types():
         return DEFAULT_REWARD_TYPES
     return types
 
+@api_router.post("/game/reward-types")
+async def create_reward_type(
+    reward_type: RewardTypeModel,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Create a new reward type (admin only)"""
+    rt_dict = reward_type.model_dump()
+    
+    # Generate ID if not provided
+    if not rt_dict.get("id"):
+        rt_dict["id"] = rt_dict["name"].lower().replace(" ", "_")
+    
+    # Check if ID already exists
+    existing = await db.game_reward_types.find_one({"id": rt_dict["id"]})
+    if existing:
+        raise HTTPException(status_code=400, detail="Reward type with this ID already exists")
+    
+    rt_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.game_reward_types.insert_one(rt_dict)
+    
+    return {"success": True, "id": rt_dict["id"], "message": "Reward type created"}
+
 @api_router.put("/game/reward-types/{type_id}")
 async def update_reward_type(
     type_id: str,
@@ -2714,6 +2736,19 @@ async def update_reward_type(
         upsert=True
     )
     return {"success": True, "message": "Reward type updated"}
+
+@api_router.delete("/game/reward-types/{type_id}")
+async def delete_reward_type(
+    type_id: str,
+    current_admin: dict = Depends(get_current_admin_user)
+):
+    """Delete a reward type (admin only). Existing games with this reward type are not affected."""
+    result = await db.game_reward_types.delete_one({"id": type_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Reward type not found")
+    
+    return {"success": True, "message": "Reward type deleted. Existing games are not affected."}
 
 @api_router.get("/game/manifestations")
 async def get_manifestations():
