@@ -447,6 +447,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_active_
         joinedDate=current_user.get("joinedDate", ""),
         profileImage=current_user.get("profileImage"),
         isCommunityMember=current_user.get("isCommunityMember", False),
+        communityPendingApproval=current_user.get("communityPendingApproval", False),
         loyaltyPoints=current_user.get("loyaltyPoints", 0),
         totalPointsEarned=current_user.get("totalPointsEarned", 0),
         referralCode=current_user.get("referralCode"),
