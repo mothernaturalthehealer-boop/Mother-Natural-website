@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Package, Users, Calendar, Mountain, Settings, Check, BarChart3, Receipt, Bell } from 'lucide-react';
+import { Package, Users, Calendar, Mountain, Settings, Check, BarChart3, Receipt, Bell, Gamepad2 } from 'lucide-react';
 
 // Import admin management components
 import {
