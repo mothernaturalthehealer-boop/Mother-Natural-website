@@ -57,25 +57,46 @@ export const LoyaltyPage = () => {
       const gameRes = await fetch(`${API_URL}/api/game/plant`, {
         headers: getAuthHeaders()
       });
-      if (gameRes.ok) {
-        const gameData = await gameRes.json();
-        setGame(gameData);
-        if (gameData?.timeUntilWater > 0) {
-          setWaterCooldown(gameData.timeUntilWater);
-        }
-      }
-
-      // Load reward types and manifestations
+      
+      // Load reward types and manifestations first
       const [rewardTypesRes, manifestationsRes] = await Promise.all([
         fetch(`${API_URL}/api/game/reward-types`),
         fetch(`${API_URL}/api/game/manifestations`)
       ]);
       
+      let loadedManifestations = [];
+      let loadedRewardTypes = [];
+      
       if (rewardTypesRes.ok) {
-        setRewardTypes(await rewardTypesRes.json());
+        loadedRewardTypes = await rewardTypesRes.json();
+        setRewardTypes(loadedRewardTypes);
       }
       if (manifestationsRes.ok) {
-        setManifestations(await manifestationsRes.json());
+        loadedManifestations = await manifestationsRes.json();
+        setManifestations(loadedManifestations);
+      }
+      
+      // Process game data and enrich if missing manifestation info
+      if (gameRes.ok) {
+        let gameData = await gameRes.json();
+        
+        // If game exists but is missing plant image/type, try to enrich it
+        if (gameData && gameData.manifestationId && !gameData.plantImage) {
+          const manifestation = loadedManifestations.find(m => m.id === gameData.manifestationId);
+          if (manifestation) {
+            gameData = {
+              ...gameData,
+              plantImage: manifestation.plantImage,
+              plantType: manifestation.plantType,
+              manifestationName: manifestation.name
+            };
+          }
+        }
+        
+        setGame(gameData);
+        if (gameData?.timeUntilWater > 0) {
+          setWaterCooldown(gameData.timeUntilWater);
+        }
       }
 
       // Load available rewards
