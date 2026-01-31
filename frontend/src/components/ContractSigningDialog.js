@@ -14,6 +14,19 @@ export const ContractSigningDialog = ({ open, onOpenChange, contractType, bookin
   const canvasRef = useRef(null);
   const [contractText, setContractText] = useState('');
 
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setAgreed(false);
+      setSignature('');
+      // Clear canvas if it exists
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    }
+  }, [open]);
+
   useEffect(() => {
     // Load contract template from localStorage
     const contracts = JSON.parse(localStorage.getItem('contractTemplates') || '{}');
