@@ -2920,6 +2920,28 @@ async def get_plant_game(current_user: dict = Depends(get_current_active_user)):
         
         game["canWater"] = can_water
         game["timeUntilWater"] = max(0, int(time_until_water))
+        
+        # Enrich old games that are missing manifestation data
+        if game.get("manifestationId") and not game.get("plantImage"):
+            manifestations = await db.game_manifestations.find({}, {"_id": 0}).to_list(10)
+            if not manifestations:
+                manifestations = DEFAULT_MANIFESTATIONS
+            
+            manifestation = next((m for m in manifestations if m["id"] == game["manifestationId"]), None)
+            if manifestation:
+                # Update the game in the database with the missing fields
+                await db.plant_games.update_one(
+                    {"id": game["id"]},
+                    {"$set": {
+                        "plantImage": manifestation.get("plantImage"),
+                        "plantType": manifestation.get("plantType"),
+                        "manifestationName": manifestation.get("name")
+                    }}
+                )
+                # Also update the response
+                game["plantImage"] = manifestation.get("plantImage")
+                game["plantType"] = manifestation.get("plantType")
+                game["manifestationName"] = manifestation.get("name")
     
     return game
 
