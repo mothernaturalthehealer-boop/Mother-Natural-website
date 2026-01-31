@@ -175,8 +175,16 @@ By signing below, you acknowledge that you have read, understood, and agree to t
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      // Prevent closing dialog by clicking outside or pressing escape
+      // User must either cancel or sign the contract
+      if (!isOpen && !signature) {
+        toast.error('Please sign the contract to proceed, or click Cancel to go back');
+        return;
+      }
+      onOpenChange(isOpen);
+    }}>
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl flex items-center">
             <FileText className="h-6 w-6 mr-2 text-primary" />
